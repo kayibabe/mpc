@@ -20,9 +20,9 @@ function getVitalStatus(value, field) {
 }
 
 const STATUS_STYLES = {
-  normal: { bg: "bg-chart-3/10", border: "border-chart-3/20", text: "text-chart-3", pulse: false },
-  warning: { bg: "bg-chart-2/10", border: "border-chart-2/30", text: "text-chart-2", pulse: false },
-  critical: { bg: "bg-destructive/10", border: "border-destructive/30", text: "text-destructive", pulse: true },
+  normal: { bg: "bg-clinical-normal/10", border: "border-clinical-normal/20", text: "text-clinical-normal", pulse: false },
+  warning: { bg: "bg-clinical-abnormal/10", border: "border-clinical-abnormal/30", text: "text-clinical-abnormal", pulse: false },
+  critical: { bg: "bg-clinical-critical/10", border: "border-clinical-critical/30", text: "text-clinical-critical", pulse: true },
 };
 
 function VitalCard({ patientName, vitals, connected, compact = false }) {
@@ -268,9 +268,9 @@ export default function RealTimeVitals({ compact = false, maxPatients = 8 }) {
             </div>
           </div>
           <div className="flex items-center gap-2 text-[10px]">
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-chart-3/60" /> Normal</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-chart-2/60" /> Warning</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-destructive/60" /> Critical</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-clinical-normal/60" /> Normal</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-clinical-abnormal/60" /> Warning</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-clinical-critical/60" /> Critical</span>
           </div>
         </div>
       </div>

@@ -17,7 +17,7 @@ function StatCard({ icon: Icon, label, value, sub, color }) {
       </div>
       <div>
         <p className="text-sm text-muted-foreground">{label}</p>
-        <p className="text-2xl font-bold tracking-tight mt-0.5">{value}</p>
+        <p className="text-2xl font-bold tracking-tight mt-0.5 font-mono tabular-nums">{value}</p>
         {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
       </div>
     </div>
@@ -163,7 +163,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
         <StatCard icon={Users} label="Registered Patients" value={stats.patients} color="bg-primary" />
-        <StatCard icon={Calendar} label="Today's Appts" value={report?.total_appointments_today ?? stats.appointments} color="bg-chart-2" sub={report ? `${report.appointments_completed} completed` : null} />
+        <StatCard icon={Calendar} label="Today's Appts" value={report?.total_appointments_today ?? stats.appointments} color="bg-triage-semi" sub={report ? `${report.appointments_completed} completed` : null} />
         <StatCard icon={FlaskConical} label="Pending Lab Orders" value={report?.pending_lab_orders ?? stats.labOrders} color="bg-chart-3" />
         <StatCard icon={BedDouble} label="Occupied Beds" value={report?.active_inpatients ?? stats.occupiedBeds} color="bg-chart-4" />
         <StatCard icon={Pill} label="Drugs Low Stock" value={report?.drugs_low_stock ?? stats.drugs} color="bg-destructive" />

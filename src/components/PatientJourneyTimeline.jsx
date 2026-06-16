@@ -114,10 +114,10 @@ export default function PatientJourneyTimeline({ journeyId, patientId, compact =
                 className={`px-1.5 py-0.5 rounded-full font-medium ${
                   isCurrent
                     ? slaBreached
-                      ? "bg-destructive/10 text-destructive"
+                      ? "bg-triage-emergency/10 text-triage-emergency"
                       : "bg-primary/10 text-primary"
                     : isPast
-                    ? "bg-chart-3/10 text-chart-3"
+                    ? "bg-clinical-normal/10 text-clinical-normal"
                     : "bg-muted text-muted-foreground"
                 }`}
               >
@@ -127,7 +127,7 @@ export default function PatientJourneyTimeline({ journeyId, patientId, compact =
           );
         })}
         {slaBreached && (
-          <span className="text-destructive font-bold" title={`${Math.round(minutesInStage)}min / ${slaMinutes}min SLA`}>
+          <span className="text-triage-emergency font-bold" title={`${Math.round(minutesInStage)}min / ${slaMinutes}min SLA`}>
             ⚠
           </span>
         )}
@@ -153,14 +153,14 @@ export default function PatientJourneyTimeline({ journeyId, patientId, compact =
             <span className="text-muted-foreground">
               {STAGE_LABELS[journey.current_stage]} — {Math.round(minutesInStage)}m / {slaMinutes}m
             </span>
-            <span className={slaBreached ? "text-destructive font-semibold" : "text-muted-foreground"}>
+            <span className={slaBreached ? "text-triage-emergency font-semibold" : "text-muted-foreground"}>
               {slaBreached ? "⚠ Breached" : `${Math.round(slaPercent)}%`}
             </span>
           </div>
           <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-500 ${
-                slaBreached ? "bg-destructive" : slaPercent > 75 ? "bg-chart-2" : "bg-primary"
+                slaBreached ? "bg-triage-emergency" : slaPercent > 75 ? "bg-triage-semi" : "bg-primary"
               }`}
               style={{ width: `${Math.min(100, slaPercent)}%` }}
             />
@@ -178,9 +178,9 @@ export default function PatientJourneyTimeline({ journeyId, patientId, compact =
             <div key={stage} className="flex items-center gap-2.5 text-xs">
               <div className="flex-shrink-0">
                 {isCurrent ? (
-                  <Clock className={`w-3.5 h-3.5 ${slaBreached ? "text-destructive animate-pulse" : "text-primary"}`} />
+                  <Clock className={`w-3.5 h-3.5 ${slaBreached ? "text-triage-emergency animate-pulse" : "text-primary"}`} />
                 ) : isPast ? (
-                  <CheckCircle className="w-3.5 h-3.5 text-chart-3" />
+                  <CheckCircle className="w-3.5 h-3.5 text-clinical-normal" />
                 ) : (
                   <Circle className="w-3.5 h-3.5 text-muted-foreground/30" />
                 )}
@@ -197,7 +197,7 @@ export default function PatientJourneyTimeline({ journeyId, patientId, compact =
                 {STAGE_LABELS[stage]}
               </span>
               {isCurrent && slaBreached && (
-                <span className="text-destructive font-bold text-[10px] ml-auto">SLA BREACH</span>
+                <span className="text-triage-emergency font-bold text-[10px] ml-auto">SLA BREACH</span>
               )}
             </div>
           );

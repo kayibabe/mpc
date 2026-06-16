@@ -2,6 +2,15 @@
 module.exports = {
     darkMode: ["class"],
     content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
+  safelist: [
+    "bg-triage-emergency", "bg-triage-urgent", "bg-triage-semi", "bg-triage-routine",
+    "text-triage-emergency", "text-triage-urgent", "text-triage-semi", "text-triage-routine",
+    "bg-clinical-critical", "bg-clinical-abnormal", "bg-clinical-normal",
+    "text-clinical-critical", "text-clinical-abnormal", "text-clinical-normal",
+    "border-triage-emergency", "border-triage-urgent", "border-triage-semi", "border-triage-routine",
+    "bg-triage-emergency/10", "bg-triage-urgent/10", "bg-triage-semi/10", "bg-triage-routine/10",
+    "bg-clinical-critical/10", "bg-clinical-abnormal/10", "bg-clinical-normal/10",
+  ],
   theme: {
   	extend: {
   		borderRadius: {
@@ -59,6 +68,17 @@ module.exports = {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
+  			},
+  			triage: {
+  				emergency: 'hsl(var(--triage-emergency))',
+  				urgent: 'hsl(var(--triage-urgent))',
+  				semi: 'hsl(var(--triage-semi))',
+  				routine: 'hsl(var(--triage-routine))',
+  			},
+  			clinical: {
+  				critical: 'hsl(var(--clinical-critical))',
+  				abnormal: 'hsl(var(--clinical-abnormal))',
+  				normal: 'hsl(var(--clinical-normal))',
   			}
   		},
   		fontFamily: {

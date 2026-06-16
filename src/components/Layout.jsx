@@ -48,8 +48,8 @@ export default function Layout() {
         </div>
         {!collapsed && (
           <div className="overflow-hidden">
-            <h1 className="font-heading text-sm font-bold text-sidebar-foreground leading-tight">Zomba City</h1>
-            <p className="text-[10px] text-sidebar-foreground/60 tracking-wide uppercase">Private Clinic HIMS</p>
+            <h1 className="text-sm font-bold text-sidebar-foreground leading-tight tracking-tight">Zomba City</h1>
+            <p className="text-[10px] font-semibold text-sidebar-foreground/50 tracking-widest uppercase">Private Clinic HIMS</p>
           </div>
         )}
       </div>

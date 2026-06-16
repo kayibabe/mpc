@@ -43,6 +43,13 @@
     --sidebar-accent-foreground: 220 12% 92%;
     --sidebar-border: 220 20% 22%;
     --sidebar-ring: 215 65% 44%;
+    --triage-emergency: 0 84% 42%;
+    --triage-urgent: 24 94% 48%;
+    --triage-semi: 42 96% 44%;
+    --triage-routine: 150 55% 35%;
+    --clinical-critical: 0 70% 48%;
+    --clinical-abnormal: 38 92% 48%;
+    --clinical-normal: 150 55% 35%;
   }
 
   .dark {
@@ -78,6 +85,13 @@
     --sidebar-accent-foreground: 220 12% 85%;
     --sidebar-border: 220 22% 18%;
     --sidebar-ring: 215 65% 48%;
+    --triage-emergency: 0 74% 48%;
+    --triage-urgent: 24 84% 50%;
+    --triage-semi: 42 86% 46%;
+    --triage-routine: 150 50% 40%;
+    --clinical-critical: 0 60% 42%;
+    --clinical-abnormal: 38 82% 48%;
+    --clinical-normal: 150 50% 40%;
   }
 }
 
@@ -100,4 +114,25 @@
   .section-title {
     @apply font-heading text-2xl font-semibold tracking-tight text-foreground;
   }
+  /* Clinical typography */
+  .clinical-label {
+    @apply text-[11px] font-semibold uppercase tracking-widest text-muted-foreground;
+  }
+  .clinical-value {
+    @apply font-mono text-2xl font-bold tracking-tight tabular-nums;
+  }
+  .clinical-unit {
+    @apply text-xs text-muted-foreground font-medium ml-0.5;
+  }
+  .clinical-section {
+    @apply border-l-[3px] border-primary pl-3 py-0.5;
+  }
+  .clinical-section h4 {
+    @apply text-sm font-semibold text-foreground;
+  }
+  /* Emergency color-coding */
+  .triage-emergency { @apply border-l-[4px]; border-left-color: hsl(var(--triage-emergency)); }
+  .triage-urgent     { @apply border-l-[4px]; border-left-color: hsl(var(--triage-urgent)); }
+  .triage-semi       { @apply border-l-[4px]; border-left-color: hsl(var(--triage-semi)); }
+  .triage-routine    { @apply border-l-[4px]; border-left-color: hsl(var(--triage-routine)); }
 }
