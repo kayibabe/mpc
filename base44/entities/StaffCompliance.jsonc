@@ -1,0 +1,63 @@
+{
+  "name": "StaffCompliance",
+  "type": "object",
+  "properties": {
+    "staff_id": {
+      "type": "string",
+      "description": "User ID of the staff member"
+    },
+    "compliance_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of this compliance record"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "handover",
+        "signature",
+        "shift_log",
+        "waste_disposal",
+        "sla"
+      ],
+      "description": "Compliance category"
+    },
+    "metric": {
+      "type": "string",
+      "description": "Specific metric (e.g. handover_acknowledged, signature_missing)"
+    },
+    "expected": {
+      "type": "number",
+      "description": "Expected count or threshold"
+    },
+    "actual": {
+      "type": "number",
+      "description": "Actual count achieved"
+    },
+    "score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Compliance percentage score"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "compliant",
+        "warning",
+        "non_compliant"
+      ],
+      "default": "compliant"
+    },
+    "details": {
+      "type": "string",
+      "description": "Additional context about this compliance check"
+    }
+  },
+  "required": [
+    "staff_id",
+    "compliance_date",
+    "category",
+    "score"
+  ]
+}
