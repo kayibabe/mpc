@@ -1,0 +1,57 @@
+{
+  "name": "PatientJourney",
+  "type": "object",
+  "properties": {
+    "visit_id": {
+      "type": "string"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "current_stage": {
+      "type": "string",
+      "enum": [
+        "RECEPTION",
+        "TRIAGE",
+        "CONSULTATION",
+        "LAB_PENDING",
+        "LAB_PROCESSING",
+        "IMAGING_PENDING",
+        "IMAGING_PROCESSING",
+        "PHARMACY_PENDING",
+        "PHARMACY_DISPENSING",
+        "NURSING_ADMINISTRATION",
+        "BILLING",
+        "COMPLETED"
+      ],
+      "default": "RECEPTION"
+    },
+    "assigned_to_role": {
+      "type": "string"
+    },
+    "assigned_to_user_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "closed"
+      ],
+      "default": "active"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "stage_history": {
+      "type": "string",
+      "description": "JSON array of stage transitions with timestamps"
+    }
+  },
+  "required": [
+    "visit_id",
+    "patient_id",
+    "current_stage"
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "workflow",
+        "alert",
+        "reminder",
+        "info"
+      ],
+      "default": "workflow"
+    },
+    "target_role": {
+      "type": "string"
+    },
+    "target_user_id": {
+      "type": "string"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "visit_id": {
+      "type": "string"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false
+    },
+    "action_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "message"
+  ]
+}

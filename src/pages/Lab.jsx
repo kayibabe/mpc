@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { FlaskConical, Plus, Save, AlertTriangle, ClipboardCheck, Square, CheckSquare, Play } from "lucide-react";
+import { FlaskConical, Plus, Save, AlertTriangle, ClipboardCheck, Square, CheckSquare, Play, ArrowRight, CheckCircle, GitBranch } from "lucide-react";
 
 export default function Lab() {
   const [orders, setOrders] = useState([]);
@@ -12,16 +12,20 @@ export default function Lab() {
   const [results, setResults] = useState({});
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [labJourneys, setLabJourneys] = useState([]);
+  const [transitioning, setTransitioning] = useState(false);
 
   useEffect(() => {
     async function load() {
       try {
-        const [o, p] = await Promise.all([
+        const [o, p, jList] = await Promise.all([
           base44.entities.LabOrder.list("-created_date", 100),
           base44.entities.Patient.list("-created_date", 200),
+          base44.entities.PatientJourney.filter({ current_stage: { $in: ["LAB_PENDING", "LAB_PROCESSING"] }, status: "active" }, "-created_date", 30),
         ]);
         setOrders(o);
         setPatients(p);
+        setLabJourneys(jList);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     }
@@ -71,6 +75,19 @@ export default function Lab() {
     setOrders(o);
   };
 
+  const transitionWorkflow = async (journeyId, nextStage, notes = "") => {
+    setTransitioning(true);
+    try {
+      await base44.functions.invoke('handleWorkflowStageChange', { journey_id: journeyId, next_stage: nextStage, notes });
+      const jList = await base44.entities.PatientJourney.filter({ current_stage: { $in: ["LAB_PENDING", "LAB_PROCESSING"] }, status: "active" }, "-created_date", 30);
+      setLabJourneys(jList);
+    } catch (e) {
+      alert("Workflow transition failed: " + (e.response?.data?.error || e.message));
+    } finally {
+      setTransitioning(false);
+    }
+  };
+
   const statusColors = {
     ordered: "bg-chart-4/10 text-chart-4",
     collected: "bg-chart-1/10 text-chart-1",
@@ -93,6 +110,38 @@ export default function Lab() {
           <Plus className="w-4 h-4" /> New Lab Order
         </button>
       </div>
+
+      {/* Lab Workflow Queue */}
+      {labJourneys.length > 0 && (
+        <div className="bg-card rounded-xl border border-border/60 shadow-sm mb-6 p-4">
+          <h3 className="font-heading font-semibold mb-3 flex items-center gap-2"><GitBranch className="w-4 h-4 text-primary" /> Lab Queue ({labJourneys.length})</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {labJourneys.map(j => (
+              <div key={j.id} className="p-3 border border-border rounded-lg bg-muted/10">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">{getPatientName(j.patient_id)}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    j.current_stage === "LAB_PROCESSING" ? "bg-chart-1/10 text-chart-1" : "bg-chart-4/10 text-chart-4"
+                  }`}>{j.current_stage?.replace(/_/g, " ")}</span>
+                </div>
+                <div className="flex gap-1 flex-wrap">
+                  {j.current_stage === "LAB_PENDING" && (
+                    <button onClick={() => transitionWorkflow(j.id, "LAB_PROCESSING", "Started processing")} disabled={transitioning} className="px-2 py-1 bg-chart-1/10 text-chart-1 rounded text-xs font-medium hover:bg-chart-1/20">
+                      <Play className="w-3 h-3 inline mr-0.5" /> Start
+                    </button>
+                  )}
+                  <button onClick={() => transitionWorkflow(j.id, "CONSULTATION", "Lab results ready")} disabled={transitioning} className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium hover:bg-primary/20">
+                    <ArrowRight className="w-3 h-3 inline mr-0.5" /> Return to Doctor
+                  </button>
+                  <button onClick={() => transitionWorkflow(j.id, "COMPLETED", "Lab complete")} disabled={transitioning} className="px-2 py-1 bg-chart-3/10 text-chart-3 rounded text-xs font-medium hover:bg-chart-3/20">
+                    <CheckCircle className="w-3 h-3 inline mr-0.5" /> Complete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {showForm && (
         <div className="bg-card rounded-xl border border-border/60 p-6 shadow-sm mb-6">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Receipt, Plus, Save, CreditCard, DollarSign, FileText, Search, Download } from "lucide-react";
+import { Receipt, Plus, Save, CreditCard, DollarSign, FileText, Search, Download, ArrowRight, CheckCircle, GitBranch } from "lucide-react";
 
 export default function Billing() {
   const [invoices, setInvoices] = useState([]);
@@ -15,22 +15,26 @@ export default function Billing() {
   const [invoiceForm, setInvoiceForm] = useState({ patient_id: "", payment_type: "cash" });
   const [items, setItems] = useState([{ service_type: "consultation", service_name: "", quantity: "1", unit_price: "", department: "" }]);
   const [paymentForm, setPaymentForm] = useState({ amount: "", payment_method: "cash", reference: "" });
+  const [billingJourneys, setBillingJourneys] = useState([]);
+  const [transitioning, setTransitioning] = useState(false);
 
   useEffect(() => {
     async function load() {
       try {
-        const [inv, p, pay, c, s] = await Promise.all([
+        const [inv, p, pay, c, s, jList] = await Promise.all([
           base44.entities.Invoice.list("-created_date", 100),
           base44.entities.Patient.list("-created_date", 200),
           base44.entities.Payment.list("-created_date", 100),
           base44.entities.InsuranceClaim.list("-created_date", 50),
           base44.entities.MedicalAidScheme.list("", 50),
+          base44.entities.PatientJourney.filter({ current_stage: "BILLING", status: "active" }, "-created_date", 30),
         ]);
         setInvoices(inv);
         setPatients(p);
         setPayments(pay);
         setClaims(c);
         setSchemes(s);
+        setBillingJourneys(jList);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     }
@@ -87,6 +91,32 @@ export default function Billing() {
     setPayments(payList);
     setShowPayment(null);
     setPaymentForm({ amount: "", payment_method: "cash", reference: "" });
+    // If fully paid, transition workflow to COMPLETED
+    if (paid >= total) {
+      try {
+        const journeys = await base44.entities.PatientJourney.filter({ visit_id: inv.visit_id, status: "active" }, "-created_date", 1);
+        if (journeys.length > 0) {
+          await base44.functions.invoke('handleWorkflowStageChange', {
+            journey_id: journeys[0].id,
+            next_stage: "COMPLETED",
+            notes: "Payment completed - visit finalized",
+          });
+        }
+      } catch (_) { /* silent if no journey */ }
+    }
+  };
+
+  const transitionWorkflow = async (journeyId, nextStage, notes = "") => {
+    setTransitioning(true);
+    try {
+      await base44.functions.invoke('handleWorkflowStageChange', { journey_id: journeyId, next_stage: nextStage, notes });
+      const jList = await base44.entities.PatientJourney.filter({ current_stage: "BILLING", status: "active" }, "-created_date", 30);
+      setBillingJourneys(jList);
+    } catch (e) {
+      alert("Workflow transition failed: " + (e.response?.data?.error || e.message));
+    } finally {
+      setTransitioning(false);
+    }
   };
 
   const submitClaim = async (invoiceId) => {
@@ -126,6 +156,30 @@ export default function Billing() {
         <div><h2 className="section-title">Billing</h2><p className="text-sm text-muted-foreground mt-1">Invoices, payments, and insurance claims</p></div>
         <button onClick={() => setShowCreateInvoice(!showCreateInvoice)} className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 shadow-sm"><Plus className="w-4 h-4" /> New Invoice</button>
       </div>
+
+      {/* Billing Workflow Queue */}
+      {billingJourneys.length > 0 && (
+        <div className="bg-card rounded-xl border border-border/60 shadow-sm mb-6 p-4">
+          <h3 className="font-heading font-semibold mb-3 flex items-center gap-2"><GitBranch className="w-4 h-4 text-primary" /> Billing Queue ({billingJourneys.length})</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {billingJourneys.map(j => (
+              <div key={j.id} className="p-3 border border-border rounded-lg bg-muted/10 flex items-center justify-between">
+                <div>
+                  <span className="text-sm font-medium">{getPatientName(j.patient_id)}</span>
+                  <p className="text-xs text-muted-foreground">Stage: {j.current_stage?.replace(/_/g, " ")}</p>
+                </div>
+                <button
+                  onClick={() => transitionWorkflow(j.id, "COMPLETED", "Billing cleared")}
+                  disabled={transitioning}
+                  className="px-3 py-1.5 bg-chart-3/10 text-chart-3 rounded text-xs font-medium hover:bg-chart-3/20"
+                >
+                  <CheckCircle className="w-3 h-3 inline mr-0.5" /> Complete
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {showCreateInvoice && (
         <div className="bg-card rounded-xl border border-border/60 p-6 shadow-sm mb-6">

@@ -55,7 +55,7 @@ export default function Reception() {
         ...form, mrn,
         insurance_scheme: form.payment_type === "scheme" || form.payment_type === "both" ? form.insurance_scheme : "",
       });
-      await base44.entities.Visit.create({
+      const visit = await base44.entities.Visit.create({
         patient_id: patient.id,
         visit_date: new Date().toISOString(),
         visit_type: form.visit_type,
@@ -64,6 +64,19 @@ export default function Reception() {
         priority: form.priority,
         queue_status: "waiting",
         checked_in_by: "reception",
+      });
+      // Create PatientJourney and transition to CONSULTATION
+      const journey = await base44.entities.PatientJourney.create({
+        visit_id: visit.id,
+        patient_id: patient.id,
+        current_stage: "RECEPTION",
+        status: "active",
+        stage_history: JSON.stringify([{ from: "NONE", to: "RECEPTION", timestamp: new Date().toISOString(), user_id: "reception", notes: "Patient registered" }]),
+      });
+      await base44.functions.invoke('handleWorkflowStageChange', {
+        journey_id: journey.id,
+        next_stage: "CONSULTATION",
+        notes: "Patient checked in at reception",
       });
       const [p, v] = await Promise.all([
         base44.entities.Patient.list("-created_date", 200),

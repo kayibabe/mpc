@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Stethoscope, Heart, FileText, Pill, Activity, Plus, Save, Search, AlertTriangle, ShieldAlert, FlaskConical } from "lucide-react";
+import { Stethoscope, Heart, FileText, Pill, Activity, Plus, Save, Search, AlertTriangle, ShieldAlert, FlaskConical, ArrowRight, CheckCircle, GitBranch } from "lucide-react";
 import TemplateSelector from "@/components/TemplateSelector";
 import VitalSignsChart from "@/components/VitalSignsChart";
 
@@ -20,6 +20,8 @@ export default function Clinical() {
   const [activeTab, setActiveTab] = useState("vitals");
   const [cdsWarnings, setCdsWarnings] = useState([]);
   const [labOrders, setLabOrders] = useState([]);
+  const [journey, setJourney] = useState(null);
+  const [transitioning, setTransitioning] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -39,18 +41,20 @@ export default function Clinical() {
   const selectVisit = async (visit) => {
     setSelectedVisit(visit);
     setCdsWarnings([]);
-    const [vList, cList, pList, dList, lList] = await Promise.all([
+    const [vList, cList, pList, dList, lList, jList] = await Promise.all([
       base44.entities.VitalSigns.filter({ visit_id: visit.id }, "-created_date", 10),
       base44.entities.Consultation.filter({ visit_id: visit.id }, "-created_date", 10),
       base44.entities.Prescription.filter({ visit_id: visit.id }, "-created_date", 10),
       base44.entities.Diagnosis.filter({ visit_id: visit.id }, "-created_date", 20),
       base44.entities.LabOrder.filter({ patient_id: visit.patient_id }, "-created_date", 30),
+      base44.entities.PatientJourney.filter({ visit_id: visit.id, status: "active" }, "-created_date", 1),
     ]);
     setVitals(vList[0] || null);
     setConsultations(cList);
     setPrescriptions(pList);
     setDiagnoses(dList);
     setLabOrders(lList);
+    setJourney(jList[0] || null);
     // Run CDS checks
     runCdsChecks(visit, dList, lList);
   };
@@ -106,6 +110,30 @@ export default function Clinical() {
     ]);
     setConsultations(c);
     setDiagnoses(d);
+    // Update queue status
+    await base44.entities.Visit.update(selectedVisit.id, { queue_status: "in_consultation" });
+  };
+
+  const transitionWorkflow = async (nextStage, notes = "") => {
+    if (!journey) return;
+    setTransitioning(true);
+    try {
+      await base44.functions.invoke('handleWorkflowStageChange', {
+        journey_id: journey.id,
+        next_stage: nextStage,
+        notes: notes,
+      });
+      const updated = await base44.entities.PatientJourney.get(journey.id);
+      setJourney(updated);
+      // Refresh visit queue status
+      const v = await base44.entities.Visit.get(selectedVisit.id);
+      setSelectedVisit(v);
+    } catch (e) {
+      console.error(e);
+      alert("Workflow transition failed: " + (e.response?.data?.error || e.message));
+    } finally {
+      setTransitioning(false);
+    }
   };
 
   // ── Clinical Decision Support Engine ──
@@ -250,6 +278,49 @@ export default function Clinical() {
                 ))}
               </div>
               <div className="p-5">
+                {/* Workflow Stage Bar */}
+                {journey && (
+                  <div className="mb-4 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <GitBranch className="w-4 h-4 text-primary" />
+                        <span className="text-xs font-medium text-muted-foreground">Current Stage:</span>
+                        <span className="text-sm font-semibold text-primary">{journey.current_stage?.replace(/_/g, " ")}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <button
+                          onClick={() => transitionWorkflow("PHARMACY_PENDING", "Prescription issued")}
+                          disabled={transitioning}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-chart-2/10 text-chart-2 rounded-md text-xs font-medium hover:bg-chart-2/20 disabled:opacity-50"
+                        >
+                          <Pill className="w-3 h-3" /> Send to Pharmacy
+                        </button>
+                        <button
+                          onClick={() => transitionWorkflow("LAB_PENDING", "Lab tests ordered")}
+                          disabled={transitioning}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-chart-3/10 text-chart-3 rounded-md text-xs font-medium hover:bg-chart-3/20 disabled:opacity-50"
+                        >
+                          <FlaskConical className="w-3 h-3" /> Send to Lab
+                        </button>
+                        <button
+                          onClick={() => transitionWorkflow("BILLING", "Consultation complete")}
+                          disabled={transitioning}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 text-primary rounded-md text-xs font-medium hover:bg-primary/20 disabled:opacity-50"
+                        >
+                          <ArrowRight className="w-3 h-3" /> Send to Billing
+                        </button>
+                        <button
+                          onClick={() => transitionWorkflow("COMPLETED", "Visit completed")}
+                          disabled={transitioning}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-chart-3/10 text-chart-3 rounded-md text-xs font-medium hover:bg-chart-3/20 disabled:opacity-50"
+                        >
+                          <CheckCircle className="w-3 h-3" /> Complete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* CDS Warning Banner */}
                 {cdsWarnings.length > 0 && (
                   <div className="mb-4 space-y-2">

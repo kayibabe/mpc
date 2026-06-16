@@ -1,30 +1,37 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Pill, Plus, Save, AlertTriangle, Package, ShoppingCart, Clock, TrendingDown, Loader2, BarChart3, Calendar } from "lucide-react";
+import { Pill, Plus, Save, AlertTriangle, Package, ShoppingCart, Clock, TrendingDown, Loader2, BarChart3, Calendar, ArrowRight, CheckCircle, GitBranch } from "lucide-react";
 import InventoryAlerts from "@/components/InventoryAlerts";
 
 export default function Pharmacy() {
   const [drugs, setDrugs] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
   const [dispensings, setDispensings] = useState([]);
+  const [pharmacyJourneys, setPharmacyJourneys] = useState([]);
+  const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("inventory");
   const [forecast, setForecast] = useState(null);
   const [forecastLoading, setForecastLoading] = useState(false);
   const [showAddDrug, setShowAddDrug] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
   const [drugForm, setDrugForm] = useState({ name: "", generic_name: "", category: "", strength: "", form: "", manufacturer: "", unit_price: "", cost_price: "", quantity_in_stock: "", reorder_level: "10", batch_number: "", expiry_date: "" });
 
   useEffect(() => {
     async function load() {
       try {
-        const [d, p, disp] = await Promise.all([
+        const [d, p, disp, jList, patList] = await Promise.all([
           base44.entities.Drug.list("-created_date", 200),
           base44.entities.Prescription.filter({ status: { $in: ["pending", "partial"] } }, "-created_date", 50),
           base44.entities.PharmacyDispensing.list("-created_date", 50),
+          base44.entities.PatientJourney.filter({ current_stage: { $in: ["PHARMACY_PENDING", "PHARMACY_DISPENSING"] }, status: "active" }, "-created_date", 30),
+          base44.entities.Patient.list("-created_date", 100),
         ]);
         setDrugs(d);
         setPrescriptions(p);
         setDispensings(disp);
+        setPharmacyJourneys(jList);
+        setPatients(patList);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     }
@@ -57,6 +64,21 @@ export default function Pharmacy() {
     ]);
     setDrugs(d);
     setDispensings(disp);
+  };
+
+  const getPatientName = (pid) => { const p = patients.find(pt => pt.id === pid); return p ? `${p.first_name} ${p.last_name}` : "Unknown"; };
+
+  const transitionWorkflow = async (journeyId, nextStage, notes = "") => {
+    setTransitioning(true);
+    try {
+      await base44.functions.invoke('handleWorkflowStageChange', { journey_id: journeyId, next_stage: nextStage, notes });
+      const jList = await base44.entities.PatientJourney.filter({ current_stage: { $in: ["PHARMACY_PENDING", "PHARMACY_DISPENSING"] }, status: "active" }, "-created_date", 30);
+      setPharmacyJourneys(jList);
+    } catch (e) {
+      alert("Workflow transition failed: " + (e.response?.data?.error || e.message));
+    } finally {
+      setTransitioning(false);
+    }
   };
 
   const lowStockDrugs = drugs.filter(d => d.quantity_in_stock <= d.reorder_level);
@@ -98,7 +120,7 @@ export default function Pharmacy() {
 
       <div className="bg-card rounded-xl border border-border/60 shadow-sm">
         <div className="border-b border-border flex">
-          {["inventory", "dispensing", "prescriptions", "forecast"].map(t => (
+          {["queue", "inventory", "dispensing", "prescriptions", "forecast"].map(t => (
             <button key={t} onClick={() => setActiveTab(t)} className={`px-4 py-3 text-sm font-medium capitalize ${activeTab === t ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>{t}</button>
           ))}
         </div>
@@ -116,6 +138,69 @@ export default function Pharmacy() {
                 <button type="button" onClick={() => setShowAddDrug(false)} className="px-4 py-2 border border-border rounded-lg text-sm hover:bg-muted">Cancel</button>
               </div>
             </form>
+          )}
+
+          {activeTab === "queue" && (
+            <div>
+              <h4 className="font-heading font-semibold mb-3 flex items-center gap-2"><GitBranch className="w-4 h-4 text-primary" /> Pharmacy Queue ({pharmacyJourneys.length})</h4>
+              {pharmacyJourneys.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">No patients waiting for pharmacy.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead><tr className="border-b border-border"><th className="text-left py-2 px-3 font-medium text-muted-foreground">Patient</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Stage</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Actions</th></tr></thead>
+                    <tbody>
+                      {pharmacyJourneys.map(j => (
+                        <tr key={j.id} className="border-b border-border/40 hover:bg-muted/30">
+                          <td className="py-2.5 px-3 font-medium">{getPatientName(j.patient_id)}</td>
+                          <td className="py-2.5 px-3">
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                              j.current_stage === "PHARMACY_DISPENSING" ? "bg-chart-2/10 text-chart-2" : "bg-chart-4/10 text-chart-4"
+                            }`}>{j.current_stage?.replace(/_/g, " ")}</span>
+                          </td>
+                          <td className="py-2.5 px-3">
+                            <div className="flex gap-1 flex-wrap">
+                              {j.current_stage === "PHARMACY_PENDING" && (
+                                <button
+                                  onClick={() => transitionWorkflow(j.id, "PHARMACY_DISPENSING", "Started dispensing")}
+                                  disabled={transitioning}
+                                  className="px-2 py-1 bg-chart-2/10 text-chart-2 rounded text-xs font-medium hover:bg-chart-2/20"
+                                >
+                                  <ArrowRight className="w-3 h-3 inline mr-0.5" /> Start
+                                </button>
+                              )}
+                              {j.current_stage === "PHARMACY_DISPENSING" && (
+                                <button
+                                  onClick={() => transitionWorkflow(j.id, "NURSING_ADMINISTRATION", "Drugs dispensed")}
+                                  disabled={transitioning}
+                                  className="px-2 py-1 bg-chart-3/10 text-chart-3 rounded text-xs font-medium hover:bg-chart-3/20"
+                                >
+                                  <ArrowRight className="w-3 h-3 inline mr-0.5" /> Send to Nursing
+                                </button>
+                              )}
+                              <button
+                                onClick={() => transitionWorkflow(j.id, "BILLING", "Pharmacy complete")}
+                                disabled={transitioning}
+                                className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium hover:bg-primary/20"
+                              >
+                                <ArrowRight className="w-3 h-3 inline mr-0.5" /> Send to Billing
+                              </button>
+                              <button
+                                onClick={() => transitionWorkflow(j.id, "COMPLETED", "Pharmacy done")}
+                                disabled={transitioning}
+                                className="px-2 py-1 bg-chart-3/10 text-chart-3 rounded text-xs font-medium hover:bg-chart-3/20"
+                              >
+                                <CheckCircle className="w-3 h-3 inline mr-0.5" /> Complete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           )}
 
           {activeTab === "inventory" && (

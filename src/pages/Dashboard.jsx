@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Users, Calendar, FlaskConical, BedDouble, Pill, Receipt, TrendingUp, Clock, Activity, RefreshCw, FileText, Bell, Send, Loader2 } from "lucide-react";
+import { Users, Calendar, FlaskConical, BedDouble, Pill, Receipt, TrendingUp, Clock, Activity, RefreshCw, FileText, Bell, Send, Loader2, GitBranch, Megaphone, ArrowRight } from "lucide-react";
 import InventoryAlerts from "@/components/InventoryAlerts";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
@@ -30,6 +30,8 @@ export default function Dashboard() {
   const [reminderSending, setReminderSending] = useState(false);
   const [reminderResult, setReminderResult] = useState(null);
   const [occupancyData, setOccupancyData] = useState({ beds: [], wards: [], visits: [], queueSummary: {} });
+  const [activeJourneys, setActiveJourneys] = useState([]);
+  const [notifications, setNotifications] = useState([]);
 
   const refreshDailyReport = async () => {
     setReportLoading(true);
@@ -100,7 +102,24 @@ export default function Dashboard() {
     load();
     refreshDailyReport();
     loadOccupancyData();
+    loadWorkflowData();
   }, []);
+
+  const loadWorkflowData = async () => {
+    try {
+      const [journeys, notifs] = await Promise.all([
+        base44.entities.PatientJourney.filter({ status: "active" }, "-created_date", 20),
+        base44.entities.Notification.filter({ is_read: false }, "-created_date", 10),
+      ]);
+      setActiveJourneys(journeys);
+      setNotifications(notifs);
+    } catch (e) { /* silent */ }
+  };
+
+  const markNotifRead = async (id) => {
+    await base44.entities.Notification.update(id, { is_read: true });
+    setNotifications(notifications.filter(n => n.id !== id));
+  };
 
   const visitTypeLabel = (t) => ({ outpatient: "OPD", inpatient: "IPD", emergency: "ER", anc: "ANC", postnatal: "PNC", procedure: "PROC" }[t] || t);
 
@@ -293,6 +312,52 @@ export default function Dashboard() {
         </div>
 
         <div className="space-y-4">
+          {/* Notifications Panel */}
+          {notifications.length > 0 && (
+            <div className="bg-card rounded-xl border border-border/60 p-5 shadow-sm">
+              <h3 className="font-heading text-lg font-semibold mb-3 flex items-center gap-2">
+                <Megaphone className="w-5 h-5 text-chart-2" /> Notifications ({notifications.length})
+              </h3>
+              <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                {notifications.map(n => (
+                  <div key={n.id} className="p-2.5 border border-border/40 rounded-lg bg-muted/10 flex items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold">{n.title}</p>
+                      <p className="text-xs text-muted-foreground truncate">{n.message}</p>
+                      {n.target_role && <span className="text-[10px] text-primary mt-0.5 inline-block">For: {n.target_role}</span>}
+                    </div>
+                    <button onClick={() => markNotifRead(n.id)} className="text-[10px] text-primary hover:underline shrink-0">Dismiss</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Active Patient Journeys */}
+          <div className="bg-card rounded-xl border border-border/60 p-5 shadow-sm">
+            <h3 className="font-heading text-lg font-semibold mb-3 flex items-center gap-2">
+              <GitBranch className="w-5 h-5 text-primary" /> Active Journeys ({activeJourneys.length})
+            </h3>
+            {activeJourneys.length === 0 ? (
+              <p className="text-xs text-muted-foreground py-2">No active patient journeys.</p>
+            ) : (
+              <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                {activeJourneys.slice(0, 5).map(j => (
+                  <div key={j.id} className="flex items-center justify-between p-2.5 border border-border/40 rounded-lg bg-muted/10">
+                    <div>
+                      <span className="text-xs font-medium text-muted-foreground">Stage:</span>
+                      <span className="text-xs font-semibold ml-1 text-primary">{j.current_stage?.replace(/_/g, " ")}</span>
+                      {j.assigned_to_role && <span className="text-xs text-muted-foreground ml-2">→ {j.assigned_to_role}</span>}
+                    </div>
+                  </div>
+                ))}
+                {activeJourneys.length > 5 && (
+                  <p className="text-xs text-muted-foreground text-center">+{activeJourneys.length - 5} more active</p>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="bg-card rounded-xl border border-border/60 p-5 shadow-sm">
             <h3 className="font-heading text-lg font-semibold mb-4 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-primary" /> Quick Actions
