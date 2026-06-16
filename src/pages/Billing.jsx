@@ -4,6 +4,7 @@ import { Receipt, Plus, Save, CreditCard, DollarSign, FileText, Search, Download
 import ShiftManagement from "@/components/ShiftManagement";
 import RevenueReport from "@/components/RevenueReport";
 import ReconciliationPanel from "@/components/ReconciliationPanel";
+import LiveAuditMonitor from "@/components/LiveAuditMonitor";
 
 export default function Billing() {
   const [invoices, setInvoices] = useState([]);
@@ -254,6 +255,11 @@ export default function Billing() {
       <div className="flex items-center justify-between mb-6">
         <div><h2 className="section-title">Billing</h2><p className="text-sm text-muted-foreground mt-1">Invoices, payments, split billing & claims</p></div>
         <button onClick={() => setShowCreateInvoice(!showCreateInvoice)} className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 shadow-sm"><Plus className="w-4 h-4" /> New Invoice</button>
+      </div>
+
+      {/* Live Audit Monitor */}
+      <div className="mb-6">
+        <LiveAuditMonitor />
       </div>
 
       {/* Billing Workflow Queue */}
