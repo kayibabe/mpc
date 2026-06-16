@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Pill, Plus, Save, AlertTriangle, Package, ShoppingCart, Clock, TrendingDown, Loader2, BarChart3, Calendar, ArrowRight, CheckCircle, GitBranch } from "lucide-react";
+import { Pill, Plus, Save, AlertTriangle, Package, ShoppingCart, Clock, TrendingDown, Loader2, BarChart3, Calendar, ArrowRight, CheckCircle, GitBranch, PenTool } from "lucide-react";
 import InventoryAlerts from "@/components/InventoryAlerts";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
 import DepartmentDashboard from "@/components/DepartmentDashboard";
+import SignaturePad from "@/components/SignaturePad";
+import SignatureStatus from "@/components/SignatureStatus";
 
 export default function Pharmacy() {
   const [drugs, setDrugs] = useState([]);
@@ -17,6 +19,10 @@ export default function Pharmacy() {
   const [forecastLoading, setForecastLoading] = useState(false);
   const [showAddDrug, setShowAddDrug] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
+
+  // Signature state
+  const [signingDoc, setSigningDoc] = useState(null);
+  const [savingSignature, setSavingSignature] = useState(false);
   const [drugForm, setDrugForm] = useState({ name: "", generic_name: "", category: "", strength: "", form: "", manufacturer: "", unit_price: "", cost_price: "", quantity_in_stock: "", reorder_level: "10", batch_number: "", expiry_date: "" });
 
   useEffect(() => {
@@ -69,6 +75,28 @@ export default function Pharmacy() {
   };
 
   const getPatientName = (pid) => { const p = patients.find(pt => pt.id === pid); return p ? `${p.first_name} ${p.last_name}` : "Unknown"; };
+
+  const handleSaveSignature = async (file) => {
+    if (!signingDoc) return;
+    setSavingSignature(true);
+    try {
+      const { data: uploadData } = await base44.integrations.Core.UploadFile({ file });
+      await base44.functions.invoke("saveSignature", {
+        file_url: uploadData.file_url,
+        document_type: "prescription_dispensed",
+        document_id: signingDoc.document_id,
+        patient_id: signingDoc.patient_id || '',
+        visit_id: '',
+      });
+      setSigningDoc(null);
+      const disp = await base44.entities.PharmacyDispensing.list("-created_date", 50);
+      setDispensings(disp);
+    } catch (e) {
+      console.error('Signature save failed:', e);
+    } finally {
+      setSavingSignature(false);
+    }
+  };
 
   const transitionWorkflow = async (journeyId, nextStage, notes = "") => {
     setTransitioning(true);
@@ -234,12 +262,24 @@ export default function Pharmacy() {
           {activeTab === "dispensing" && (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead><tr className="border-b border-border"><th className="text-left py-2 px-3 font-medium text-muted-foreground">Date</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Drug</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Quantity</th></tr></thead>
+                <thead><tr className="border-b border-border"><th className="text-left py-2 px-3 font-medium text-muted-foreground">Date</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Drug</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Quantity</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Signature</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Actions</th></tr></thead>
                 <tbody>
                   {dispensings.map(d => (
-                    <tr key={d.id} className="border-b border-border/40"><td className="py-2.5 px-3">{new Date(d.dispensing_date).toLocaleDateString("en-GB")}</td><td className="py-2.5 px-3 font-medium">{d.drug_name}</td><td className="py-2.5 px-3">{d.quantity_dispensed}</td></tr>
+                    <tr key={d.id} className="border-b border-border/40">
+                      <td className="py-2.5 px-3">{new Date(d.dispensing_date).toLocaleDateString("en-GB")}</td>
+                      <td className="py-2.5 px-3 font-medium">{d.drug_name}</td>
+                      <td className="py-2.5 px-3">{d.quantity_dispensed}</td>
+                      <td className="py-2.5 px-3">
+                        <SignatureStatus documentType="prescription_dispensed" documentId={d.id} compact />
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <button onClick={() => setSigningDoc({ document_type: "prescription_dispensed", document_id: d.id, patient_id: d.patient_id })} className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium hover:bg-primary/20 flex items-center gap-1">
+                          <PenTool className="w-3 h-3" /> Sign
+                        </button>
+                      </td>
+                    </tr>
                   ))}
-                  {dispensings.length === 0 && <tr><td colSpan={3} className="py-12 text-center text-sm text-muted-foreground">No dispensing records.</td></tr>}
+                  {dispensings.length === 0 && <tr><td colSpan={5} className="py-12 text-center text-sm text-muted-foreground">No dispensing records.</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -353,6 +393,21 @@ export default function Pharmacy() {
           )}
         </div>
       </div>
+
+      {/* Signature Pad Modal */}
+      {signingDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setSigningDoc(null)} />
+          <div className="relative z-10 w-full max-w-lg mx-4">
+            <SignaturePad
+              title="Sign Dispensing Record"
+              onSave={handleSaveSignature}
+              onCancel={() => setSigningDoc(null)}
+              saving={savingSignature}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

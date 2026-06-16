@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Stethoscope, Heart, FileText, Pill, Activity, Plus, Save, Search, AlertTriangle, ShieldAlert, FlaskConical, ArrowRight, CheckCircle, GitBranch } from "lucide-react";
+import { Stethoscope, Heart, FileText, Pill, Activity, Plus, Save, Search, AlertTriangle, ShieldAlert, FlaskConical, ArrowRight, CheckCircle, GitBranch, PenTool } from "lucide-react";
 import TemplateSelector from "@/components/TemplateSelector";
 import VitalSignsChart from "@/components/VitalSignsChart";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
 import DepartmentDashboard from "@/components/DepartmentDashboard";
 import RealTimeVitals from "@/components/RealTimeVitals";
+import SignaturePad from "@/components/SignaturePad";
+import SignatureStatus from "@/components/SignatureStatus";
 
 export default function Clinical() {
   const [visits, setVisits] = useState([]);
@@ -25,6 +27,11 @@ export default function Clinical() {
   const [labOrders, setLabOrders] = useState([]);
   const [journey, setJourney] = useState(null);
   const [transitioning, setTransitioning] = useState(false);
+
+  // Signature state
+  const [signingDoc, setSigningDoc] = useState(null); // { document_type, document_id }
+  const [savingSignature, setSavingSignature] = useState(false);
+  const [lastSavedDocId, setLastSavedDocId] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -115,6 +122,8 @@ export default function Clinical() {
     setDiagnoses(d);
     // Update queue status
     await base44.entities.Visit.update(selectedVisit.id, { queue_status: "in_consultation" });
+    // Trigger signature capture
+    setSigningDoc({ document_type: "consultation", document_id: consultation.id });
   };
 
   const transitionWorkflow = async (nextStage, notes = "") => {
@@ -223,9 +232,35 @@ export default function Clinical() {
     setPrescForm({ items: [{ drug_name: "", dosage: "", frequency: "", duration: "", route: "", quantity: "", instructions: "" }] });
     const p = await base44.entities.Prescription.filter({ visit_id: selectedVisit.id }, "-created_date", 10);
     setPrescriptions(p);
+    // Trigger signature capture
+    setSigningDoc({ document_type: "prescription", document_id: presc.id });
   };
 
   const addPrescItem = () => setPrescForm({ items: [...prescForm.items, { drug_name: "", dosage: "", frequency: "", duration: "", route: "", quantity: "", instructions: "" }] });
+
+  // ── Digital Signature ──
+  const handleSaveSignature = async (file) => {
+    if (!signingDoc) return;
+    setSavingSignature(true);
+    try {
+      // Upload the signature image first
+      const { data: uploadData } = await base44.integrations.Core.UploadFile({ file });
+      // Create the signature record
+      await base44.functions.invoke("saveSignature", {
+        file_url: uploadData.file_url,
+        document_type: signingDoc.document_type,
+        document_id: signingDoc.document_id,
+        patient_id: selectedVisit?.patient_id || '',
+        visit_id: selectedVisit?.id || '',
+      });
+      setLastSavedDocId(signingDoc.document_id);
+      setSigningDoc(null);
+    } catch (e) {
+      console.error('Signature save failed:', e);
+    } finally {
+      setSavingSignature(false);
+    }
+  };
 
   const applyTemplate = ({ consultData, prescriptions, diagnosis, icd10 }) => {
     setConsultForm(consultData);
@@ -279,7 +314,7 @@ export default function Clinical() {
           ) : (
             <div className="bg-card rounded-xl border border-border/60 shadow-sm">
               <div className="border-b border-border flex">
-                {["vitals", "consultation", "prescriptions"].map(tab => (
+                {["vitals", "consultation", "prescriptions", "signatures"].map(tab => (
                   <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-3 text-sm font-medium transition-colors capitalize ${activeTab === tab ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>{tab}</button>
                 ))}
               </div>
@@ -398,7 +433,10 @@ export default function Clinical() {
                     )}
                     {consultations.map(c => (
                       <div key={c.id} className="mb-4 p-4 bg-muted/30 rounded-lg">
-                        <p className="text-xs text-muted-foreground mb-2">{new Date(c.consultation_date).toLocaleString()}</p>
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs text-muted-foreground">{new Date(c.consultation_date).toLocaleString()}</p>
+                          <SignatureStatus documentType="consultation" documentId={c.id} compact />
+                        </div>
                         {c.chief_complaint && <div className="mb-2"><span className="text-xs font-medium text-muted-foreground">Chief Complaint:</span><p className="text-sm">{c.chief_complaint}</p></div>}
                         {c.assessment && <div className="mb-2"><span className="text-xs font-medium text-muted-foreground">Assessment:</span><p className="text-sm">{c.assessment}</p></div>}
                         {c.plan && <div className="mb-2"><span className="text-xs font-medium text-muted-foreground">Plan:</span><p className="text-sm">{c.plan}</p></div>}
@@ -440,7 +478,10 @@ export default function Clinical() {
                     <h4 className="font-heading font-semibold mb-4 flex items-center gap-2"><Pill className="w-4 h-4 text-chart-2" /> Prescriptions</h4>
                     {prescriptions.map(p => (
                       <div key={p.id} className="mb-3 p-3 bg-muted/30 rounded-lg">
-                        <p className="text-xs text-muted-foreground">Prescription — {new Date(p.created_date).toLocaleString()} — <span className="font-medium">{p.status}</span></p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-muted-foreground">Prescription — {new Date(p.created_date).toLocaleString()} — <span className="font-medium">{p.status}</span></p>
+                          <SignatureStatus documentType="prescription" documentId={p.id} compact />
+                        </div>
                       </div>
                     ))}
                     <div className="space-y-3">
@@ -459,6 +500,74 @@ export default function Clinical() {
                     <div className="flex gap-3 mt-3">
                       <button onClick={addPrescItem} className="px-3 py-1.5 border border-border rounded-lg text-sm hover:bg-muted"><Plus className="w-3 h-3 inline mr-1" /> Add Drug</button>
                       <button onClick={savePrescription} className="px-4 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90"><Save className="w-3 h-3 inline mr-1" /> Save Prescription</button>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "signatures" && (
+                  <div>
+                    <h4 className="font-heading font-semibold mb-4 flex items-center gap-2"><PenTool className="w-4 h-4 text-primary" /> Digital Signatures</h4>
+                    <p className="text-xs text-muted-foreground mb-4">Verified audit trail for all clinical documents on this visit.</p>
+                    {consultations.length === 0 && prescriptions.length === 0 ? (
+                      <div className="py-8 text-center">
+                        <PenTool className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">No documents to sign yet.</p>
+                        <p className="text-xs text-muted-foreground/60 mt-1">Signatures are captured when consultations and prescriptions are saved.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {consultations.map(c => (
+                          <div key={`sig-c-${c.id}`} className="p-3 border border-border rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm font-medium">Consultation — {new Date(c.consultation_date).toLocaleString("en-GB")}</p>
+                                <p className="text-xs text-muted-foreground">{c.assessment || c.chief_complaint || "No notes"}</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <SignatureStatus documentType="consultation" documentId={c.id} />
+                                {!signingDoc?.document_id || signingDoc?.document_id !== c.id ? (
+                                  <button onClick={() => setSigningDoc({ document_type: "consultation", document_id: c.id })} className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium hover:bg-primary/20 flex items-center gap-1">
+                                    <PenTool className="w-3 h-3" /> Sign
+                                  </button>
+                                ) : null}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        {prescriptions.map(p => (
+                          <div key={`sig-p-${p.id}`} className="p-3 border border-border rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm font-medium">Prescription — {new Date(p.created_date).toLocaleString("en-GB")}</p>
+                                <p className="text-xs text-muted-foreground">Status: {p.status}</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <SignatureStatus documentType="prescription" documentId={p.id} />
+                                {!signingDoc?.document_id || signingDoc?.document_id !== p.id ? (
+                                  <button onClick={() => setSigningDoc({ document_type: "prescription", document_id: p.id })} className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium hover:bg-primary/20 flex items-center gap-1">
+                                    <PenTool className="w-3 h-3" /> Sign
+                                  </button>
+                                ) : null}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Signature Pad Modal */}
+                {signingDoc && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/40" onClick={() => setSigningDoc(null)} />
+                    <div className="relative z-10 w-full max-w-lg mx-4">
+                      <SignaturePad
+                        title={`Sign ${signingDoc.document_type === "consultation" ? "Consultation" : "Prescription"}`}
+                        onSave={handleSaveSignature}
+                        onCancel={() => setSigningDoc(null)}
+                        saving={savingSignature}
+                      />
                     </div>
                   </div>
                 )}
