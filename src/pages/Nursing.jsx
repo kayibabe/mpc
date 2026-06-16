@@ -3,7 +3,8 @@ import { base44 } from "@/api/base44Client";
 import {
   Heart, Thermometer, Activity, Wind, Stethoscope, Pill, Syringe,
   ClipboardCheck, GitBranch, ArrowRight, Loader2, CheckCircle,
-  Clock, AlertTriangle, FileText, Search, Users, Plus, Save
+  Clock, AlertTriangle, FileText, Search, Users, Plus, Save, Brain,
+  BarChart3, ChevronDown, ChevronUp
 } from "lucide-react";
 import DepartmentDashboard from "@/components/DepartmentDashboard";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
@@ -56,6 +57,11 @@ export default function Nursing() {
   const [pendingMeds, setPendingMeds] = useState([]);
   const [medicationResult, setMedicationResult] = useState(null);
 
+  // Triage auto-assessment
+  const [assessments, setAssessments] = useState({});
+  const [assessing, setAssessing] = useState({});
+  const [expandedAssess, setExpandedAssess] = useState({});
+
   useEffect(() => {
     loadData();
   }, []);
@@ -93,20 +99,37 @@ export default function Nursing() {
   const getPatient = (pid) => patients.find(pt => pt.id === pid);
   const getVisit = (vid) => visits.find(v => v.id === vid);
 
+  const handleAutoAssess = async (journey) => {
+    setAssessing(prev => ({ ...prev, [journey.id]: true }));
+    try {
+      const { data } = await base44.functions.invoke("calculateTriageScore", {
+        journey_id: journey.id,
+        patient_id: journey.patient_id,
+        visit_id: journey.visit_id,
+      });
+      setAssessments(prev => ({ ...prev, [journey.id]: data }));
+      setExpandedAssess(prev => ({ ...prev, [journey.id]: true }));
+    } catch (e) {
+      alert("Assessment failed: " + (e.response?.data?.error || e.message));
+    } finally {
+      setAssessing(prev => ({ ...prev, [journey.id]: false }));
+    }
+  };
+
   const handleTriageTransition = async (journey, priority) => {
     setTransitioning(true);
     try {
-      // Update visit priority
       const visit = getVisit(journey.visit_id);
       if (visit) {
         await base44.entities.Visit.update(visit.id, { priority, queue_status: "triaged" });
       }
-      // Transition journey to consultation
       await base44.functions.invoke("handleWorkflowStageChange", {
         journey_id: journey.id,
         next_stage: "CONSULTATION",
         notes: `Triaged as ${priority} — sent to consultation`,
       });
+      setAssessments(prev => { const n = { ...prev }; delete n[journey.id]; return n; });
+      setExpandedAssess(prev => { const n = { ...prev }; delete n[journey.id]; return n; });
       loadData();
     } catch (e) {
       alert("Transition failed: " + (e.response?.data?.error || e.message));
@@ -274,13 +297,33 @@ export default function Nursing() {
                   {triageQueue.map(j => {
                     const patient = getPatient(j.patient_id);
                     const visit = getVisit(j.visit_id);
+                    const assess = assessments[j.id];
+                    const isAssessExpanded = expandedAssess[j.id];
+                    const suggestedColor = assess?.suggested_priority === "emergency"
+                      ? "border-destructive/40 bg-destructive/5"
+                      : assess?.suggested_priority === "urgent"
+                      ? "border-chart-2/40 bg-chart-2/5"
+                      : "";
                     return (
-                      <div key={j.id} className="bg-muted/20 rounded-xl p-4 border border-border/40">
+                      <div key={j.id} className={`rounded-xl p-4 border ${assess ? suggestedColor || "border-border/40" : "border-border/40"} ${assess ? "bg-muted/20" : "bg-muted/20"}`}>
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm">
-                              {patient ? `${patient.first_name} ${patient.last_name}` : j.patient_id?.slice(0, 8)}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold text-sm">
+                                {patient ? `${patient.first_name} ${patient.last_name}` : j.patient_id?.slice(0, 8)}
+                              </p>
+                              {assess && (
+                                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                  assess.suggested_priority === "emergency"
+                                    ? "bg-destructive/10 text-destructive"
+                                    : assess.suggested_priority === "urgent"
+                                    ? "bg-chart-2/10 text-chart-2"
+                                    : "bg-chart-3/10 text-chart-3"
+                                }`}>
+                                  MEWS: {assess.mews_score} — {assess.suggested_priority.toUpperCase()}
+                                </span>
+                              )}
+                            </div>
                             <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                               <span className="font-mono">{patient?.mrn || "—"}</span>
                               {visit && <span>• {visit.visit_type}</span>}
@@ -290,18 +333,92 @@ export default function Nursing() {
                               <p className="text-xs text-muted-foreground mt-1.5 italic">{visit.notes}</p>
                             )}
                             <PatientJourneyTimeline journeyId={j.id} compact />
+
+                            {/* Assessment breakdown */}
+                            {assess && isAssessExpanded && (
+                              <div className={`mt-3 p-3 rounded-lg border ${suggestedColor || "border-border/40"}`}>
+                                <div className="flex items-center justify-between mb-2">
+                                  <p className="text-xs font-semibold flex items-center gap-1.5">
+                                    <BarChart3 className="w-3.5 h-3.5 text-primary" />
+                                    MEWS Score: {assess.mews_score}
+                                    {!assess.vitals_available && (
+                                      <span className="text-[10px] text-muted-foreground font-normal">— No vitals recorded yet</span>
+                                    )}
+                                  </p>
+                                  <button
+                                    onClick={() => setExpandedAssess(prev => ({ ...prev, [j.id]: false }))}
+                                    className="text-[10px] text-muted-foreground hover:text-foreground"
+                                  >
+                                    <ChevronUp className="w-3 h-3" />
+                                  </button>
+                                </div>
+                                {assess.breakdown.length > 0 && (
+                                  <div className="grid grid-cols-2 gap-1 mb-2">
+                                    {assess.breakdown.map((b, i) => (
+                                      <div key={i} className="flex items-center justify-between text-[10px] px-1.5 py-0.5 rounded bg-white/50">
+                                        <span>{b.parameter}</span>
+                                        <span className="font-mono">
+                                          {b.value} <span className={`${b.score > 0 ? "text-destructive font-bold" : "text-muted-foreground"}`}>(+{b.score})</span>
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                <p className={`text-[10px] font-medium ${assess.suggested_priority === "emergency" ? "text-destructive" : assess.suggested_priority === "urgent" ? "text-chart-2" : "text-chart-3"}`}>
+                                  {assess.assessment}
+                                </p>
+                                {assess.red_flags.length > 0 && (
+                                  <div className="mt-1.5 space-y-0.5">
+                                    {assess.red_flags.map((rf, i) => (
+                                      <p key={i} className="text-[10px] text-destructive font-medium flex items-center gap-1">
+                                        <AlertTriangle className="w-3 h-3" /> {rf}
+                                      </p>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            {TRIAGE_CATEGORIES.map(cat => (
+                          <div className="flex flex-col gap-2 shrink-0 items-end">
+                            <button
+                              onClick={() => handleAutoAssess(j)}
+                              disabled={assessing[j.id]}
+                              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all flex items-center gap-1 ${
+                                assess
+                                  ? "bg-muted/60 text-muted-foreground border-border"
+                                  : "bg-primary/5 text-primary border-primary/20 hover:bg-primary/10 hover:border-primary/30"
+                              } disabled:opacity-50`}
+                            >
+                              {assessing[j.id] ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Brain className="w-3 h-3" />
+                              )}
+                              {assess ? "Re-assess" : "Auto-Assess"}
+                            </button>
+                            {assess && !isAssessExpanded && (
                               <button
-                                key={cat.value}
-                                onClick={() => handleTriageTransition(j, cat.value)}
-                                disabled={transitioning}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${cat.color} hover:opacity-80 transition-opacity disabled:opacity-50`}
+                                onClick={() => setExpandedAssess(prev => ({ ...prev, [j.id]: true }))}
+                                className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-0.5"
                               >
-                                {cat.label}
+                                <ChevronDown className="w-3 h-3" /> Details
                               </button>
-                            ))}
+                            )}
+                            <div className="flex items-center gap-1.5">
+                              {TRIAGE_CATEGORIES.map(cat => (
+                                <button
+                                  key={cat.value}
+                                  onClick={() => handleTriageTransition(j, cat.value)}
+                                  disabled={transitioning}
+                                  className={`px-2.5 py-1 rounded-lg text-xs font-medium border ${cat.color} hover:opacity-80 transition-opacity disabled:opacity-50 ${
+                                    assess?.suggested_priority === cat.value ? "ring-2 ring-offset-1 ring-current" : ""
+                                  }`}
+                                >
+                                  {cat.label}
+                                  {assess?.suggested_priority === cat.value && " ✓"}
+                                </button>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>
