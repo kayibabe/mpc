@@ -1,0 +1,58 @@
+{
+  "name": "ClinicalTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "general",
+        "anc",
+        "paediatric",
+        "surgical",
+        "chronic",
+        "emergency"
+      ]
+    },
+    "diagnosis_name": {
+      "type": "string"
+    },
+    "icd10_code": {
+      "type": "string"
+    },
+    "subjective_template": {
+      "type": "string",
+      "description": "SOAP - Subjective section template"
+    },
+    "objective_template": {
+      "type": "string",
+      "description": "SOAP - Objective / examination template"
+    },
+    "assessment_template": {
+      "type": "string",
+      "description": "SOAP - Assessment section template"
+    },
+    "plan_template": {
+      "type": "string",
+      "description": "SOAP - Plan section template"
+    },
+    "default_prescriptions": {
+      "type": "string",
+      "description": "JSON array of common prescriptions for this template"
+    },
+    "default_vitals": {
+      "type": "string",
+      "description": "JSON of default vital sign checks"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "category"
+  ]
+}

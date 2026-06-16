@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Stethoscope, Heart, FileText, Pill, Activity, Plus, Save, Search } from "lucide-react";
+import TemplateSelector from "@/components/TemplateSelector";
 
 export default function Clinical() {
   const [visits, setVisits] = useState([]);
@@ -96,6 +97,24 @@ export default function Clinical() {
 
   const addPrescItem = () => setPrescForm({ items: [...prescForm.items, { drug_name: "", dosage: "", frequency: "", duration: "", route: "", quantity: "", instructions: "" }] });
 
+  const applyTemplate = ({ consultData, prescriptions, diagnosis, icd10 }) => {
+    setConsultForm(consultData);
+    // Add diagnosis via consultation save later — prefill assessment
+    if (prescriptions && prescriptions.length > 0) {
+      setPrescForm({ items: prescriptions.map(p => ({
+        drug_name: p.drug_name || "",
+        dosage: p.dosage || "",
+        frequency: p.frequency || "",
+        duration: p.duration || "",
+        route: p.route || "",
+        quantity: String(p.quantity || ""),
+        instructions: p.instructions || "",
+      }))});
+      setActiveTab("prescriptions");
+    }
+    setActiveTab("consultation");
+  };
+
   if (loading) return <div className="page-container flex justify-center py-20"><div className="w-8 h-8 border-3 border-muted border-t-primary rounded-full animate-spin" /></div>;
 
   return (
@@ -163,6 +182,7 @@ export default function Clinical() {
                 {activeTab === "consultation" && (
                   <div>
                     <h4 className="font-heading font-semibold mb-4 flex items-center gap-2"><FileText className="w-4 h-4 text-primary" /> Consultation Notes</h4>
+                    <TemplateSelector onSelectTemplate={applyTemplate} />
                     {consultations.map(c => (
                       <div key={c.id} className="mb-4 p-4 bg-muted/30 rounded-lg">
                         <p className="text-xs text-muted-foreground mb-2">{new Date(c.consultation_date).toLocaleString()}</p>

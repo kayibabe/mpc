@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Users, Calendar, FlaskConical, BedDouble, Pill, Receipt, TrendingUp, Clock, Activity, RefreshCw, FileText } from "lucide-react";
+import InventoryAlerts from "@/components/InventoryAlerts";
 
 function StatCard({ icon: Icon, label, value, sub, color }) {
   return (
@@ -99,6 +100,8 @@ export default function Dashboard() {
           </span>
         </div>
       </div>
+
+      <InventoryAlerts />
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
         <StatCard icon={Users} label="Registered Patients" value={stats.patients} color="bg-primary" />
