@@ -12,6 +12,7 @@ const navigation = [
   { label: "Dashboard", path: "/", icon: LayoutDashboard },
   { label: "Reception", path: "/reception", icon: Users },
   { label: "Appointments", path: "/appointments", icon: Calendar },
+  { label: "Calendar", path: "/calendar", icon: Calendar },
   { label: "Clinical", path: "/clinical", icon: Stethoscope },
   { label: "Laboratory", path: "/lab", icon: FlaskConical },
   { label: "Imaging", path: "/imaging", icon: Scan },
