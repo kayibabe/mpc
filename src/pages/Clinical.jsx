@@ -5,6 +5,7 @@ import TemplateSelector from "@/components/TemplateSelector";
 import VitalSignsChart from "@/components/VitalSignsChart";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
 import DepartmentDashboard from "@/components/DepartmentDashboard";
+import RealTimeVitals from "@/components/RealTimeVitals";
 
 export default function Clinical() {
   const [visits, setVisits] = useState([]);
@@ -351,6 +352,9 @@ export default function Clinical() {
                 )}
                 {activeTab === "vitals" && (
                   <div>
+                    <div className="mb-4">
+                      <RealTimeVitals compact />
+                    </div>
                     <h4 className="font-heading font-semibold mb-4 flex items-center gap-2"><Heart className="w-4 h-4 text-destructive" /> Vital Signs</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       {[
