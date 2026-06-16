@@ -3,7 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 const STAGE_TRANSITIONS = {
   RECEPTION: { allowed: ["TRIAGE", "CONSULTATION", "COMPLETED"], next_role: "doctor" },
   TRIAGE: { allowed: ["CONSULTATION", "LAB_PENDING", "IMAGING_PENDING", "COMPLETED"], next_role: "doctor" },
-  CONSULTATION: { allowed: ["LAB_PENDING", "IMAGING_PENDING", "PHARMACY_PENDING", "NURSING_ADMINISTRATION", "BILLING", "COMPLETED"], next_role: null },
+  CONSULTATION: { allowed: ["LAB_PENDING", "IMAGING_PENDING", "PHARMACY_PENDING", "NURSING_ADMINISTRATION", "BILLING", "COMPLETED"], next_role: "doctor" },
   LAB_PENDING: { allowed: ["LAB_PROCESSING", "CONSULTATION", "COMPLETED"], next_role: "lab_technician" },
   LAB_PROCESSING: { allowed: ["CONSULTATION", "COMPLETED"], next_role: "doctor" },
   IMAGING_PENDING: { allowed: ["IMAGING_PROCESSING", "CONSULTATION", "COMPLETED"], next_role: "radiographer" },
