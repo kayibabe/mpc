@@ -1,0 +1,66 @@
+{
+  "name": "ShiftHandoverLog",
+  "type": "object",
+  "properties": {
+    "shift_type": {
+      "type": "string",
+      "enum": [
+        "reception",
+        "nursing",
+        "pharmacy",
+        "lab",
+        "clinical",
+        "admin",
+        "billing"
+      ]
+    },
+    "handover_from_user_id": {
+      "type": "string"
+    },
+    "handover_to_user_id": {
+      "type": "string"
+    },
+    "handover_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "outstanding_tasks": {
+      "type": "string",
+      "description": "JSON array of outstanding tasks/patients"
+    },
+    "critical_notes": {
+      "type": "string"
+    },
+    "pending_lab_results": {
+      "type": "string"
+    },
+    "pending_imaging": {
+      "type": "string"
+    },
+    "ward_updates": {
+      "type": "string"
+    },
+    "pharmacy_requests": {
+      "type": "string"
+    },
+    "incidents_reported": {
+      "type": "string"
+    },
+    "acknowledged": {
+      "type": "boolean",
+      "default": false
+    },
+    "acknowledged_by": {
+      "type": "string"
+    },
+    "acknowledged_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "shift_type",
+    "handover_from_user_id",
+    "handover_date"
+  ]
+}

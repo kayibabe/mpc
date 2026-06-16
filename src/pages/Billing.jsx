@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Receipt, Plus, Save, CreditCard, DollarSign, FileText, Search, Download, ArrowRight, CheckCircle, GitBranch } from "lucide-react";
+import { Receipt, Plus, Save, CreditCard, DollarSign, FileText, Search, Download, ArrowRight, CheckCircle, GitBranch, ClipboardList } from "lucide-react";
+import ShiftManagement from "@/components/ShiftManagement";
 
 export default function Billing() {
   const [invoices, setInvoices] = useState([]);
@@ -208,7 +209,7 @@ export default function Billing() {
 
       <div className="bg-card rounded-xl border border-border/60 shadow-sm">
         <div className="border-b border-border flex">
-          {["invoices", "payments", "claims"].map(t => <button key={t} onClick={() => setActiveTab(t)} className={`px-4 py-3 text-sm font-medium capitalize ${activeTab === t ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>{t}</button>)}
+          {["invoices", "payments", "claims", "shifts"].map(t => <button key={t} onClick={() => setActiveTab(t)} className={`px-4 py-3 text-sm font-medium capitalize ${activeTab === t ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>{t}</button>)}
         </div>
         <div className="p-4">
           {activeTab === "invoices" && (
@@ -241,6 +242,8 @@ export default function Billing() {
               {payments.length === 0 && <tr><td colSpan={4} className="py-12 text-center text-sm text-muted-foreground">No payments.</td></tr>}
             </tbody></table></div>
           )}
+
+          {activeTab === "shifts" && <ShiftManagement />}
 
           {activeTab === "claims" && (
             <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-border"><th className="text-left py-2 px-3 font-medium text-muted-foreground">Scheme</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Amount (MWK)</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Status</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Submitted</th></tr></thead><tbody>

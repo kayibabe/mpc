@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Shield, Plus, Save, Users, UserPlus, Upload, FileBarChart, Settings, Building2, Loader2, ClipboardList, Filter, X } from "lucide-react";
+import { Shield, Plus, Save, Users, UserPlus, Upload, FileBarChart, Settings, Building2, Loader2, ClipboardList, Filter, X, Clock } from "lucide-react";
+import ShiftManagement from "@/components/ShiftManagement";
 
 export default function Admin() {
   const [users, setUsers] = useState([]);
@@ -97,6 +98,7 @@ export default function Admin() {
           {[
             { key: "users", icon: Users, label: "Users" },
             { key: "schemes", icon: Building2, label: "Medical Aid Schemes" },
+            { key: "shifts", icon: Clock, label: "Shift Management" },
             { key: "dhis2", icon: FileBarChart, label: "DHIS2 Exports" },
             { key: "audit", icon: ClipboardList, label: "Audit Log" },
           ].map(tab => (
@@ -159,6 +161,8 @@ export default function Admin() {
             </div>
           )}
 
+          {activeTab === "shifts" && <ShiftManagement />}
+
           {activeTab === "dhis2" && (
             <div>
               <div className="flex justify-between items-center mb-4">
@@ -189,6 +193,8 @@ export default function Admin() {
                     <option value="Drug">Drug</option>
                     <option value="Admission">Admission</option>
                     <option value="Discharge">Discharge</option>
+                    <option value="PatientJourney">PatientJourney</option>
+                    <option value="ShiftHandoverLog">ShiftHandoverLog</option>
                   </select>
                   <select className="rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs" value={auditFilter.action} onChange={e => setAuditFilter({...auditFilter, action: e.target.value})}>
                     <option value="">All Actions</option>
