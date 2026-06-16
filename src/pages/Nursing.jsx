@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   Heart, Thermometer, Activity, Wind, Stethoscope, Pill, Syringe,
@@ -69,6 +69,25 @@ export default function Nursing() {
   const [assessments, setAssessments] = useState({});
   const [assessing, setAssessing] = useState({});
   const [expandedAssess, setExpandedAssess] = useState({});
+
+  // Unified workflow — merged triage + active patients sorted by priority
+  const [expandedPatient, setExpandedPatient] = useState(null);
+  const unifiedQueue = useMemo(() => {
+    const all = [...triageQueue, ...activePatients];
+    const priorityOrder = { emergency: 0, urgent: 1, normal: 2 };
+    return all.sort((a, b) => {
+      const va = getVisit(a.visit_id);
+      const vb = getVisit(b.visit_id);
+      return (priorityOrder[va?.priority] ?? 3) - (priorityOrder[vb?.priority] ?? 3);
+    });
+  }, [triageQueue, activePatients, visits]);
+
+  const suggestedColor = (assess) =>
+    assess?.suggested_priority === "emergency"
+      ? "border-destructive/40 bg-destructive/5"
+      : assess?.suggested_priority === "urgent"
+      ? "border-chart-2/40 bg-chart-2/5"
+      : "border-border/40";
 
   useEffect(() => {
     loadData();
@@ -259,11 +278,37 @@ export default function Nursing() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="section-title">Nursing Station</h2>
           <p className="text-sm text-muted-foreground mt-1">Overview, triage, vital signs, medication & notes</p>
         </div>
+      </div>
+
+      {/* Quick-Action Bar — always visible */}
+      <div className="bg-card rounded-xl border border-border/60 shadow-sm p-3 mb-4 flex items-center gap-2 flex-wrap">
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mr-2">Quick Actions</span>
+        <button onClick={() => setActiveTab("overview")} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 flex items-center gap-1.5">
+          <Bell className="w-3.5 h-3.5" /> Overview
+        </button>
+        <button onClick={() => setActiveTab("workflow")} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-chart-1/10 text-chart-1 hover:bg-chart-1/20 border border-chart-1/20 flex items-center gap-1.5">
+          <GitBranch className="w-3.5 h-3.5" /> Workflow ({unifiedQueue.length})
+        </button>
+        <button onClick={() => { setActiveTab("triage"); }} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20 flex items-center gap-1.5">
+          <AlertTriangle className="w-3.5 h-3.5" /> Triage ({triageQueue.length})
+        </button>
+        <button onClick={() => { setActiveTab("vitals"); }} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-chart-3/10 text-chart-3 hover:bg-chart-3/20 border border-chart-3/20 flex items-center gap-1.5">
+          <Heart className="w-3.5 h-3.5" /> Vitals
+        </button>
+        <button onClick={() => setActiveTab("medication")} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-chart-2/10 text-chart-2 hover:bg-chart-2/20 border border-chart-2/20 flex items-center gap-1.5">
+          <Syringe className="w-3.5 h-3.5" /> Meds ({pendingMeds.length})
+        </button>
+        <button onClick={() => setActiveTab("notes")} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-chart-4/10 text-chart-4 hover:bg-chart-4/20 border border-chart-4/20 flex items-center gap-1.5">
+          <ClipboardCheck className="w-3.5 h-3.5" /> Notes
+        </button>
+        <button onClick={loadData} disabled={loading} className="ml-auto px-3 py-1.5 rounded-lg border border-border text-xs font-medium hover:bg-muted flex items-center gap-1.5">
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh
+        </button>
       </div>
 
       <DepartmentDashboard department="nursing" />
@@ -274,11 +319,11 @@ export default function Nursing() {
         <div className="border-b border-border flex">
           {[
             { key: "overview", label: "Overview", icon: Bell },
+            { key: "workflow", label: "Workflow", icon: GitBranch, count: unifiedQueue.length },
             { key: "triage", label: "Triage", icon: AlertTriangle, count: triageQueue.length },
-            { key: "vitals", label: "Vital Signs", icon: Heart },
-            { key: "medication", label: "Medication", icon: Syringe, count: pendingMeds.length },
-            { key: "active", label: "Active Patients", icon: Users, count: activePatients.length },
-            { key: "notes", label: "Nursing Notes", icon: ClipboardCheck },
+            { key: "vitals", label: "Vitals", icon: Heart },
+            { key: "medication", label: "Meds", icon: Syringe, count: pendingMeds.length },
+            { key: "notes", label: "Notes", icon: ClipboardCheck },
           ].map(t => (
             <button
               key={t.key}
@@ -360,7 +405,7 @@ export default function Nursing() {
                         <p className="p-4 text-xs text-muted-foreground text-center">No patients under nursing care</p>
                       ) : (
                         activePatients.slice(0, 6).map(j => (
-                          <button key={j.id} onClick={() => { setActiveTab("active"); }} className="w-full text-left p-2.5 hover:bg-muted/30 text-xs flex items-center justify-between">
+                          <button key={j.id} onClick={() => { setActiveTab("workflow"); }} className="w-full text-left p-2.5 hover:bg-muted/30 text-xs flex items-center justify-between">
                             <span className="font-medium truncate">{getPatientName(j.patient_id)}</span>
                             <ChevronDown className="w-3 h-3 text-muted-foreground" />
                           </button>
@@ -400,21 +445,165 @@ export default function Nursing() {
                 </div>
               </div>
 
-              {/* Quick Actions */}
-              <div className="flex items-center gap-2 mt-4">
-                <button onClick={() => setActiveTab("triage")} className="px-4 py-2 bg-destructive/10 text-destructive rounded-lg text-xs font-medium hover:bg-destructive/20 flex items-center gap-1.5">
-                  <AlertTriangle className="w-3.5 h-3.5" /> Go to Triage
-                </button>
-                <button onClick={() => setActiveTab("vitals")} className="px-4 py-2 bg-primary/10 text-primary rounded-lg text-xs font-medium hover:bg-primary/20 flex items-center gap-1.5">
-                  <Heart className="w-3.5 h-3.5" /> Record Vitals
-                </button>
-                <button onClick={() => setActiveTab("medication")} className="px-4 py-2 bg-chart-2/10 text-chart-2 rounded-lg text-xs font-medium hover:bg-chart-2/20 flex items-center gap-1.5">
-                  <Syringe className="w-3.5 h-3.5" /> Administer Meds
-                </button>
-                <button onClick={loadData} disabled={loading} className="ml-auto px-3 py-2 rounded-lg border border-border text-xs font-medium hover:bg-muted flex items-center gap-1.5">
-                  <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh
-                </button>
-              </div>
+            </div>
+          )}
+
+          {/* WORKFLOW TAB — unified triage + active patients */}
+          {activeTab === "workflow" && (
+            <div>
+              <h4 className="font-heading font-semibold mb-3 flex items-center gap-2">
+                <GitBranch className="w-4 h-4 text-primary" /> Nursing Workflow ({unifiedQueue.length})
+              </h4>
+              {unifiedQueue.length === 0 ? (
+                <div className="py-12 text-center">
+                  <GitBranch className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">No patients in nursing workflow.</p>
+                  <p className="text-xs text-muted-foreground/60 mt-1">Patients appear here from triage and active care.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {unifiedQueue.map(j => {
+                    const patient = getPatient(j.patient_id);
+                    const visit = getVisit(j.visit_id);
+                    const isTriage = j.current_stage === "TRIAGE";
+                    const isActive = j.current_stage === "NURSING_ADMINISTRATION";
+                    const assess = assessments[j.id];
+                    const isOpen = expandedPatient === j.id;
+                    const priorityColors = {
+                      emergency: "border-l-[4px] border-l-destructive",
+                      urgent: "border-l-[4px] border-l-chart-2",
+                      normal: "border-l-[4px] border-l-chart-3",
+                    };
+                    return (
+                      <div key={j.id} className={`bg-muted/20 rounded-xl border border-border/40 overflow-hidden ${priorityColors[visit?.priority] || ""}`}>
+                        {/* Patient Row Header */}
+                        <div className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-muted/30" onClick={() => setExpandedPatient(isOpen ? null : j.id)}>
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                              isTriage ? "bg-destructive/10 text-destructive" : "bg-chart-1/10 text-chart-1"
+                            }`}>
+                              {isTriage ? "T" : "A"}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold truncate">{getPatientName(j.patient_id)}</p>
+                              <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                                <span className="font-mono">{patient?.mrn || j.patient_id?.slice(0, 8)}</span>
+                                {visit && <span className={`px-1 py-0.5 rounded-full text-[9px] font-medium ${
+                                  visit.priority === "emergency" ? "bg-destructive/10 text-destructive" :
+                                  visit.priority === "urgent" ? "bg-chart-2/10 text-chart-2" : "bg-muted text-muted-foreground"
+                                }`}>{visit.priority}</span>}
+                                <span>{isTriage ? "Triage Queue" : "Under Care"}</span>
+                              </div>
+                            </div>
+                            {assess && (
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                assess.suggested_priority === "emergency" ? "bg-destructive/10 text-destructive" :
+                                assess.suggested_priority === "urgent" ? "bg-chart-2/10 text-chart-2" : "bg-chart-3/10 text-chart-3"
+                              }`}>MEWS: {assess.mews_score}</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {isTriage && (
+                              <button onClick={(e) => { e.stopPropagation(); handleAutoAssess(j); }} disabled={assessing[j.id]}
+                                className="px-2 py-1 rounded text-[10px] font-medium bg-primary/10 text-primary hover:bg-primary/20 flex items-center gap-1 disabled:opacity-50">
+                                {assessing[j.id] ? <Loader2 className="w-3 h-3 animate-spin" /> : <Brain className="w-3 h-3" />}
+                                {assess ? "Re-assess" : "Assess"}
+                              </button>
+                            )}
+                            {isActive && (
+                              <button onClick={(e) => { e.stopPropagation(); selectPatientForVitals(j); setActiveTab("vitals"); }}
+                                className="px-2 py-1 rounded text-[10px] font-medium bg-chart-3/10 text-chart-3 hover:bg-chart-3/20 flex items-center gap-1">
+                                <Heart className="w-3 h-3" /> Vitals
+                              </button>
+                            )}
+                            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                          </div>
+                        </div>
+
+                        {/* Expanded Actions */}
+                        {isOpen && (
+                          <div className="border-t border-border px-4 py-3 bg-muted/10 space-y-3">
+                            <PatientJourneyTimeline journeyId={j.id} compact />
+
+                            {/* Quick-Action Buttons Row */}
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {isTriage && assess && (
+                                <div className="flex items-center gap-1.5">
+                                  {TRIAGE_CATEGORIES.map(cat => (
+                                    <button key={cat.value} onClick={(e) => { e.stopPropagation(); handleTriageTransition(j, cat.value); }}
+                                      disabled={transitioning}
+                                      className={`px-2.5 py-1 rounded-lg text-xs font-medium border ${cat.color} hover:opacity-80 transition-opacity disabled:opacity-50 ${
+                                        assess?.suggested_priority === cat.value ? "ring-2 ring-offset-1 ring-current" : ""
+                                      }`}>
+                                      {cat.label} {assess?.suggested_priority === cat.value && "✓"}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                              {isActive && (
+                                <>
+                                  <button onClick={(e) => { e.stopPropagation(); handleNursingTransition(j, "COMPLETED"); }}
+                                    disabled={transitioning}
+                                    className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-chart-3/10 text-chart-3 hover:bg-chart-3/20 border border-chart-3/20 flex items-center gap-1 disabled:opacity-50">
+                                    <CheckCircle className="w-3 h-3" /> Discharge
+                                  </button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleNursingTransition(j, "BILLING"); }}
+                                    disabled={transitioning}
+                                    className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 flex items-center gap-1 disabled:opacity-50">
+                                    <ArrowRight className="w-3 h-3" /> To Billing
+                                  </button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleNursingTransition(j, "PHARMACY_DISPENSING"); }}
+                                    disabled={transitioning}
+                                    className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-chart-2/10 text-chart-2 hover:bg-chart-2/20 border border-chart-2/20 flex items-center gap-1 disabled:opacity-50">
+                                    <Pill className="w-3 h-3" /> Pharmacy
+                                  </button>
+                                </>
+                              )}
+                              {isTriage && (
+                                <button onClick={(e) => { e.stopPropagation(); selectPatientForVitals(j); setActiveTab("vitals"); }}
+                                  className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-chart-3/10 text-chart-3 hover:bg-chart-3/20 border border-chart-3/20 flex items-center gap-1">
+                                  <Heart className="w-3 h-3" /> Record Vitals
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Assessment Details (Triage) */}
+                            {isTriage && assess && (
+                              <div className={`p-3 rounded-lg border ${suggestedColor(assess)}`}>
+                                <div className="flex items-center justify-between mb-2">
+                                  <p className="text-xs font-semibold flex items-center gap-1.5">
+                                    <BarChart3 className="w-3.5 h-3.5 text-primary" />
+                                    MEWS Score: {assess.mews_score} — {assess.suggested_priority?.toUpperCase()}
+                                    {!assess.vitals_available && (
+                                      <span className="text-[10px] text-muted-foreground font-normal">(no vitals yet)</span>
+                                    )}
+                                  </p>
+                                </div>
+                                {assess.breakdown?.length > 0 && (
+                                  <div className="grid grid-cols-2 md:grid-cols-3 gap-1 mb-2">
+                                    {assess.breakdown.map((b, i) => (
+                                      <div key={i} className="flex items-center justify-between text-[10px] px-1.5 py-0.5 rounded bg-white/50">
+                                        <span>{b.parameter}</span>
+                                        <span className="font-mono">{b.value} <span className={b.score > 0 ? "text-destructive font-bold" : "text-muted-foreground"}>(+{b.score})</span></span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                <p className="text-[10px] font-medium">{assess.assessment}</p>
+                                {assess.red_flags?.length > 0 && assess.red_flags.map((rf, i) => (
+                                  <p key={i} className="text-[10px] text-destructive font-medium flex items-center gap-1 mt-1">
+                                    <AlertTriangle className="w-3 h-3" /> {rf}
+                                  </p>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -713,51 +902,6 @@ export default function Nursing() {
                       ))}
                     </tbody>
                   </table>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ACTIVE PATIENTS TAB */}
-          {activeTab === "active" && (
-            <div>
-              <h4 className="font-heading font-semibold mb-3 flex items-center gap-2">
-                <Users className="w-4 h-4 text-primary" /> Active Patients ({activePatients.length})
-              </h4>
-              {activePatients.length === 0 ? (
-                <div className="py-12 text-center">
-                  <Users className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">No patients currently under nursing care.</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {activePatients.map(j => (
-                    <div key={j.id} className="bg-muted/20 rounded-xl p-4 border border-border/40">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm">{getPatientName(j.patient_id)}</p>
-                          <p className="text-xs text-muted-foreground font-mono mb-1">{j.patient_id?.slice(0, 8)}</p>
-                          <PatientJourneyTimeline journeyId={j.id} compact />
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            onClick={() => handleNursingTransition(j, "COMPLETED")}
-                            disabled={transitioning}
-                            className="px-3 py-1.5 bg-chart-3/10 text-chart-3 rounded-lg text-xs font-medium border border-chart-3/20 hover:bg-chart-3/20 disabled:opacity-50 flex items-center gap-1"
-                          >
-                            <CheckCircle className="w-3 h-3" /> Discharge
-                          </button>
-                          <button
-                            onClick={() => handleNursingTransition(j, "BILLING")}
-                            disabled={transitioning}
-                            className="px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-xs font-medium border border-primary/20 hover:bg-primary/20 disabled:opacity-50 flex items-center gap-1"
-                          >
-                            <ArrowRight className="w-3 h-3" /> To Billing
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               )}
             </div>
