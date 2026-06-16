@@ -90,18 +90,17 @@ export default function Layout() {
     <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
       <aside
-        className={`hidden lg:flex flex-col bg-sidebar transition-all duration-300 ${
-          collapsed ? "w-[68px]" : "w-[240px]"
-        }`}
+      className={`hidden lg:flex flex-col bg-sidebar transition-all duration-300 relative ${
+      collapsed ? "w-[68px]" : "w-[240px]"
+      }`}
       >
-        {sidebarContent}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="absolute bottom-4 -right-3 w-6 h-6 rounded-full bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center shadow-md hover:bg-sidebar-primary/90 transition-colors"
-          style={{ left: collapsed ? "56px" : "228px" }}
-        >
-          {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
-        </button>
+      {sidebarContent}
+      <button
+      onClick={() => setCollapsed(!collapsed)}
+      className="absolute bottom-4 right-0 translate-x-1/2 w-6 h-6 rounded-full bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center shadow-md hover:bg-sidebar-primary/90 transition-colors"
+      >
+      {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+      </button>
       </aside>
 
       {/* Mobile Sidebar */}
@@ -117,7 +116,7 @@ export default function Layout() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
+        <header className="h-14 border-b border-border/70 bg-white/80 backdrop-blur-sm flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
           <button className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-secondary" onClick={() => setMobileOpen(true)}>
             <Menu className="w-5 h-5" />
           </button>
