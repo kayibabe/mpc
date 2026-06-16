@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { ArrowRight, ArrowLeft, ChevronDown, Users, ClipboardCheck, AlertCircle, Clock } from "lucide-react";
+import { ArrowRight, ArrowLeft, ChevronDown, Users, ClipboardCheck, AlertCircle, Clock, Activity, Pill } from "lucide-react";
 
 const DEPT_CONFIGS = {
   reception: {
@@ -50,6 +50,12 @@ const DEPT_CONFIGS = {
     color: "bg-chart-1",
     metrics: ["ancVisits", "deliveries", "postnatal", "highRisk"],
     pullStage: null,
+  },
+  nursing: {
+    label: "Nursing Station",
+    color: "bg-chart-1",
+    metrics: ["triageToday", "vitalsRecorded", "medsAdministered", "nursingNotes"],
+    pullStage: "TRIAGE",
   },
 };
 
@@ -177,6 +183,22 @@ export default function DepartmentDashboard({ department, compact = false }) {
           result.highRisk = ancVisits.filter(v => v.risk_level === "high").length;
         }
 
+        if (department === "nursing") {
+          const [triageJourneys, vitals, dispensings] = await Promise.all([
+            base44.entities.PatientJourney.filter(
+              { current_stage: "TRIAGE", status: "active" },
+              "-created_date",
+              100
+            ),
+            base44.entities.VitalSigns.filter({ created_date: { $gte: today } }, "-created_date", 200),
+            base44.entities.PharmacyDispensing.filter({ created_date: { $gte: today } }, "-created_date", 200),
+          ]);
+          result.triageToday = triageJourneys.length;
+          result.vitalsRecorded = vitals.length;
+          result.medsAdministered = dispensings.length;
+          result.nursingNotes = 0; // Will be populated by nursing notes entity when available
+        }
+
         setData(result);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
@@ -237,6 +259,10 @@ export default function DepartmentDashboard({ department, compact = false }) {
       deliveries: { label: "Deliveries", icon: Users, color: "text-chart-3" },
       postnatal: { label: "Postnatal", icon: Users, color: "text-chart-1" },
       highRisk: { label: "High Risk", icon: AlertCircle, color: "text-destructive" },
+      triageToday: { label: "Triage Queue", icon: Clock, color: "text-chart-2" },
+      vitalsRecorded: { label: "Vitals Today", icon: Activity, color: "text-chart-3" },
+      medsAdministered: { label: "Meds Given", icon: Pill, color: "text-primary" },
+      nursingNotes: { label: "Nursing Notes", icon: ClipboardCheck, color: "text-chart-1" },
     };
     return { ...configs[m], value: data?.[m] ?? "—", key: m };
   });

@@ -18,6 +18,7 @@ const navigation = [
   { label: "Clinical", path: "/clinical", icon: Stethoscope },
   { label: "Laboratory", path: "/lab", icon: FlaskConical },
   { label: "Imaging", path: "/imaging", icon: Scan },
+  { label: "Nursing", path: "/nursing", icon: ClipboardList },
   { label: "Pharmacy", path: "/pharmacy", icon: Pill },
   { label: "Inpatient", path: "/inpatient", icon: BedDouble },
   { label: "Maternal", path: "/maternal", icon: Baby },
