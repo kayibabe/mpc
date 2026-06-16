@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Calendar as CalendarIcon, Plus, Clock, Users, Check, X } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, Clock, Users, Check, X, Square, CheckSquare, ChevronDown } from "lucide-react";
 
 export default function Appointments() {
   const [appointments, setAppointments] = useState([]);
@@ -11,6 +11,8 @@ export default function Appointments() {
     patient_id: "", appointment_date: "", appointment_time: "", type: "new",
     priority: "normal", doctor_id: "", department: "", notes: "",
   });
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -39,6 +41,30 @@ export default function Appointments() {
   const updateStatus = async (id, status) => {
     await base44.entities.Appointment.update(id, { status });
     setAppointments(appointments.map(a => a.id === id ? { ...a, status } : a));
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const toggleSelectAll = () => {
+    const scheduled = appointments.filter(a => a.status === "scheduled");
+    if (selectedIds.length === scheduled.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(scheduled.map(a => a.id));
+    }
+  };
+
+  const bulkUpdateStatus = async (status) => {
+    if (selectedIds.length === 0) return;
+    setBulkBusy(true);
+    for (const id of selectedIds) {
+      await base44.entities.Appointment.update(id, { status });
+    }
+    setAppointments(appointments.map(a => selectedIds.includes(a.id) ? { ...a, status } : a));
+    setSelectedIds([]);
+    setBulkBusy(false);
   };
 
   const getPatientName = (pid) => {
@@ -118,11 +144,27 @@ export default function Appointments() {
         </div>
       )}
 
+      {selectedIds.length > 0 && (
+        <div className="bg-primary/5 border border-primary/20 rounded-xl mx-6 mt-4 p-3 flex items-center gap-3">
+          <span className="text-sm font-medium text-primary">{selectedIds.length} selected</span>
+          <div className="flex gap-2 ml-auto">
+            <button onClick={() => bulkUpdateStatus("checked_in")} disabled={bulkBusy} className="px-3 py-1.5 bg-chart-2 text-white rounded text-xs font-medium hover:bg-chart-2/90 disabled:opacity-50 flex items-center gap-1"><Check className="w-3 h-3" /> Bulk Check-in</button>
+            <button onClick={() => bulkUpdateStatus("cancelled")} disabled={bulkBusy} className="px-3 py-1.5 bg-destructive text-white rounded text-xs font-medium hover:bg-destructive/90 disabled:opacity-50 flex items-center gap-1"><X className="w-3 h-3" /> Bulk Cancel</button>
+            <button onClick={() => setSelectedIds([])} className="px-3 py-1.5 border border-border rounded text-xs font-medium hover:bg-muted">Clear</button>
+          </div>
+        </div>
+      )}
+
       <div className="bg-card rounded-xl border border-border/60 shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/30">
+                <th className="text-left py-3 px-4 font-medium text-muted-foreground w-10">
+                  <button onClick={toggleSelectAll} className="p-0.5 rounded hover:bg-muted">
+                    {selectedIds.length > 0 && selectedIds.length === appointments.filter(a => a.status === "scheduled").length ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4 text-muted-foreground" />}
+                  </button>
+                </th>
                 <th className="text-left py-3 px-4 font-medium text-muted-foreground">Date</th>
                 <th className="text-left py-3 px-4 font-medium text-muted-foreground">Time</th>
                 <th className="text-left py-3 px-4 font-medium text-muted-foreground">Patient</th>
@@ -135,6 +177,13 @@ export default function Appointments() {
             <tbody>
               {appointments.map(a => (
                 <tr key={a.id} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
+                  <td className="py-3 px-4">
+                    {a.status === "scheduled" && (
+                      <button onClick={() => toggleSelect(a.id)} className="p-0.5 rounded hover:bg-muted">
+                        {selectedIds.includes(a.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4 text-muted-foreground" />}
+                      </button>
+                    )}
+                  </td>
                   <td className="py-3 px-4">{a.appointment_date}</td>
                   <td className="py-3 px-4">{a.appointment_time}</td>
                   <td className="py-3 px-4 font-medium">{getPatientName(a.patient_id)}</td>
@@ -161,7 +210,7 @@ export default function Appointments() {
                 </tr>
               ))}
               {appointments.length === 0 && (
-                <tr><td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">No appointments scheduled.</td></tr>
+                <tr><td colSpan={8} className="py-12 text-center text-sm text-muted-foreground">No appointments scheduled.</td></tr>
               )}
             </tbody>
           </table>

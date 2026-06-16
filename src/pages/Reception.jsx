@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Search, UserPlus, ChevronDown, Check, Clock, Phone, MapPin, Users } from "lucide-react";
+import { Search, UserPlus, ChevronDown, Check, Clock, Phone, MapPin, Users, RefreshCw } from "lucide-react";
 import InsuranceVerifier from "@/components/InsuranceVerifier";
 
 export default function Reception() {
@@ -37,6 +37,13 @@ export default function Reception() {
     p.mrn?.toLowerCase().includes(search.toLowerCase()) ||
     p.phone?.includes(search)
   );
+
+  const syncPatient = async (patientId) => {
+    try {
+      const { data } = await base44.functions.invoke('syncPatientRecords', { patient_id: patientId });
+      alert(`Synced: ${data.updates_applied?.visits || 0} visits, ${data.updates_applied?.invoices || 0} invoices updated.`);
+    } catch (e) { console.error(e); }
+  };
 
   const schemes = ["MASM", "Liberty Health", "MRA", "PSMAS", "Madison", "Resolution Health", "Britam", "Old Mutual", "CHAM"];
 
@@ -207,6 +214,9 @@ export default function Reception() {
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${p.insurance_scheme ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
                     {p.insurance_scheme || "Self-pay"}
                   </span>
+                  <button onClick={() => syncPatient(p.id)} className="ml-2 p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors" title="Sync patient records across system">
+                    <RefreshCw className="w-3.5 h-3.5" />
+                  </button>
                 </div>
                 <InsuranceVerifier 
                   patientId={p.id} 

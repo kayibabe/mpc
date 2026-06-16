@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { FlaskConical, Plus, Save, AlertTriangle, ClipboardCheck } from "lucide-react";
+import { FlaskConical, Plus, Save, AlertTriangle, ClipboardCheck, Square, CheckSquare, Play } from "lucide-react";
 
 export default function Lab() {
   const [orders, setOrders] = useState([]);
@@ -10,6 +10,8 @@ export default function Lab() {
   const [form, setForm] = useState({ patient_id: "", visit_id: "", tests: "", specimen_type: "", priority: "routine", clinical_notes: "" });
   const [resultForm, setResultForm] = useState(null);
   const [results, setResults] = useState({});
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -42,6 +44,17 @@ export default function Lab() {
   const updateStatus = async (id, status) => {
     await base44.entities.LabOrder.update(id, { status });
     setOrders(orders.map(o => o.id === id ? { ...o, status } : o));
+  };
+
+  const toggleSelect = (id) => setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const bulkUpdateStatus = async (status) => {
+    if (selectedIds.length === 0) return;
+    setBulkBusy(true);
+    for (const id of selectedIds) await base44.entities.LabOrder.update(id, { status });
+    setOrders(orders.map(o => selectedIds.includes(o.id) ? { ...o, status } : o));
+    setSelectedIds([]);
+    setBulkBusy(false);
   };
 
   const saveResult = async (orderId) => {
@@ -123,11 +136,27 @@ export default function Lab() {
         </div>
       )}
 
+      {selectedIds.length > 0 && (
+        <div className="bg-primary/5 border border-primary/20 rounded-xl mx-6 mt-4 p-3 flex items-center gap-3">
+          <span className="text-sm font-medium text-primary">{selectedIds.length} selected</span>
+          <div className="flex gap-2 ml-auto">
+            <button onClick={() => bulkUpdateStatus("in_progress")} disabled={bulkBusy} className="px-3 py-1.5 bg-chart-1 text-white rounded text-xs font-medium hover:bg-chart-1/90 disabled:opacity-50 flex items-center gap-1"><Play className="w-3 h-3" /> Bulk Start</button>
+            <button onClick={() => bulkUpdateStatus("verified")} disabled={bulkBusy} className="px-3 py-1.5 bg-chart-3 text-white rounded text-xs font-medium hover:bg-chart-3/90 disabled:opacity-50 flex items-center gap-1"><ClipboardCheck className="w-3 h-3" /> Bulk Verify</button>
+            <button onClick={() => setSelectedIds([])} className="px-3 py-1.5 border border-border rounded text-xs font-medium hover:bg-muted">Clear</button>
+          </div>
+        </div>
+      )}
+
       <div className="bg-card rounded-xl border border-border/60 shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/30">
+                <th className="text-left py-3 px-4 font-medium text-muted-foreground w-10">
+                  <button onClick={() => { const pending = orders.filter(o => o.status === "ordered"); setSelectedIds(selectedIds.length === pending.length ? [] : pending.map(o => o.id)); }} className="p-0.5 rounded hover:bg-muted">
+                    {selectedIds.length > 0 && selectedIds.length === orders.filter(o => o.status === "ordered").length ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4 text-muted-foreground" />}
+                  </button>
+                </th>
                 <th className="text-left py-3 px-4 font-medium text-muted-foreground">Date</th>
                 <th className="text-left py-3 px-4 font-medium text-muted-foreground">Patient</th>
                 <th className="text-left py-3 px-4 font-medium text-muted-foreground">Tests</th>
@@ -139,6 +168,13 @@ export default function Lab() {
             <tbody>
               {orders.map(o => (
                 <tr key={o.id} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
+                  <td className="py-3 px-4">
+                    {o.status === "ordered" && (
+                      <button onClick={() => toggleSelect(o.id)} className="p-0.5 rounded hover:bg-muted">
+                        {selectedIds.includes(o.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4 text-muted-foreground" />}
+                      </button>
+                    )}
+                  </td>
                   <td className="py-3 px-4">{new Date(o.created_date).toLocaleDateString("en-GB")}</td>
                   <td className="py-3 px-4 font-medium">{getPatientName(o.patient_id)}</td>
                   <td className="py-3 px-4">{o.tests}</td>
@@ -156,7 +192,7 @@ export default function Lab() {
                   </td>
                 </tr>
               ))}
-              {orders.length === 0 && <tr><td colSpan={6} className="py-12 text-center text-sm text-muted-foreground">No lab orders.</td></tr>}
+              {orders.length === 0 && <tr><td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">No lab orders.</td></tr>}
             </tbody>
           </table>
         </div>

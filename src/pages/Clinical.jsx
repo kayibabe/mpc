@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Stethoscope, Heart, FileText, Pill, Activity, Plus, Save, Search } from "lucide-react";
 import TemplateSelector from "@/components/TemplateSelector";
+import VitalSignsChart from "@/components/VitalSignsChart";
 
 export default function Clinical() {
   const [visits, setVisits] = useState([]);
@@ -196,6 +197,7 @@ export default function Clinical() {
                     </div>
                     <button onClick={saveVitals} className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90"><Save className="w-4 h-4" /> Save Vitals</button>
                     {vitals && <p className="text-xs text-muted-foreground mt-2">Last recorded: {new Date(vitals.created_date).toLocaleString()}</p>}
+                    {selectedVisit && <VitalSignsChart patientId={selectedVisit.patient_id} visitId={selectedVisit.id} />}
                   </div>
                 )}
 
