@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Shield, Plus, Save, Users, UserPlus, Upload, FileBarChart, Settings, Building2, Loader2, ClipboardList, Filter, X, Clock } from "lucide-react";
+import { Shield, Plus, Save, Users, UserPlus, Upload, FileBarChart, Settings, Building2, Loader2, ClipboardList, Filter, X, Clock, TrendingUp } from "lucide-react";
 import ShiftManagement from "@/components/ShiftManagement";
+import StaffPerformance from "@/components/StaffPerformance";
 
 export default function Admin() {
   const [users, setUsers] = useState([]);
@@ -99,6 +100,7 @@ export default function Admin() {
             { key: "users", icon: Users, label: "Users" },
             { key: "schemes", icon: Building2, label: "Medical Aid Schemes" },
             { key: "shifts", icon: Clock, label: "Shift Management" },
+            { key: "performance", icon: TrendingUp, label: "Staff Performance" },
             { key: "dhis2", icon: FileBarChart, label: "DHIS2 Exports" },
             { key: "audit", icon: ClipboardList, label: "Audit Log" },
           ].map(tab => (
@@ -162,6 +164,8 @@ export default function Admin() {
           )}
 
           {activeTab === "shifts" && <ShiftManagement />}
+
+          {activeTab === "performance" && <StaffPerformance />}
 
           {activeTab === "dhis2" && (
             <div>
