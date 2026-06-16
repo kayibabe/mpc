@@ -137,7 +137,7 @@ export default function Layout() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="h-14 border-b border-border/70 bg-white/80 backdrop-blur-sm flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
+        <header className="h-14 border-b border-border/50 bg-card/90 backdrop-blur-md flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
           <button className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-secondary" onClick={() => setMobileOpen(true)}>
             <Menu className="w-5 h-5" />
           </button>
