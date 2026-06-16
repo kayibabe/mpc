@@ -99,51 +99,10 @@ Deno.serve(async (req) => {
       exported_by: user.id,
     });
 
-    // Attempt DHIS2 submission if configured
-    const dhis2Url = Deno.env.get('DHIS2_API_URL');
-    const dhis2User = Deno.env.get('DHIS2_USERNAME');
-    const dhis2Pass = Deno.env.get('DHIS2_PASSWORD');
-
-    let dhis2Response = null;
-    let finalStatus = 'generated';
-
-    if (dhis2Url && dhis2User && dhis2Pass) {
-      try {
-        const auth = btoa(`${dhis2User}:${dhis2Pass}`);
-        const res = await fetch(`${dhis2Url}/api/dataValueSets`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Basic ${auth}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            dataSet: report_type,
-            period,
-            orgUnit: 'ZOMBA_CITY_CLINIC',
-            dataValues: Object.entries(data.aggregates).map(([k, v]) => ({
-              dataElement: k,
-              value: String(v),
-            })),
-          }),
-        });
-        dhis2Response = await res.text();
-        finalStatus = res.ok ? 'submitted' : 'failed';
-      } catch {
-        finalStatus = 'failed';
-        dhis2Response = 'DHIS2 API unreachable';
-      }
-
-      await base44.entities.DHIS2Export.update(exportRecord.id, {
-        status: finalStatus,
-        dhis2_response: dhis2Response,
-      });
-    }
-
     return Response.json({
       export_id: exportRecord.id,
-      status: finalStatus,
+      status: 'generated',
       data,
-      dhis2_response: dhis2Response,
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

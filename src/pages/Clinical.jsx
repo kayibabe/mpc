@@ -12,7 +12,9 @@ export default function Clinical() {
   const [prescriptions, setPrescriptions] = useState([]);
   const [vitalForm, setVitalForm] = useState({ bp_systolic: "", bp_diastolic: "", heart_rate: "", respiratory_rate: "", temperature: "", spo2: "", weight: "", height: "", glucose: "", pain_score: "" });
   const [consultForm, setConsultForm] = useState({ chief_complaint: "", history_present_illness: "", physical_examination: "", assessment: "", plan: "", clinical_notes: "" });
+  const [diagnosisForm, setDiagnosisForm] = useState({ diagnosis_name: "", icd10_code: "", type: "primary" });
   const [prescForm, setPrescForm] = useState({ items: [{ drug_name: "", dosage: "", frequency: "", duration: "", route: "", quantity: "", instructions: "" }] });
+  const [diagnoses, setDiagnoses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("vitals");
 
@@ -33,14 +35,16 @@ export default function Clinical() {
 
   const selectVisit = async (visit) => {
     setSelectedVisit(visit);
-    const [vList, cList, pList] = await Promise.all([
+    const [vList, cList, pList, dList] = await Promise.all([
       base44.entities.VitalSigns.filter({ visit_id: visit.id }, "-created_date", 10),
       base44.entities.Consultation.filter({ visit_id: visit.id }, "-created_date", 10),
       base44.entities.Prescription.filter({ visit_id: visit.id }, "-created_date", 10),
+      base44.entities.Diagnosis.filter({ visit_id: visit.id }, "-created_date", 20),
     ]);
     setVitals(vList[0] || null);
     setConsultations(cList);
     setPrescriptions(pList);
+    setDiagnoses(dList);
   };
 
   const getPatientName = (pid) => {
@@ -70,13 +74,30 @@ export default function Clinical() {
 
   const saveConsultation = async () => {
     if (!selectedVisit) return;
-    await base44.entities.Consultation.create({
+    const consultation = await base44.entities.Consultation.create({
       visit_id: selectedVisit.id, patient_id: selectedVisit.patient_id,
       ...consultForm, consultation_date: new Date().toISOString(),
     });
+    // Save diagnosis if name provided
+    if (diagnosisForm.diagnosis_name.trim()) {
+      await base44.entities.Diagnosis.create({
+        consultation_id: consultation.id,
+        visit_id: selectedVisit.id,
+        patient_id: selectedVisit.patient_id,
+        diagnosis_name: diagnosisForm.diagnosis_name,
+        icd10_code: diagnosisForm.icd10_code,
+        type: diagnosisForm.type,
+        diagnosis_date: new Date().toISOString(),
+      });
+      setDiagnosisForm({ diagnosis_name: "", icd10_code: "", type: "primary" });
+    }
     setConsultForm({ chief_complaint: "", history_present_illness: "", physical_examination: "", assessment: "", plan: "", clinical_notes: "" });
-    const c = await base44.entities.Consultation.filter({ visit_id: selectedVisit.id }, "-created_date", 10);
+    const [c, d] = await Promise.all([
+      base44.entities.Consultation.filter({ visit_id: selectedVisit.id }, "-created_date", 10),
+      base44.entities.Diagnosis.filter({ visit_id: selectedVisit.id }, "-created_date", 20),
+    ]);
     setConsultations(c);
+    setDiagnoses(d);
   };
 
   const savePrescription = async () => {
@@ -99,7 +120,7 @@ export default function Clinical() {
 
   const applyTemplate = ({ consultData, prescriptions, diagnosis, icd10 }) => {
     setConsultForm(consultData);
-    // Add diagnosis via consultation save later — prefill assessment
+    if (diagnosis) setDiagnosisForm({ diagnosis_name: diagnosis, icd10_code: icd10 || "", type: "primary" });
     if (prescriptions && prescriptions.length > 0) {
       setPrescForm({ items: prescriptions.map(p => ({
         drug_name: p.drug_name || "",
@@ -110,7 +131,6 @@ export default function Clinical() {
         quantity: String(p.quantity || ""),
         instructions: p.instructions || "",
       }))});
-      setActiveTab("prescriptions");
     }
     setActiveTab("consultation");
   };
@@ -183,6 +203,17 @@ export default function Clinical() {
                   <div>
                     <h4 className="font-heading font-semibold mb-4 flex items-center gap-2"><FileText className="w-4 h-4 text-primary" /> Consultation Notes</h4>
                     <TemplateSelector onSelectTemplate={applyTemplate} />
+                    {diagnoses.length > 0 && (
+                      <div className="mb-4">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Diagnoses</p>
+                        {diagnoses.map(d => (
+                          <div key={d.id} className="p-3 bg-chart-3/5 border border-chart-3/20 rounded-lg mb-2">
+                            <p className="text-sm font-medium">{d.diagnosis_name}</p>
+                            <p className="text-xs text-muted-foreground">{d.icd10_code || "No ICD-10"} · <span className="capitalize">{d.type}</span></p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     {consultations.map(c => (
                       <div key={c.id} className="mb-4 p-4 bg-muted/30 rounded-lg">
                         <p className="text-xs text-muted-foreground mb-2">{new Date(c.consultation_date).toLocaleString()}</p>
@@ -192,6 +223,25 @@ export default function Clinical() {
                       </div>
                     ))}
                     <div className="space-y-3">
+                      <div className="p-4 bg-muted/20 rounded-lg border border-border mb-3">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Diagnosis</p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-xs text-muted-foreground mb-1">Diagnosis Name</label>
+                            <input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" value={diagnosisForm.diagnosis_name} onChange={e => setDiagnosisForm({...diagnosisForm, diagnosis_name: e.target.value})} placeholder="e.g. Malaria" />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-muted-foreground mb-1">ICD-10 Code</label>
+                            <input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" value={diagnosisForm.icd10_code} onChange={e => setDiagnosisForm({...diagnosisForm, icd10_code: e.target.value})} placeholder="e.g. B54" />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-muted-foreground mb-1">Type</label>
+                            <select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" value={diagnosisForm.type} onChange={e => setDiagnosisForm({...diagnosisForm, type: e.target.value})}>
+                              <option value="primary">Primary</option><option value="secondary">Secondary</option><option value="differential">Differential</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
                       {["chief_complaint", "history_present_illness", "physical_examination", "assessment", "plan", "clinical_notes"].map(f => (
                         <div key={f}>
                           <label className="block text-xs font-medium text-muted-foreground mb-1 capitalize">{f.replace(/_/g, " ")}</label>

@@ -19,6 +19,7 @@ import Maternal from '@/pages/Maternal';
 import Billing from '@/pages/Billing';
 import Admin from '@/pages/Admin';
 import PatientPortal from '@/pages/PatientPortal';
+import QueueDisplay from '@/pages/QueueDisplay';
 import Layout from '@/components/Layout';
 
 const AuthenticatedApp = () => {
@@ -60,6 +61,7 @@ const AuthenticatedApp = () => {
         <Route path="/billing" element={<Billing />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/portal" element={<PatientPortal />} />
+        <Route path="/queue" element={<QueueDisplay />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

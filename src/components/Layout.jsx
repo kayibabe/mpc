@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, Calendar, Stethoscope, FlaskConical,
   Scan, Pill, BedDouble, Baby, Receipt, Shield, UserCircle,
   ChevronLeft, ChevronRight, LogOut, Menu, X, Activity,
-  Bell, Search, ClipboardList, CreditCard, BarChart3
+  Bell, Search, ClipboardList, CreditCard, BarChart3, Monitor
 } from "lucide-react";
 
 const navigation = [
@@ -21,6 +21,7 @@ const navigation = [
   { label: "Billing", path: "/billing", icon: Receipt },
   { label: "Admin", path: "/admin", icon: Shield },
   { label: "Patient Portal", path: "/portal", icon: UserCircle },
+  { label: "Queue Display", path: "/queue", icon: Monitor },
 ];
 
 export default function Layout() {

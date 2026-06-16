@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Receipt, Plus, Save, CreditCard, DollarSign, FileText, Search } from "lucide-react";
+import { Receipt, Plus, Save, CreditCard, DollarSign, FileText, Search, Download } from "lucide-react";
 
 export default function Billing() {
   const [invoices, setInvoices] = useState([]);
@@ -100,6 +100,22 @@ export default function Billing() {
     setClaims(c);
   };
 
+  const exportInvoicePdf = async (invoiceId) => {
+    try {
+      const { data } = await base44.functions.invoke('exportInvoicePdf', { invoice_id: invoiceId });
+      const byteChars = atob(data.pdf_base64);
+      const byteNums = new Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+      const blob = new Blob([new Uint8Array(byteNums)], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = data.filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) { console.error(e); }
+  };
+
   const statusColors = { draft: "bg-muted text-muted-foreground", pending: "bg-chart-4/10 text-chart-4", partial: "bg-chart-1/10 text-chart-1", paid: "bg-chart-2/10 text-chart-2", cancelled: "bg-destructive/10 text-destructive" };
 
   if (loading) return <div className="page-container flex justify-center py-20"><div className="w-8 h-8 border-3 border-muted border-t-primary rounded-full animate-spin" /></div>;
@@ -148,12 +164,15 @@ export default function Billing() {
                 return (
                   <tr key={inv.id} className="border-b border-border/40"><td className="py-2.5 px-3 font-mono text-xs">{inv.invoice_number}</td><td className="py-2.5 px-3">{getPatientName(inv.patient_id)}</td><td className="py-2.5 px-3">{inv.total_amount?.toLocaleString()}</td><td className="py-2.5 px-3">{paid.toLocaleString()}</td><td className="py-2.5 px-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[inv.status] || ""}`}>{inv.status}</span></td>
                     <td className="py-2.5 px-3">
-                      {inv.status !== "paid" && inv.status !== "cancelled" && (
-                        <button onClick={() => setShowPayment(inv.id)} className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium mr-1"><CreditCard className="w-3 h-3 inline mr-0.5" /> Pay</button>
-                      )}
-                      {(inv.payment_type === "scheme" || inv.payment_type === "both") && (
-                        <button onClick={() => submitClaim(inv.id)} className="px-2 py-1 bg-chart-4/10 text-chart-4 rounded text-xs font-medium"><FileText className="w-3 h-3 inline mr-0.5" /> Claim</button>
-                      )}
+                      <div className="flex gap-1 flex-wrap">
+                        {inv.status !== "paid" && inv.status !== "cancelled" && (
+                          <button onClick={() => setShowPayment(inv.id)} className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium"><CreditCard className="w-3 h-3 inline mr-0.5" /> Pay</button>
+                        )}
+                        {(inv.payment_type === "scheme" || inv.payment_type === "both") && (
+                          <button onClick={() => submitClaim(inv.id)} className="px-2 py-1 bg-chart-4/10 text-chart-4 rounded text-xs font-medium"><FileText className="w-3 h-3 inline mr-0.5" /> Claim</button>
+                        )}
+                        <button onClick={() => exportInvoicePdf(inv.id)} className="px-2 py-1 bg-chart-1/10 text-chart-1 rounded text-xs font-medium"><Download className="w-3 h-3 inline mr-0.5" /> PDF</button>
+                      </div>
                     </td>
                   </tr>
                 );

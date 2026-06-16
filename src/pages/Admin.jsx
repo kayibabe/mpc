@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Shield, Plus, Save, Users, UserPlus, Upload, FileBarChart, Settings, Building2 } from "lucide-react";
+import { Shield, Plus, Save, Users, UserPlus, Upload, FileBarChart, Settings, Building2, Loader2 } from "lucide-react";
 
 export default function Admin() {
   const [users, setUsers] = useState([]);
@@ -12,6 +12,7 @@ export default function Admin() {
   const [inviteForm, setInviteForm] = useState({ email: "", role: "user" });
   const [showSchemeForm, setShowSchemeForm] = useState(false);
   const [schemeForm, setSchemeForm] = useState({ name: "", code: "", contact_phone: "", contact_email: "", coverage_details: "" });
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -52,22 +53,17 @@ export default function Admin() {
   };
 
   const generateDHIS2Export = async () => {
-    const data = {
-      period: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`,
-      report_type: "aggregate_monthly",
-      data: JSON.stringify({
-        total_patients: users.length,
-        total_anc_visits: 0,
-        total_deliveries: 0,
-        total_lab_tests: 0,
-        malaria_cases: 0,
-        hiv_tests: 0,
-        generated_date: new Date().toISOString(),
-      }),
-    };
-    await base44.entities.DHIS2Export.create({ ...data, status: "generated", export_date: new Date().toISOString() });
-    const e = await base44.entities.DHIS2Export.list("-created_date", 20);
-    setExports(e);
+    setExporting(true);
+    try {
+      const period = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
+      await base44.functions.invoke('generateDHIS2Report', { period, report_type: 'aggregate_monthly' });
+      const e = await base44.entities.DHIS2Export.list("-created_date", 20);
+      setExports(e);
+    } catch (err) {
+      alert("Export failed: " + (err.response?.data?.error || err.message));
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (loading) return <div className="page-container flex justify-center py-20"><div className="w-8 h-8 border-3 border-muted border-t-primary rounded-full animate-spin" /></div>;
@@ -148,7 +144,7 @@ export default function Admin() {
             <div>
               <div className="flex justify-between items-center mb-4">
                 <p className="text-sm text-muted-foreground">{exports.length} exports generated</p>
-                <button onClick={generateDHIS2Export} className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium"><Upload className="w-4 h-4" /> Generate Export</button>
+                <button onClick={generateDHIS2Export} disabled={exporting} className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium disabled:opacity-50">{exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} {exporting ? "Generating..." : "Generate Export"}</button>
               </div>
               <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-border"><th className="text-left py-2 px-3 font-medium text-muted-foreground">Date</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Period</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Type</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Status</th></tr></thead><tbody>
                 {exports.map(e => (<tr key={e.id} className="border-b border-border/40"><td className="py-2.5 px-3">{new Date(e.export_date).toLocaleDateString("en-GB")}</td><td className="py-2.5 px-3">{e.period}</td><td className="py-2.5 px-3">{e.report_type}</td><td className="py-2.5 px-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${e.status === "confirmed" ? "bg-chart-2/10 text-chart-2" : e.status === "failed" ? "bg-destructive/10 text-destructive" : "bg-chart-4/10 text-chart-4"}`}>{e.status}</span></td></tr>))}
