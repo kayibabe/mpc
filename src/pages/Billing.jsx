@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Receipt, Plus, Save, CreditCard, DollarSign, FileText, Search, Download, ArrowRight, CheckCircle, GitBranch, ClipboardList } from "lucide-react";
 import ShiftManagement from "@/components/ShiftManagement";
 import RevenueReport from "@/components/RevenueReport";
+import ReconciliationPanel from "@/components/ReconciliationPanel";
 
 export default function Billing() {
   const [invoices, setInvoices] = useState([]);
@@ -210,7 +211,7 @@ export default function Billing() {
 
       <div className="bg-card rounded-xl border border-border/60 shadow-sm">
         <div className="border-b border-border flex">
-          {["invoices", "payments", "claims", "reports", "shifts"].map(t => <button key={t} onClick={() => setActiveTab(t)} className={`px-4 py-3 text-sm font-medium capitalize ${activeTab === t ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>{t}</button>)}
+          {["invoices", "payments", "claims", "reconciliation", "reports", "shifts"].map(t => <button key={t} onClick={() => setActiveTab(t)} className={`px-4 py-3 text-sm font-medium capitalize ${activeTab === t ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>{t}</button>)}
         </div>
         <div className="p-4">
           {activeTab === "invoices" && (
@@ -244,6 +245,7 @@ export default function Billing() {
             </tbody></table></div>
           )}
 
+          {activeTab === "reconciliation" && <ReconciliationPanel />}
           {activeTab === "reports" && <RevenueReport />}
           {activeTab === "shifts" && <ShiftManagement />}
 
