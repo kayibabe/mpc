@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { BedDouble, Plus, Save, Building, DoorOpen, FileText, Loader2 } from "lucide-react";
+import DepartmentDashboard from "@/components/DepartmentDashboard";
 
 export default function Inpatient() {
   const [wards, setWards] = useState([]);
@@ -139,6 +140,8 @@ export default function Inpatient() {
       {showBedForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center"><div className="absolute inset-0 bg-black/40" onClick={() => setShowBedForm(false)} /><div className="relative bg-card rounded-xl p-6 shadow-2xl w-full max-w-sm mx-4"><h3 className="font-heading text-lg font-semibold mb-4">Add Bed</h3><form onSubmit={addBed} className="space-y-3"><div><label className="block text-xs text-muted-foreground mb-1">Bed Number *</label><input required className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" value={bedForm.bed_number} onChange={e => setBedForm({...bedForm, bed_number: e.target.value})} /></div><div><label className="block text-xs text-muted-foreground mb-1">Ward *</label><select required className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={bedForm.ward_id} onChange={e => setBedForm({...bedForm, ward_id: e.target.value})}><option value="">Select</option>{wards.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></div><div><label className="block text-xs text-muted-foreground mb-1">Type</label><select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={bedForm.type} onChange={e => setBedForm({...bedForm, type: e.target.value})}><option value="general">General</option><option value="private">Private</option><option value="maternity">Maternity</option><option value="icu">ICU</option><option value="isolation">Isolation</option></select></div><div><label className="block text-xs text-muted-foreground mb-1">Rate/Day (MWK)</label><input type="number" className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={bedForm.rate_per_day} onChange={e => setBedForm({...bedForm, rate_per_day: e.target.value})} /></div><div className="flex gap-3 pt-2"><button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium">Save</button><button type="button" onClick={() => setShowBedForm(false)} className="px-4 py-2 border border-border rounded-lg text-sm">Cancel</button></div></form></div></div>
       )}
+
+      <DepartmentDashboard department="inpatient" />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="stat-card"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"><Building className="w-5 h-5 text-primary" /></div><div><p className="text-sm text-muted-foreground">Wards</p><p className="text-xl font-bold">{wards.length}</p></div></div></div>

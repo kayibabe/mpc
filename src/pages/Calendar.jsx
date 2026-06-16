@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, GitBranch } from "lucide-react";
 import moment from "moment";
+import ShiftCalendar from "@/components/ShiftCalendar";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -156,6 +157,14 @@ export default function Calendar() {
             </div>
           );
         })}
+      </div>
+
+      {/* Shift Calendar */}
+      <div className="mt-8">
+        <h3 className="font-heading text-lg font-semibold mb-4 flex items-center gap-2">
+          <GitBranch className="w-5 h-5 text-primary" /> Shift Calendar
+        </h3>
+        <ShiftCalendar />
       </div>
 
       {/* Upcoming appointments list */}

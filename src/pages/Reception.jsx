@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Search, UserPlus, ChevronDown, Check, Clock, Phone, MapPin, Users, RefreshCw, DoorOpen } from "lucide-react";
 import InsuranceVerifier from "@/components/InsuranceVerifier";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
+import DepartmentDashboard from "@/components/DepartmentDashboard";
 
 export default function Reception() {
   const [patients, setPatients] = useState([]);
@@ -203,6 +204,10 @@ export default function Reception() {
           </form>
         </div>
       )}
+
+      <div className="mb-6">
+        <DepartmentDashboard department="reception" />
+      </div>
 
       <div className="bg-card rounded-xl border border-border/60 shadow-sm mb-6">
         <div className="p-4 border-b border-border flex items-center gap-3">

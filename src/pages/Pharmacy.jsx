@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Pill, Plus, Save, AlertTriangle, Package, ShoppingCart, Clock, TrendingDown, Loader2, BarChart3, Calendar, ArrowRight, CheckCircle, GitBranch } from "lucide-react";
 import InventoryAlerts from "@/components/InventoryAlerts";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
+import DepartmentDashboard from "@/components/DepartmentDashboard";
 
 export default function Pharmacy() {
   const [drugs, setDrugs] = useState([]);
@@ -110,6 +111,8 @@ export default function Pharmacy() {
           <Plus className="w-4 h-4" /> Add Drug
         </button>
       </div>
+
+      <DepartmentDashboard department="pharmacy" />
 
       <InventoryAlerts />
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { FlaskConical, Plus, Save, AlertTriangle, ClipboardCheck, Square, CheckSquare, Play, ArrowRight, CheckCircle, GitBranch } from "lucide-react";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
+import DepartmentDashboard from "@/components/DepartmentDashboard";
 
 export default function Lab() {
   const [orders, setOrders] = useState([]);
@@ -111,6 +112,8 @@ export default function Lab() {
           <Plus className="w-4 h-4" /> New Lab Order
         </button>
       </div>
+
+      <DepartmentDashboard department="lab" />
 
       {/* Lab Workflow Queue */}
       {labJourneys.length > 0 && (

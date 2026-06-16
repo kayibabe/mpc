@@ -4,6 +4,7 @@ import { Stethoscope, Heart, FileText, Pill, Activity, Plus, Save, Search, Alert
 import TemplateSelector from "@/components/TemplateSelector";
 import VitalSignsChart from "@/components/VitalSignsChart";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
+import DepartmentDashboard from "@/components/DepartmentDashboard";
 
 export default function Clinical() {
   const [visits, setVisits] = useState([]);
@@ -247,6 +248,9 @@ export default function Clinical() {
   return (
     <div className="page-container">
       <h2 className="section-title mb-6">Clinical</h2>
+      <div className="mb-6">
+        <DepartmentDashboard department="clinical" />
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Visit List */}
         <div className="bg-card rounded-xl border border-border/60 shadow-sm">
