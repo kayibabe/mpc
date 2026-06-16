@@ -4,30 +4,40 @@ import { base44 } from "@/api/base44Client";
 import LivePulse from "@/components/LivePulse";
 
 import {
-  LayoutDashboard, Users, Calendar, Stethoscope, FlaskConical,
+  LayoutDashboard, Users, CalendarDays, Stethoscope, FlaskConical,
   Scan, Pill, BedDouble, Baby, Receipt, Shield, UserCircle,
   ChevronLeft, ChevronRight, LogOut, Menu, X, Activity,
-  Bell, Search, ClipboardList, CreditCard, BarChart3, Monitor, FileBarChart
+  Bell, Search, ClipboardList, ClipboardPen, Monitor, FileBarChart
 } from "lucide-react";
 
-const navigation = [
-  { label: "Dashboard", path: "/", icon: LayoutDashboard },
-  { label: "Reception", path: "/reception", icon: Users },
-  { label: "Appointments", path: "/appointments", icon: Calendar },
-  { label: "Calendar", path: "/calendar", icon: Calendar },
-  { label: "Clinical", path: "/clinical", icon: Stethoscope },
-  { label: "Laboratory", path: "/lab", icon: FlaskConical },
-  { label: "Imaging", path: "/imaging", icon: Scan },
-  { label: "Nurse Portal", path: "/nurse-portal", icon: ClipboardList },
-  { label: "Nursing", path: "/nursing", icon: ClipboardList },
-  { label: "Pharmacy", path: "/pharmacy", icon: Pill },
-  { label: "Inpatient", path: "/inpatient", icon: BedDouble },
-  { label: "Maternal", path: "/maternal", icon: Baby },
-  { label: "Billing", path: "/billing", icon: Receipt },
-  { label: "Admin", path: "/admin", icon: Shield },
-  { label: "MoH Reports", path: "/moh-reports", icon: FileBarChart },
-  { label: "Patient Portal", path: "/portal", icon: UserCircle },
-  { label: "Queue Display", path: "/queue", icon: Monitor },
+const navGroups = [
+  {
+    label: "Clinical",
+    items: [
+      { label: "Dashboard", path: "/", icon: LayoutDashboard },
+      { label: "Reception", path: "/reception", icon: Users },
+      { label: "Appointments", path: "/appointments", icon: CalendarDays },
+      { label: "Clinical", path: "/clinical", icon: Stethoscope },
+      { label: "Nurse Portal", path: "/nurse-portal", icon: ClipboardList },
+      { label: "Nursing", path: "/nursing", icon: ClipboardPen },
+      { label: "Laboratory", path: "/lab", icon: FlaskConical },
+      { label: "Imaging", path: "/imaging", icon: Scan },
+      { label: "Pharmacy", path: "/pharmacy", icon: Pill },
+      { label: "Inpatient", path: "/inpatient", icon: BedDouble },
+      { label: "Maternal", path: "/maternal", icon: Baby },
+      { label: "Billing", path: "/billing", icon: Receipt },
+    ],
+  },
+  {
+    label: "Operations",
+    items: [
+      { label: "Calendar", path: "/calendar", icon: CalendarDays },
+      { label: "Queue Display", path: "/queue", icon: Monitor },
+      { label: "MoH Reports", path: "/moh-reports", icon: FileBarChart },
+      { label: "Patient Portal", path: "/portal", icon: UserCircle },
+      { label: "Admin", path: "/admin", icon: Shield },
+    ],
+  },
 ];
 
 export default function Layout() {
@@ -44,7 +54,7 @@ export default function Layout() {
       <div className="flex items-center gap-3 px-4 py-5 border-b border-sidebar-border">
         <div className="relative w-9 h-9 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
           <Activity className="w-5 h-5 text-primary-foreground animate-pulse" style={{ animationDuration: "2s" }} />
-          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-chart-3 border-2 border-sidebar" />
+          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-clinical-normal border-2 border-sidebar" />
         </div>
         {!collapsed && (
           <div className="overflow-hidden">
@@ -53,26 +63,37 @@ export default function Layout() {
           </div>
         )}
       </div>
-      <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
-        {navigation.map((item) => {
-          const Icon = item.icon;
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group ${
-                isActive
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
-              }`}
-            >
-              <Icon className="w-5 h-5 flex-shrink-0" />
-              {!collapsed && <span className="truncate">{item.label}</span>}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 py-2 px-2 space-y-4 overflow-y-auto">
+        {navGroups.map((group) => (
+          <div key={group.label}>
+            {!collapsed && (
+              <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
+                {group.label}
+              </p>
+            )}
+            <div className="space-y-0.5">
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setMobileOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-150 border-l-[3px] ${
+                      isActive
+                        ? "bg-sidebar-accent text-sidebar-foreground border-l-sidebar-primary"
+                        : "text-sidebar-foreground/65 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground border-l-transparent"
+                    }`}
+                  >
+                    <Icon className="w-[18px] h-[18px] flex-shrink-0" />
+                    {!collapsed && <span className="truncate">{item.label}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
       <div className="border-t border-sidebar-border p-3">
         <button
@@ -97,7 +118,7 @@ export default function Layout() {
       {sidebarContent}
       <button
       onClick={() => setCollapsed(!collapsed)}
-      className="absolute bottom-4 right-0 translate-x-1/2 w-6 h-6 rounded-full bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center shadow-md hover:bg-sidebar-primary/90 transition-colors"
+      className="absolute bottom-6 right-0 translate-x-1/2 w-6 h-6 rounded-full bg-white border border-border shadow-sm text-muted-foreground hover:text-foreground hover:border-primary/40 flex items-center justify-center transition-all duration-200"
       >
       {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
       </button>
