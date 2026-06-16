@@ -1,0 +1,163 @@
+import { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { Shield, Plus, Save, Users, UserPlus, Upload, FileBarChart, Settings, Building2 } from "lucide-react";
+
+export default function Admin() {
+  const [users, setUsers] = useState([]);
+  const [schemes, setSchemes] = useState([]);
+  const [exports, setExports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("users");
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteForm, setInviteForm] = useState({ email: "", role: "user" });
+  const [showSchemeForm, setShowSchemeForm] = useState(false);
+  const [schemeForm, setSchemeForm] = useState({ name: "", code: "", contact_phone: "", contact_email: "", coverage_details: "" });
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const [u, s, e] = await Promise.all([
+          base44.entities.User.list("", 100),
+          base44.entities.MedicalAidScheme.list("", 50),
+          base44.entities.DHIS2Export.list("-created_date", 20),
+        ]);
+        setUsers(u);
+        setSchemes(s);
+        setExports(e);
+      } catch (e) { console.error(e); }
+      finally { setLoading(false); }
+    }
+    load();
+  }, []);
+
+  const inviteUser = async (e) => {
+    e.preventDefault();
+    try {
+      await base44.users.inviteUser(inviteForm.email, inviteForm.role);
+      setInviteForm({ email: "", role: "user" });
+      setShowInvite(false);
+      alert("Invitation sent to " + inviteForm.email);
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
+  };
+
+  const addScheme = async (e) => {
+    e.preventDefault();
+    await base44.entities.MedicalAidScheme.create(schemeForm);
+    const s = await base44.entities.MedicalAidScheme.list("", 50);
+    setSchemes(s);
+    setShowSchemeForm(false);
+    setSchemeForm({ name: "", code: "", contact_phone: "", contact_email: "", coverage_details: "" });
+  };
+
+  const generateDHIS2Export = async () => {
+    const data = {
+      period: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`,
+      report_type: "aggregate_monthly",
+      data: JSON.stringify({
+        total_patients: users.length,
+        total_anc_visits: 0,
+        total_deliveries: 0,
+        total_lab_tests: 0,
+        malaria_cases: 0,
+        hiv_tests: 0,
+        generated_date: new Date().toISOString(),
+      }),
+    };
+    await base44.entities.DHIS2Export.create({ ...data, status: "generated", export_date: new Date().toISOString() });
+    const e = await base44.entities.DHIS2Export.list("-created_date", 20);
+    setExports(e);
+  };
+
+  if (loading) return <div className="page-container flex justify-center py-20"><div className="w-8 h-8 border-3 border-muted border-t-primary rounded-full animate-spin" /></div>;
+
+  return (
+    <div className="page-container">
+      <div className="flex items-center justify-between mb-6">
+        <div><h2 className="section-title">Administration</h2><p className="text-sm text-muted-foreground mt-1">User management, scheme configuration, DHIS2 exports</p></div>
+      </div>
+
+      <div className="bg-card rounded-xl border border-border/60 shadow-sm">
+        <div className="border-b border-border flex">
+          {[
+            { key: "users", icon: Users, label: "Users" },
+            { key: "schemes", icon: Building2, label: "Medical Aid Schemes" },
+            { key: "dhis2", icon: FileBarChart, label: "DHIS2 Exports" },
+          ].map(tab => (
+            <button key={tab.key} onClick={() => setActiveTab(tab.key)} className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${activeTab === tab.key ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}><tab.icon className="w-4 h-4" />{tab.label}</button>
+          ))}
+        </div>
+        <div className="p-5">
+          {activeTab === "users" && (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <p className="text-sm text-muted-foreground">{users.length} registered users</p>
+                <button onClick={() => setShowInvite(!showInvite)} className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium"><UserPlus className="w-4 h-4" /> Invite User</button>
+              </div>
+
+              {showInvite && (
+                <form onSubmit={inviteUser} className="mb-4 p-4 bg-muted/30 rounded-xl flex flex-col sm:flex-row gap-3">
+                  <div className="flex-1"><label className="block text-xs text-muted-foreground mb-1">Email *</label><input type="email" required className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={inviteForm.email} onChange={e => setInviteForm({...inviteForm, email: e.target.value})} placeholder="user@example.com" /></div>
+                  <div><label className="block text-xs text-muted-foreground mb-1">Role</label><select className="rounded-lg border border-border bg-background px-3 py-2 text-sm" value={inviteForm.role} onChange={e => setInviteForm({...inviteForm, role: e.target.value})}><option value="user">User</option><option value="admin">Admin</option></select></div>
+                  <div className="flex items-end gap-2"><button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium">Send Invite</button><button type="button" onClick={() => setShowInvite(false)} className="px-4 py-2 border border-border rounded-lg text-sm">Cancel</button></div>
+                </form>
+              )}
+
+              <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-border"><th className="text-left py-2 px-3 font-medium text-muted-foreground">Name</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Email</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Role</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Joined</th></tr></thead><tbody>
+                {users.map(u => (<tr key={u.id} className="border-b border-border/40"><td className="py-2.5 px-3 font-medium">{u.full_name || "—"}</td><td className="py-2.5 px-3">{u.email}</td><td className="py-2.5 px-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.role === "admin" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{u.role}</span></td><td className="py-2.5 px-3">{new Date(u.created_date).toLocaleDateString("en-GB")}</td></tr>))}
+              </tbody></table></div>
+            </div>
+          )}
+
+          {activeTab === "schemes" && (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <p className="text-sm text-muted-foreground">{schemes.length} configured schemes</p>
+                <button onClick={() => setShowSchemeForm(!showSchemeForm)} className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium"><Plus className="w-4 h-4" /> Add Scheme</button>
+              </div>
+
+              {showSchemeForm && (
+                <form onSubmit={addScheme} className="mb-4 p-4 bg-muted/30 rounded-xl space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div><label className="block text-xs text-muted-foreground mb-1">Name *</label><input required className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={schemeForm.name} onChange={e => setSchemeForm({...schemeForm, name: e.target.value})} /></div>
+                    <div><label className="block text-xs text-muted-foreground mb-1">Code *</label><input required className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={schemeForm.code} onChange={e => setSchemeForm({...schemeForm, code: e.target.value})} /></div>
+                    <div><label className="block text-xs text-muted-foreground mb-1">Phone</label><input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={schemeForm.contact_phone} onChange={e => setSchemeForm({...schemeForm, contact_phone: e.target.value})} /></div>
+                    <div><label className="block text-xs text-muted-foreground mb-1">Email</label><input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={schemeForm.contact_email} onChange={e => setSchemeForm({...schemeForm, contact_email: e.target.value})} /></div>
+                    <div className="md:col-span-2"><label className="block text-xs text-muted-foreground mb-1">Coverage Details</label><input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={schemeForm.coverage_details} onChange={e => setSchemeForm({...schemeForm, coverage_details: e.target.value})} /></div>
+                  </div>
+                  <div className="flex gap-3"><button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium"><Save className="w-3 h-3 inline mr-1" /> Save</button><button type="button" onClick={() => setShowSchemeForm(false)} className="px-4 py-2 border border-border rounded-lg text-sm">Cancel</button></div>
+                </form>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {schemes.map(s => (
+                  <div key={s.id} className="p-4 border border-border rounded-xl hover:border-primary/30 transition-colors">
+                    <p className="font-semibold text-sm">{s.name}</p>
+                    <p className="text-xs text-muted-foreground font-mono">{s.code}</p>
+                    {s.contact_phone && <p className="text-xs text-muted-foreground mt-1">{s.contact_phone}</p>}
+                    {s.contact_email && <p className="text-xs text-muted-foreground">{s.contact_email}</p>}
+                  </div>
+                ))}
+                {schemes.length === 0 && <p className="col-span-3 py-8 text-center text-sm text-muted-foreground">No schemes configured.</p>}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "dhis2" && (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <p className="text-sm text-muted-foreground">{exports.length} exports generated</p>
+                <button onClick={generateDHIS2Export} className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium"><Upload className="w-4 h-4" /> Generate Export</button>
+              </div>
+              <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-border"><th className="text-left py-2 px-3 font-medium text-muted-foreground">Date</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Period</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Type</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Status</th></tr></thead><tbody>
+                {exports.map(e => (<tr key={e.id} className="border-b border-border/40"><td className="py-2.5 px-3">{new Date(e.export_date).toLocaleDateString("en-GB")}</td><td className="py-2.5 px-3">{e.period}</td><td className="py-2.5 px-3">{e.report_type}</td><td className="py-2.5 px-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${e.status === "confirmed" ? "bg-chart-2/10 text-chart-2" : e.status === "failed" ? "bg-destructive/10 text-destructive" : "bg-chart-4/10 text-chart-4"}`}>{e.status}</span></td></tr>))}
+                {exports.length === 0 && <tr><td colSpan={4} className="py-12 text-center text-sm text-muted-foreground">No DHIS2 exports generated yet.</td></tr>}
+              </tbody></table></div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

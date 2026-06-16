@@ -1,0 +1,45 @@
+{
+  "name": "PharmacyPurchaseOrder",
+  "type": "object",
+  "properties": {
+    "supplier": {
+      "type": "string"
+    },
+    "order_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "items": {
+      "type": "string",
+      "description": "JSON array of items ordered"
+    },
+    "total_amount": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ordered",
+        "received",
+        "partial",
+        "cancelled"
+      ],
+      "default": "draft"
+    },
+    "ordered_by": {
+      "type": "string"
+    },
+    "received_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "supplier",
+    "items"
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "name": "Patient",
+  "type": "object",
+  "properties": {
+    "mrn": {
+      "type": "string",
+      "description": "Auto-generated Medical Record Number"
+    },
+    "first_name": {
+      "type": "string"
+    },
+    "last_name": {
+      "type": "string"
+    },
+    "date_of_birth": {
+      "type": "string",
+      "format": "date"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "male",
+        "female",
+        "other"
+      ]
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "national_id": {
+      "type": "string"
+    },
+    "blood_group": {
+      "type": "string",
+      "enum": [
+        "A+",
+        "A-",
+        "B+",
+        "B-",
+        "AB+",
+        "AB-",
+        "O+",
+        "O-"
+      ]
+    },
+    "district": {
+      "type": "string"
+    },
+    "village": {
+      "type": "string"
+    },
+    "landmark": {
+      "type": "string"
+    },
+    "emergency_contact_name": {
+      "type": "string"
+    },
+    "emergency_contact_phone": {
+      "type": "string"
+    },
+    "photo_url": {
+      "type": "string"
+    },
+    "insurance_scheme": {
+      "type": "string"
+    },
+    "insurance_member_number": {
+      "type": "string"
+    },
+    "insurance_member_name": {
+      "type": "string"
+    },
+    "insurance_relationship": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "deceased"
+      ],
+      "default": "active"
+    },
+    "registration_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "first_name",
+    "last_name",
+    "gender"
+  ]
+}

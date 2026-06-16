@@ -1,0 +1,53 @@
+{
+  "name": "Consultation",
+  "type": "object",
+  "properties": {
+    "visit_id": {
+      "type": "string"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "doctor_id": {
+      "type": "string"
+    },
+    "consultation_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "chief_complaint": {
+      "type": "string"
+    },
+    "history_present_illness": {
+      "type": "string"
+    },
+    "past_medical_history": {
+      "type": "string"
+    },
+    "physical_examination": {
+      "type": "string"
+    },
+    "assessment": {
+      "type": "string"
+    },
+    "plan": {
+      "type": "string"
+    },
+    "clinical_notes": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "in_progress",
+        "completed",
+        "signed"
+      ],
+      "default": "in_progress"
+    }
+  },
+  "required": [
+    "visit_id",
+    "patient_id"
+  ]
+}

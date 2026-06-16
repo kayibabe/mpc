@@ -1,0 +1,55 @@
+{
+  "name": "CashierShift",
+  "type": "object",
+  "properties": {
+    "cashier_id": {
+      "type": "string"
+    },
+    "opened_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "closed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "opening_balance": {
+      "type": "number",
+      "default": 0
+    },
+    "closing_balance": {
+      "type": "number"
+    },
+    "total_cash_collected": {
+      "type": "number",
+      "default": 0
+    },
+    "total_card_collected": {
+      "type": "number",
+      "default": 0
+    },
+    "total_mobile_collected": {
+      "type": "number",
+      "default": 0
+    },
+    "total_insurance_claims": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "closed"
+      ],
+      "default": "open"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "cashier_id",
+    "opening_balance"
+  ]
+}

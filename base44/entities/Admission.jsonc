@@ -1,0 +1,52 @@
+{
+  "name": "Admission",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string"
+    },
+    "visit_id": {
+      "type": "string"
+    },
+    "bed_id": {
+      "type": "string"
+    },
+    "ward_id": {
+      "type": "string"
+    },
+    "admission_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "admission_type": {
+      "type": "string",
+      "enum": [
+        "elective",
+        "emergency",
+        "transfer",
+        "maternity"
+      ]
+    },
+    "admitting_doctor_id": {
+      "type": "string"
+    },
+    "diagnosis_on_admission": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "admitted",
+        "discharged",
+        "transferred"
+      ],
+      "default": "admitted"
+    }
+  },
+  "required": [
+    "patient_id",
+    "visit_id",
+    "bed_id",
+    "admission_type"
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "name": "Appointment",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string"
+    },
+    "appointment_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "appointment_time": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "new",
+        "follow_up",
+        "anc",
+        "postnatal",
+        "procedure",
+        "surgery",
+        "emergency",
+        "review"
+      ]
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "urgent",
+        "emergency"
+      ],
+      "default": "normal"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "checked_in",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "no_show"
+      ],
+      "default": "scheduled"
+    },
+    "doctor_id": {
+      "type": "string"
+    },
+    "department": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "created_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "appointment_date",
+    "appointment_time",
+    "type"
+  ]
+}

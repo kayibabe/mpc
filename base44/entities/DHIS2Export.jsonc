@@ -1,0 +1,42 @@
+{
+  "name": "DHIS2Export",
+  "type": "object",
+  "properties": {
+    "export_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "period": {
+      "type": "string"
+    },
+    "report_type": {
+      "type": "string"
+    },
+    "data": {
+      "type": "string",
+      "description": "JSON payload for DHIS2"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "generated",
+        "submitted",
+        "confirmed",
+        "failed"
+      ],
+      "default": "draft"
+    },
+    "exported_by": {
+      "type": "string"
+    },
+    "dhis2_response": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "period",
+    "report_type",
+    "data"
+  ]
+}

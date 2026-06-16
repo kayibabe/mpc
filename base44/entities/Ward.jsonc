@@ -1,0 +1,41 @@
+{
+  "name": "Ward",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "floor": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "general",
+        "private",
+        "maternity",
+        "icu",
+        "isolation",
+        "paediatric"
+      ]
+    },
+    "total_beds": {
+      "type": "number",
+      "default": 0
+    },
+    "nurse_station_phone": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

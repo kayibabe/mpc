@@ -7,6 +7,19 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 // Add page imports here
+import Dashboard from '@/pages/Dashboard';
+import Reception from '@/pages/Reception';
+import Appointments from '@/pages/Appointments';
+import Clinical from '@/pages/Clinical';
+import Lab from '@/pages/Lab';
+import Imaging from '@/pages/Imaging';
+import Pharmacy from '@/pages/Pharmacy';
+import Inpatient from '@/pages/Inpatient';
+import Maternal from '@/pages/Maternal';
+import Billing from '@/pages/Billing';
+import Admin from '@/pages/Admin';
+import PatientPortal from '@/pages/PatientPortal';
+import Layout from '@/components/Layout';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -34,7 +47,20 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
+      <Route element={<Layout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/reception" element={<Reception />} />
+        <Route path="/appointments" element={<Appointments />} />
+        <Route path="/clinical" element={<Clinical />} />
+        <Route path="/lab" element={<Lab />} />
+        <Route path="/imaging" element={<Imaging />} />
+        <Route path="/pharmacy" element={<Pharmacy />} />
+        <Route path="/inpatient" element={<Inpatient />} />
+        <Route path="/maternal" element={<Maternal />} />
+        <Route path="/billing" element={<Billing />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/portal" element={<PatientPortal />} />
+      </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

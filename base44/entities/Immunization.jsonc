@@ -1,0 +1,38 @@
+{
+  "name": "Immunization",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string"
+    },
+    "vaccine_name": {
+      "type": "string"
+    },
+    "dose_number": {
+      "type": "number",
+      "default": 1
+    },
+    "date_given": {
+      "type": "string",
+      "format": "date"
+    },
+    "batch_number": {
+      "type": "string"
+    },
+    "given_by": {
+      "type": "string"
+    },
+    "next_due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "vaccine_name",
+    "date_given"
+  ]
+}

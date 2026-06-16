@@ -1,0 +1,35 @@
+{
+  "name": "PatientAllergy",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string"
+    },
+    "allergen": {
+      "type": "string"
+    },
+    "reaction": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "mild",
+        "moderate",
+        "severe",
+        "life_threatening"
+      ]
+    },
+    "recorded_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "recorded_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "allergen"
+  ]
+}

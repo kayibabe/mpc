@@ -1,0 +1,57 @@
+{
+  "name": "LabResult",
+  "type": "object",
+  "properties": {
+    "lab_order_id": {
+      "type": "string"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "test_name": {
+      "type": "string"
+    },
+    "result_value": {
+      "type": "string"
+    },
+    "unit": {
+      "type": "string"
+    },
+    "reference_range": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "preliminary",
+        "final",
+        "corrected"
+      ],
+      "default": "pending"
+    },
+    "is_critical": {
+      "type": "boolean",
+      "default": false
+    },
+    "verified_by": {
+      "type": "string"
+    },
+    "verified_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "performed_by": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "lab_order_id",
+    "patient_id",
+    "test_name",
+    "result_value"
+  ]
+}

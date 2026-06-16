@@ -1,0 +1,67 @@
+{
+  "name": "NewbornRecord",
+  "type": "object",
+  "properties": {
+    "maternal_visit_id": {
+      "type": "string"
+    },
+    "mother_id": {
+      "type": "string"
+    },
+    "baby_name": {
+      "type": "string"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "male",
+        "female"
+      ]
+    },
+    "birth_weight_kg": {
+      "type": "number"
+    },
+    "apgar_1min": {
+      "type": "number"
+    },
+    "apgar_5min": {
+      "type": "number"
+    },
+    "birth_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "delivery_type": {
+      "type": "string",
+      "enum": [
+        "normal_vaginal",
+        "cesarean",
+        "assisted",
+        "breech"
+      ]
+    },
+    "complications": {
+      "type": "string"
+    },
+    "vitamin_k_given": {
+      "type": "boolean",
+      "default": false
+    },
+    "bcg_given": {
+      "type": "boolean",
+      "default": false
+    },
+    "opv_given": {
+      "type": "boolean",
+      "default": false
+    },
+    "recorded_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "mother_id",
+    "birth_date",
+    "gender"
+  ]
+}

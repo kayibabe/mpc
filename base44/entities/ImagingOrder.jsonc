@@ -1,0 +1,62 @@
+{
+  "name": "ImagingOrder",
+  "type": "object",
+  "properties": {
+    "visit_id": {
+      "type": "string"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "ordered_by": {
+      "type": "string"
+    },
+    "order_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "study_type": {
+      "type": "string",
+      "enum": [
+        "xray",
+        "ultrasound",
+        "ct_scan",
+        "mri",
+        "mammography",
+        "other"
+      ]
+    },
+    "body_part": {
+      "type": "string"
+    },
+    "clinical_indication": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ordered",
+        "scheduled",
+        "in_progress",
+        "completed",
+        "reported",
+        "cancelled"
+      ],
+      "default": "ordered"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "routine",
+        "urgent",
+        "stat"
+      ],
+      "default": "routine"
+    }
+  },
+  "required": [
+    "visit_id",
+    "patient_id",
+    "study_type"
+  ]
+}

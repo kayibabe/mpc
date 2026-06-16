@@ -1,0 +1,47 @@
+{
+  "name": "PrescriptionItem",
+  "type": "object",
+  "properties": {
+    "prescription_id": {
+      "type": "string"
+    },
+    "drug_name": {
+      "type": "string"
+    },
+    "dosage": {
+      "type": "string"
+    },
+    "frequency": {
+      "type": "string"
+    },
+    "duration": {
+      "type": "string"
+    },
+    "route": {
+      "type": "string"
+    },
+    "quantity": {
+      "type": "number"
+    },
+    "instructions": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "dispensed",
+        "partial",
+        "cancelled"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "prescription_id",
+    "drug_name",
+    "dosage",
+    "frequency",
+    "quantity"
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "name": "LabOrder",
+  "type": "object",
+  "properties": {
+    "visit_id": {
+      "type": "string"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "ordered_by": {
+      "type": "string"
+    },
+    "order_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tests": {
+      "type": "string",
+      "description": "JSON array of test names"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ordered",
+        "collected",
+        "in_progress",
+        "completed",
+        "verified",
+        "cancelled"
+      ],
+      "default": "ordered"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "routine",
+        "urgent",
+        "stat"
+      ],
+      "default": "routine"
+    },
+    "specimen_type": {
+      "type": "string"
+    },
+    "clinical_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "visit_id",
+    "patient_id",
+    "tests"
+  ]
+}

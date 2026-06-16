@@ -1,0 +1,63 @@
+{
+  "name": "Drug",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "generic_name": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "strength": {
+      "type": "string"
+    },
+    "form": {
+      "type": "string"
+    },
+    "manufacturer": {
+      "type": "string"
+    },
+    "unit_price": {
+      "type": "number"
+    },
+    "cost_price": {
+      "type": "number"
+    },
+    "quantity_in_stock": {
+      "type": "number",
+      "default": 0
+    },
+    "reorder_level": {
+      "type": "number",
+      "default": 10
+    },
+    "batch_number": {
+      "type": "string"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "requires_refrigeration": {
+      "type": "boolean",
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "discontinued",
+        "recalled"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "name",
+    "generic_name",
+    "unit_price"
+  ]
+}

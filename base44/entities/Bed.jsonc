@@ -1,0 +1,41 @@
+{
+  "name": "Bed",
+  "type": "object",
+  "properties": {
+    "bed_number": {
+      "type": "string"
+    },
+    "ward_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "available",
+        "occupied",
+        "reserved",
+        "cleaning",
+        "maintenance"
+      ],
+      "default": "available"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "general",
+        "private",
+        "maternity",
+        "icu",
+        "isolation"
+      ]
+    },
+    "rate_per_day": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "bed_number",
+    "ward_id"
+  ]
+}

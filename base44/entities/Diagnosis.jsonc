@@ -1,0 +1,47 @@
+{
+  "name": "Diagnosis",
+  "type": "object",
+  "properties": {
+    "consultation_id": {
+      "type": "string"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "visit_id": {
+      "type": "string"
+    },
+    "icd10_code": {
+      "type": "string"
+    },
+    "diagnosis_name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "primary",
+        "secondary",
+        "differential"
+      ],
+      "default": "primary"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "resolved",
+        "chronic"
+      ],
+      "default": "active"
+    },
+    "diagnosis_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "patient_id",
+    "diagnosis_name"
+  ]
+}

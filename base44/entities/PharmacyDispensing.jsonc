@@ -1,0 +1,39 @@
+{
+  "name": "PharmacyDispensing",
+  "type": "object",
+  "properties": {
+    "prescription_item_id": {
+      "type": "string"
+    },
+    "prescription_id": {
+      "type": "string"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "drug_name": {
+      "type": "string"
+    },
+    "quantity_dispensed": {
+      "type": "number"
+    },
+    "dispensed_by": {
+      "type": "string"
+    },
+    "dispensing_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "batch_number": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "prescription_item_id",
+    "patient_id",
+    "quantity_dispensed"
+  ]
+}

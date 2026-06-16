@@ -1,0 +1,72 @@
+{
+  "name": "Visit",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string"
+    },
+    "visit_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "visit_type": {
+      "type": "string",
+      "enum": [
+        "outpatient",
+        "inpatient",
+        "emergency",
+        "anc",
+        "postnatal",
+        "procedure"
+      ]
+    },
+    "payment_type": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "scheme",
+        "both"
+      ]
+    },
+    "queue_status": {
+      "type": "string",
+      "enum": [
+        "waiting",
+        "triaged",
+        "in_consultation",
+        "in_lab",
+        "in_pharmacy",
+        "completed",
+        "admitted",
+        "referred"
+      ],
+      "default": "waiting"
+    },
+    "department": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "urgent",
+        "emergency"
+      ],
+      "default": "normal"
+    },
+    "scheme_name": {
+      "type": "string"
+    },
+    "checked_in_by": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "visit_type",
+    "payment_type"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "Prescription",
+  "type": "object",
+  "properties": {
+    "consultation_id": {
+      "type": "string"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "visit_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "pending",
+        "dispensed",
+        "partial",
+        "cancelled"
+      ],
+      "default": "draft"
+    },
+    "prescribed_by": {
+      "type": "string"
+    },
+    "prescription_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "visit_id"
+  ]
+}

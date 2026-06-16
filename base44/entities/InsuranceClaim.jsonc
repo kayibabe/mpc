@@ -1,0 +1,57 @@
+{
+  "name": "InsuranceClaim",
+  "type": "object",
+  "properties": {
+    "invoice_id": {
+      "type": "string"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "scheme_id": {
+      "type": "string"
+    },
+    "scheme_name": {
+      "type": "string"
+    },
+    "claim_amount": {
+      "type": "number"
+    },
+    "co_pay_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "submitted",
+        "approved",
+        "partial",
+        "rejected",
+        "paid"
+      ],
+      "default": "pending"
+    },
+    "submitted_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "response_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "response_notes": {
+      "type": "string"
+    },
+    "submitted_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "invoice_id",
+    "patient_id",
+    "scheme_name",
+    "claim_amount"
+  ]
+}

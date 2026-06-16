@@ -1,0 +1,62 @@
+{
+  "name": "VitalSigns",
+  "type": "object",
+  "properties": {
+    "visit_id": {
+      "type": "string"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "recorded_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "bp_systolic": {
+      "type": "number"
+    },
+    "bp_diastolic": {
+      "type": "number"
+    },
+    "heart_rate": {
+      "type": "number"
+    },
+    "respiratory_rate": {
+      "type": "number"
+    },
+    "temperature": {
+      "type": "number"
+    },
+    "spo2": {
+      "type": "number"
+    },
+    "weight": {
+      "type": "number"
+    },
+    "height": {
+      "type": "number"
+    },
+    "bmi": {
+      "type": "number"
+    },
+    "glucose": {
+      "type": "number"
+    },
+    "pain_score": {
+      "type": "number"
+    },
+    "gcs": {
+      "type": "number"
+    },
+    "recorded_by": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "visit_id",
+    "patient_id"
+  ]
+}

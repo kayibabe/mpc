@@ -1,0 +1,48 @@
+{
+  "name": "ImagingResult",
+  "type": "object",
+  "properties": {
+    "imaging_order_id": {
+      "type": "string"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "findings": {
+      "type": "string"
+    },
+    "impression": {
+      "type": "string"
+    },
+    "report_url": {
+      "type": "string"
+    },
+    "images_url": {
+      "type": "string",
+      "description": "JSON array of image URLs"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "reported",
+        "verified"
+      ],
+      "default": "pending"
+    },
+    "reported_by": {
+      "type": "string"
+    },
+    "reported_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "verified_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "imaging_order_id",
+    "patient_id"
+  ]
+}

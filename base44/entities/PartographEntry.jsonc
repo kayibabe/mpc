@@ -1,0 +1,77 @@
+{
+  "name": "PartographEntry",
+  "type": "object",
+  "properties": {
+    "maternal_visit_id": {
+      "type": "string"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "entry_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cervical_dilation_cm": {
+      "type": "number"
+    },
+    "descent": {
+      "type": "number"
+    },
+    "contractions_per_10min": {
+      "type": "number"
+    },
+    "contraction_duration_sec": {
+      "type": "number"
+    },
+    "fetal_heart_rate": {
+      "type": "number"
+    },
+    "amniotic_fluid": {
+      "type": "string",
+      "enum": [
+        "intact",
+        "clear",
+        "meconium",
+        "blood_stained",
+        "absent"
+      ]
+    },
+    "moulding": {
+      "type": "string",
+      "enum": [
+        "none",
+        "+",
+        "++",
+        "+++"
+      ]
+    },
+    "oxytocin_dose": {
+      "type": "number"
+    },
+    "bp_systolic": {
+      "type": "number"
+    },
+    "bp_diastolic": {
+      "type": "number"
+    },
+    "pulse": {
+      "type": "number"
+    },
+    "temperature": {
+      "type": "number"
+    },
+    "urine_volume": {
+      "type": "number"
+    },
+    "recorded_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "maternal_visit_id",
+    "patient_id",
+    "entry_time",
+    "cervical_dilation_cm"
+  ]
+}
