@@ -157,22 +157,30 @@ export default function Layout() {
           const isGroupCollapsed = collapsedGroups[group.label] !== false;
           return (
           <div key={group.label}>
-            <div className="flex items-center justify-between">
-              {!collapsed && (
-                <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
-                  {group.label}
-                </p>
-              )}
-              {!isMainGroup && !collapsed && (
-                <button
-                  onClick={() => toggleGroupCollapse(group.label)}
-                  className="p-1 hover:bg-sidebar-accent/30 rounded transition-colors mr-1"
-                  title={isGroupCollapsed ? "Expand" : "Collapse"}
-                >
-                  <ChevronDown className={`w-4 h-4 text-sidebar-foreground/40 transition-transform duration-200 ${isGroupCollapsed ? "-rotate-90" : ""}`} />
-                </button>
-              )}
-            </div>
+            {!isMainGroup ? (
+              <button
+                onClick={() => toggleGroupCollapse(group.label)}
+                className={`flex items-center justify-between w-full px-2 py-1.5 rounded transition-colors ${!collapsed ? "hover:bg-sidebar-accent/30" : ""}`}
+                title={isGroupCollapsed ? "Expand" : "Collapse"}
+              >
+                {!collapsed && (
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
+                    {group.label}
+                  </p>
+                )}
+                {!collapsed && (
+                  <ChevronDown className={`w-4 h-4 text-sidebar-foreground/40 transition-transform duration-200 flex-shrink-0 ${isGroupCollapsed ? "-rotate-90" : ""}`} />
+                )}
+              </button>
+            ) : (
+              <div className="flex items-center justify-between">
+                {!collapsed && (
+                  <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
+                    {group.label}
+                  </p>
+                )}
+              </div>
+            )}
             {!isGroupCollapsed && (
               <div className="space-y-0.5">
                 {visibleItems.map((item) => {
