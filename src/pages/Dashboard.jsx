@@ -327,7 +327,7 @@ export default function Dashboard() {
 
       <RealTimeVitals />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 items-start">
         <div className="lg:col-span-2 bg-card rounded-xl border border-border/60 p-5 shadow-sm">
           <h3 className="font-heading text-lg font-semibold mb-4 flex items-center gap-2">
             <Activity className="w-5 h-5 text-primary" /> Recent Visits
