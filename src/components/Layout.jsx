@@ -144,8 +144,8 @@ export default function Layout() {
         </div>
         {!collapsed &&
       <div className="overflow-hidden">
-            <h1 className="text-xs font-bold text-sidebar-foreground leading-tight tracking-tight">Zomba City Private ClinicHIMS</h1>
-            <p className="text-[9px] font-semibold text-sidebar-foreground/50 tracking-widest uppercase">HIMSMalawi</p>
+            <h1 className="text-xs font-bold text-sidebar-foreground leading-tight tracking-tight">Zomba City Private Clinic</h1>
+            <p className="text-[9px] font-semibold text-sidebar-foreground/50 tracking-widest uppercase">Malawi</p>
           </div>
       }
       </div>
@@ -280,7 +280,7 @@ export default function Layout() {
                 <Activity className="w-4 h-4 text-primary-foreground" />
               </div>
               <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Zomba City PRIVATE CLINIC</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Zomba City PRIVATE CLINIC - HIMS</p>
               </div>
             </div>
           </div>
