@@ -1,0 +1,44 @@
+{
+  "name": "LoginSession",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "User who logged in"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "user_role": {
+      "type": "string"
+    },
+    "login_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "logout_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "session_duration_minutes": {
+      "type": "number",
+      "description": "Calculated session duration"
+    },
+    "device_info": {
+      "type": "string",
+      "description": "Browser/device fingerprint"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "user_id",
+    "login_date"
+  ],
+  "description": "User login session audit trail \u2014 tracks authentication events per user"
+}

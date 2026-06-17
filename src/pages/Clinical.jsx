@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Stethoscope, Heart, FileText, Pill, Activity, Plus, Save, Search, AlertTriangle, ShieldAlert, FlaskConical, ArrowRight, CheckCircle, GitBranch, PenTool, ArrowRightLeft, Clock, Users, FileBadge, FileWarning } from "lucide-react";
+import { Stethoscope, Heart, FileText, Pill, Activity, Plus, Save, Search, AlertTriangle, ShieldAlert, FlaskConical, ArrowRight, CheckCircle, GitBranch, PenTool, ArrowRightLeft, Clock, Users, FileBadge, FileWarning, Zap } from "lucide-react";
 import TemplateSelector from "@/components/TemplateSelector";
 import VitalSignsChart from "@/components/VitalSignsChart";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
@@ -36,6 +36,7 @@ export default function Clinical() {
     neonatal_death: false, autopsy_requested: false, notes: "",
   });
   const [showDeathForm, setShowDeathForm] = useState(false);
+  const [activeTemplate, setActiveTemplate] = useState(null); // { name, category }
 
   // Signature state
   const [signingDoc, setSigningDoc] = useState(null); // { document_type, document_id }
@@ -318,7 +319,8 @@ export default function Clinical() {
     }
   };
 
-  const applyTemplate = ({ consultData, prescriptions, diagnosis, icd10 }) => {
+  const applyTemplate = ({ consultData, prescriptions, diagnosis, icd10, treatmentPlan }) => {
+    setActiveTemplate({ name: diagnosis || "Template Applied", category: "general" });
     setConsultForm(consultData);
     if (diagnosis) setDiagnosisForm({ diagnosis_name: diagnosis, icd10_code: icd10 || "", type: "primary" });
     if (prescriptions && prescriptions.length > 0) {
@@ -476,6 +478,15 @@ export default function Clinical() {
                   <div>
                     <h4 className="font-heading font-semibold mb-4 flex items-center gap-2"><FileText className="w-4 h-4 text-primary" /> Consultation Notes</h4>
                     <TemplateSelector onSelectTemplate={applyTemplate} />
+                    {activeTemplate && (
+                      <div className="mb-4 px-3 py-2 bg-primary/5 border border-primary/20 rounded-lg flex items-center gap-2">
+                        <Zap className="w-4 h-4 text-primary" />
+                        <span className="text-xs font-medium text-primary">
+                          Template applied: <strong>{activeTemplate.name}</strong>
+                        </span>
+                        <button onClick={() => { setActiveTemplate(null); setConsultForm({ chief_complaint: "", history_present_illness: "", physical_examination: "", assessment: "", plan: "", clinical_notes: "" }); setDiagnosisForm({ diagnosis_name: "", icd10_code: "", type: "primary" }); setPrescForm({ items: [{ drug_name: "", dosage: "", frequency: "", duration: "", route: "", quantity: "", instructions: "" }] }); }} className="ml-auto text-[10px] text-muted-foreground hover:text-destructive">Clear</button>
+                      </div>
+                    )}
                     {diagnoses.length > 0 && (
                       <div className="mb-4">
                         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Diagnoses</p>

@@ -1,0 +1,126 @@
+{
+  "name": "IPCSurveillance",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "Patient with the infection"
+    },
+    "visit_id": {
+      "type": "string"
+    },
+    "ward_id": {
+      "type": "string"
+    },
+    "department": {
+      "type": "string",
+      "enum": [
+        "ward",
+        "icu",
+        "theatre",
+        "emergency",
+        "maternal",
+        "nursing",
+        "outpatient"
+      ]
+    },
+    "infection_type": {
+      "type": "string",
+      "enum": [
+        "HAI",
+        "SSI",
+        "CLABSI",
+        "CAUTI",
+        "VAP",
+        "C_DIFF",
+        "MRSA",
+        "TB",
+        "COVID19",
+        "OTHER"
+      ],
+      "description": "HAI=Hospital Acquired, SSI=Surgical Site, CLABSI=Central Line, CAUTI=Catheter, VAP=Ventilator"
+    },
+    "organism": {
+      "type": "string",
+      "description": "Identified organism (e.g. S. aureus, E. coli)"
+    },
+    "organism_resistance": {
+      "type": "string",
+      "description": "Resistance profile (e.g. MRSA, ESBL, MDR)"
+    },
+    "date_identified": {
+      "type": "string",
+      "format": "date"
+    },
+    "date_of_admission": {
+      "type": "string",
+      "format": "date"
+    },
+    "infection_origin": {
+      "type": "string",
+      "enum": [
+        "community",
+        "hospital_acquired",
+        "unknown"
+      ],
+      "description": "Was infection present on admission or acquired in hospital"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "mild",
+        "moderate",
+        "severe",
+        "critical"
+      ],
+      "default": "moderate"
+    },
+    "isolation_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "isolation_type": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "contact",
+        "droplet",
+        "airborne",
+        "protective",
+        "none"
+      ],
+      "default": "none"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "ongoing",
+        "resolved",
+        "transferred",
+        "deceased"
+      ],
+      "default": "ongoing"
+    },
+    "hand_hygiene_compliance": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Hand hygiene compliance % at time of event"
+    },
+    "reported_by": {
+      "type": "string"
+    },
+    "reported_by_name": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "infection_type",
+    "date_identified"
+  ],
+  "description": "Infection Prevention & Control surveillance \u2014 tracking hospital-acquired infections, organisms, and outcomes"
+}
