@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Users, Calendar, FlaskConical, BedDouble, Pill, Receipt, TrendingUp, Clock, Activity, RefreshCw, Bell, Send, Loader2, GitBranch, Megaphone, ArrowRight, AlertTriangle } from "lucide-react";
+import { Users, Calendar, FlaskConical, BedDouble, Pill, Receipt, TrendingUp, Clock, Activity, RefreshCw, Bell, Send, Loader2, GitBranch, Megaphone, ArrowRight, AlertTriangle, FileDown, CheckSquare, Square, X, FileText } from "lucide-react";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
 import InventoryAlerts from "@/components/InventoryAlerts";
 import LivePulse from "@/components/LivePulse";
@@ -9,19 +10,22 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 const CHART_COLORS = ["hsl(194, 65%, 42%)", "hsl(38, 92%, 50%)", "hsl(160, 60%, 40%)", "hsl(280, 50%, 50%)", "hsl(340, 65%, 50%)", "hsl(0, 72%, 51%)"];
 
-function StatCard({ icon: Icon, label, value, sub, color }) {
-  return (
-    <div className="stat-card flex items-start gap-4">
+function StatCard({ icon: Icon, label, value, sub, color, to }) {
+  const content = (
+    <div className="stat-card flex items-start gap-4 group cursor-pointer hover:shadow-md hover:border-primary/30 transition-all duration-200">
       <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
         <Icon className="w-5 h-5 text-white" />
       </div>
-      <div>
-        <p className="text-sm text-muted-foreground">{label}</p>
+      <div className="flex-1">
+        <p className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">{label}</p>
         <p className="text-2xl font-bold tracking-tight mt-0.5 font-mono tabular-nums">{value}</p>
         {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
       </div>
+      <ArrowRight className="w-4 h-4 text-muted-foreground/0 group-hover:text-muted-foreground/40 transition-all flex-shrink-0" />
     </div>
   );
+  if (to) return <Link to={to}>{content}</Link>;
+  return content;
 }
 
 export default function Dashboard() {
@@ -35,6 +39,10 @@ export default function Dashboard() {
   const [occupancyData, setOccupancyData] = useState({ beds: [], wards: [], visits: [], queueSummary: {} });
   const [activeJourneys, setActiveJourneys] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [batchModal, setBatchModal] = useState(false);
+  const [batchReports, setBatchReports] = useState([]);
+  const [batchExporting, setBatchExporting] = useState(false);
+  const [batchResult, setBatchResult] = useState(null);
 
   const refreshDailyReport = async () => {
     setReportLoading(true);
@@ -55,6 +63,24 @@ export default function Dashboard() {
       setReminderResult({ error: "Failed to send reminders" });
     } finally {
       setReminderSending(false);
+    }
+  };
+
+  const toggleReport = (name) => {
+    setBatchReports(prev => prev.includes(name) ? prev.filter(r => r !== name) : [...prev, name]);
+  };
+
+  const runBatchExport = async () => {
+    if (batchReports.length === 0) return;
+    setBatchExporting(true);
+    setBatchResult(null);
+    try {
+      const { data } = await base44.functions.invoke('batchExportReports', { reports: batchReports });
+      setBatchResult(data);
+    } catch (e) {
+      setBatchResult({ error: 'Batch export failed' });
+    } finally {
+      setBatchExporting(false);
     }
   };
 
@@ -145,6 +171,12 @@ export default function Dashboard() {
         </div>
         <div className="flex items-center gap-3">
           <button
+            onClick={() => setBatchModal(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 shadow-sm"
+          >
+            <FileDown className="w-3.5 h-3.5" /> Batch Export
+          </button>
+          <button
             onClick={refreshDailyReport}
             disabled={reportLoading}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium hover:bg-muted transition-colors disabled:opacity-50"
@@ -162,12 +194,12 @@ export default function Dashboard() {
       <InventoryAlerts />
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-        <StatCard icon={Users} label="Registered Patients" value={stats.patients} color="bg-primary" />
-        <StatCard icon={Calendar} label="Today's Appts" value={report?.total_appointments_today ?? stats.appointments} color="bg-triage-semi" sub={report ? `${report.appointments_completed} completed` : null} />
-        <StatCard icon={FlaskConical} label="Pending Lab Orders" value={report?.pending_lab_orders ?? stats.labOrders} color="bg-chart-3" />
-        <StatCard icon={BedDouble} label="Occupied Beds" value={report?.active_inpatients ?? stats.occupiedBeds} color="bg-chart-4" />
-        <StatCard icon={Pill} label="Drugs Low Stock" value={report?.drugs_low_stock ?? stats.drugs} color="bg-destructive" />
-        <StatCard icon={Receipt} label="Revenue (MWK)" value={(report?.total_revenue_mwk ?? stats.revenue).toLocaleString()} color="bg-chart-5" />
+        <StatCard icon={Users} label="Registered Patients" value={stats.patients} color="bg-primary" to="/reception" />
+        <StatCard icon={Calendar} label="Today's Appts" value={report?.total_appointments_today ?? stats.appointments} color="bg-triage-semi" sub={report ? `${report.appointments_completed} completed` : null} to="/appointments" />
+        <StatCard icon={FlaskConical} label="Pending Lab Orders" value={report?.pending_lab_orders ?? stats.labOrders} color="bg-chart-3" to="/lab" />
+        <StatCard icon={BedDouble} label="Occupied Beds" value={report?.active_inpatients ?? stats.occupiedBeds} color="bg-chart-4" to="/inpatient" />
+        <StatCard icon={Pill} label="Drugs Low Stock" value={report?.drugs_low_stock ?? stats.drugs} color="bg-destructive" to="/pharmacy" />
+        <StatCard icon={Receipt} label="Revenue (MWK)" value={(report?.total_revenue_mwk ?? stats.revenue).toLocaleString()} color="bg-chart-5" to="/billing" />
       </div>
 
       {report && (
@@ -457,6 +489,101 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* Batch Export Modal */}
+      {batchModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => { setBatchModal(false); setBatchResult(null); }} />
+          <div className="relative z-10 w-full max-w-md mx-4 bg-card rounded-2xl border border-border shadow-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-heading text-lg font-semibold flex items-center gap-2">
+                <FileDown className="w-5 h-5 text-primary" /> Batch Export Reports
+              </h3>
+              <button onClick={() => { setBatchModal(false); setBatchResult(null); }} className="p-1 rounded hover:bg-muted">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {!batchResult ? (
+              <>
+                <p className="text-sm text-muted-foreground mb-4">Select reports to generate simultaneously:</p>
+                <div className="space-y-2 mb-5">
+                  {[
+                    { id: "daily", label: "Daily Report", desc: "Visits, revenue, appointments summary" },
+                    { id: "revenue", label: "Revenue Report", desc: "Detailed revenue by payment type & date" },
+                    { id: "dhis2", label: "DHIS2 Export", desc: "Aggregate data for Ministry of Health" },
+                    { id: "reorder", label: "Reorder Requests", desc: "Low-stock drug reorder list" },
+                    { id: "forecast", label: "Inventory Forecast", desc: "90-day consumption projections" },
+                  ].map(r => (
+                    <button
+                      key={r.id}
+                      onClick={() => toggleReport(r.id)}
+                      className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-all ${
+                        batchReports.includes(r.id)
+                          ? "border-primary/40 bg-primary/5"
+                          : "border-border hover:bg-muted/50"
+                      }`}
+                    >
+                      {batchReports.includes(r.id) ? (
+                        <CheckSquare className="w-5 h-5 text-primary flex-shrink-0" />
+                      ) : (
+                        <Square className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                      )}
+                      <div>
+                        <p className="text-sm font-medium">{r.label}</p>
+                        <p className="text-xs text-muted-foreground">{r.desc}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={runBatchExport}
+                  disabled={batchReports.length === 0 || batchExporting}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 shadow-sm"
+                >
+                  {batchExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                  {batchExporting ? "Generating..." : `Export ${batchReports.length} Report${batchReports.length !== 1 ? 's' : ''}`}
+                </button>
+              </>
+            ) : (
+              <>
+                {batchResult.error ? (
+                  <div className="p-4 bg-destructive/5 rounded-lg text-sm text-destructive mb-4">{batchResult.error}</div>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Generated {new Date(batchResult.generated_at).toLocaleTimeString("en-GB")}
+                    </p>
+                    <div className="space-y-2 mb-5 max-h-[300px] overflow-y-auto">
+                      {Object.entries(batchResult.exports).map(([name, result]) => (
+                        <div key={name} className={`p-3 rounded-lg border text-sm ${
+                          result.status === "ok" ? "border-chart-3/20 bg-chart-3/5" :
+                          result.status === "error" ? "border-destructive/20 bg-destructive/5" :
+                          "border-border bg-muted/20"
+                        }`}>
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium capitalize">{name.replace(/_/g, " ")}</span>
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                              result.status === "ok" ? "bg-chart-3/10 text-chart-3" : "bg-destructive/10 text-destructive"
+                            }`}>{result.status}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">{result.summary}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+                <button
+                  onClick={() => { setBatchModal(false); setBatchResult(null); }}
+                  className="w-full px-4 py-2.5 border border-border rounded-lg text-sm font-medium hover:bg-muted"
+                >
+                  Close
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
