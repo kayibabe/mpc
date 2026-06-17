@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   FileText, Plus, Search, Download, Clock, CheckCircle,
-  AlertTriangle, X, Save, Loader2, RefreshCw, Filter
+  AlertTriangle, X, Save, Loader2, RefreshCw, Filter, Edit3
 } from "lucide-react";
+import DigitalClaimFormBuilder from "@/components/DigitalClaimFormBuilder";
 
 const STATUS_COLORS = {
   pending: "bg-chart-4/10 text-chart-4 border-chart-4/20",
@@ -35,6 +36,8 @@ export default function InsuranceClaimPortal() {
     co_pay_amount: "0",
   });
   const [exportingClaimId, setExportingClaimId] = useState(null);
+  const [showDigitalForm, setShowDigitalForm] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -184,12 +187,20 @@ export default function InsuranceClaimPortal() {
           <h2 className="section-title">Insurance Claims Portal</h2>
           <p className="text-sm text-muted-foreground mt-1">Manage insurance billing and claim submissions</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90"
-        >
-          <Plus className="w-4 h-4" /> New Claim
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowDigitalForm(true)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-chart-1 text-white rounded-lg text-sm font-medium hover:bg-chart-1/90"
+          >
+            <Edit3 className="w-4 h-4" /> Digital Form
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90"
+          >
+            <Plus className="w-4 h-4" /> New Claim
+          </button>
+        </div>
       </div>
 
       {/* Status Summary */}
@@ -524,6 +535,62 @@ export default function InsuranceClaimPortal() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Digital Claim Form Modal */}
+      {showDigitalForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowDigitalForm(false)} />
+          <div className="relative bg-background rounded-xl shadow-2xl w-full max-w-3xl mx-4 my-8">
+            <div className="p-6 border-b border-border flex items-center justify-between sticky top-0 bg-card rounded-t-xl">
+              <h3 className="font-heading text-lg font-semibold">Create Digital Insurance Claim</h3>
+              <button onClick={() => setShowDigitalForm(false)} className="p-1 rounded hover:bg-muted">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-6 max-h-[calc(100vh-150px)] overflow-y-auto">
+              {!selectedInvoice ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground mb-4">Select an invoice to create a digital claim form:</p>
+                  <div className="grid gap-3 max-h-[400px] overflow-y-auto">
+                    {invoices.map(inv => {
+                      const patient = patients.find(p => p.id === inv.patient_id);
+                      return (
+                        <button
+                          key={inv.id}
+                          onClick={() => setSelectedInvoice(inv)}
+                          className="p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors text-left"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-sm">{patient ? `${patient.first_name} ${patient.last_name}` : "Unknown"}</p>
+                              <p className="text-xs text-muted-foreground mt-1">Invoice: {inv.invoice_number || inv.id.slice(0, 8)}</p>
+                              <p className="text-xs text-muted-foreground">Status: {inv.status}</p>
+                            </div>
+                            <span className="font-bold text-primary">MWK {(inv.total_amount || 0).toLocaleString()}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <DigitalClaimFormBuilder
+                  invoice={selectedInvoice}
+                  onClose={() => {
+                    setSelectedInvoice(null);
+                    setShowDigitalForm(false);
+                  }}
+                  onSave={() => {
+                    setSelectedInvoice(null);
+                    setShowDigitalForm(false);
+                    loadData();
+                  }}
+                />
+              )}
+            </div>
           </div>
         </div>
       )}
