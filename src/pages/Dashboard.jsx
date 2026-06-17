@@ -357,68 +357,123 @@ export default function Dashboard() {
         <TriageWidget />
 
         <div className="bg-white rounded-lg border border-border p-5">
-          <h3 className="font-heading text-sm font-semibold mb-4">Bed Occupancy by Ward</h3>
+          <div className="mb-4">
+            <h3 className="font-heading text-sm font-semibold">Bed Occupancy by Ward</h3>
+            <p className="text-xs text-muted-foreground mt-1">Real-time occupancy status across all wards</p>
+          </div>
           {occupancyData.wards.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={occupancyData.wards.map(w => {
-                const wardBeds = occupancyData.beds.filter(b => b.ward_id === w.id);
-                return { name: w.name, total: wardBeds.length, occupied: wardBeds.filter(b => b.status === "occupied").length };
-              }).filter(w => w.total > 0)}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                <Tooltip />
-                <Bar dataKey="occupied" stackId="a" fill="hsl(0, 72%, 51%)" radius={[4, 4, 0, 0]} name="Occupied" />
-                <Bar dataKey="total" stackId="a" fill="hsl(var(--muted))" radius={[4, 4, 0, 0]} name="Available">
-                  {occupancyData.wards.map((_, i) => <Cell key={i} fill="hsl(var(--muted))" />)}
-                </Bar>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart 
+                data={occupancyData.wards.map(w => {
+                  const wardBeds = occupancyData.beds.filter(b => b.ward_id === w.id);
+                  const occupied = wardBeds.filter(b => b.status === "occupied").length;
+                  const available = wardBeds.length - occupied;
+                  return { name: w.name, occupied, available, total: wardBeds.length };
+                }).filter(w => w.total > 0)}
+                margin={{ top: 8, right: 16, left: 0, bottom: 24 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis 
+                  dataKey="name" 
+                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                  axisLine={{ stroke: "hsl(var(--border))" }}
+                  tickLine={false}
+                />
+                <YAxis 
+                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                  axisLine={{ stroke: "hsl(var(--border))" }}
+                  tickLine={false}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: "hsl(var(--card))", 
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "6px",
+                    padding: "8px"
+                  }}
+                  cursor={{ fill: "hsl(var(--primary)/5)" }}
+                />
+                <Bar dataKey="occupied" stackId="a" fill="hsl(var(--clinical-critical))" radius={[4, 4, 0, 0]} name="Occupied" />
+                <Bar dataKey="available" stackId="a" fill="hsl(var(--muted))" radius={[4, 4, 0, 0]} name="Available" />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-sm text-muted-foreground py-12 text-center">No wards configured</p>
+            <p className="text-xs text-muted-foreground py-12 text-center">No wards configured</p>
           )}
+          <div className="flex items-center justify-center gap-4 mt-3 pt-3 border-t border-border/40 text-[11px]">
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(var(--clinical-critical))" }} />
+              <span className="text-muted-foreground">Occupied</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(var(--muted))" }} />
+              <span className="text-muted-foreground">Available</span>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="bg-white rounded-lg border border-border p-5">
-          <h3 className="font-heading text-sm font-semibold mb-4">Current Queue Status</h3>
+          <div className="mb-4">
+            <h3 className="font-heading text-sm font-semibold">Current Queue Status</h3>
+            <p className="text-xs text-muted-foreground mt-1">Real-time patient flow across stations</p>
+          </div>
           {Object.keys(occupancyData.queueSummary).length > 0 ? (
             <div className="flex items-start gap-4">
               {/* Donut Chart — Left */}
               <div className="w-[45%] flex-shrink-0">
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
-                    <Pie data={Object.entries(occupancyData.queueSummary).map(([k, v]) => ({ name: k.replace(/_/g, " "), value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} innerRadius={45} label={({ name, value }) => `${name}: ${value}`}>
+                    <Pie 
+                      data={Object.entries(occupancyData.queueSummary).map(([k, v]) => ({ 
+                        name: k.replace(/_/g, " "), 
+                        value: v 
+                      }))} 
+                      dataKey="value" 
+                      nameKey="name" 
+                      cx="50%" 
+                      cy="50%" 
+                      outerRadius={85} 
+                      innerRadius={50}
+                      paddingAngle={2}
+                    >
                       {Object.keys(occupancyData.queueSummary).map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: "hsl(var(--card))", 
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "6px",
+                        fontSize: "12px"
+                      }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
               {/* Waiting Patients List — Right */}
               <div className="flex-1 min-w-0 border-l border-border pl-4">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Waiting Patients</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Queue Status</p>
+                <div className="space-y-1.5 text-[11px]">
+                  {Object.entries(occupancyData.queueSummary).map(([status, count], i) => (
+                    <div key={status} className="flex items-center justify-between p-1.5 rounded hover:bg-muted/30 transition-colors">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
+                        <span className="text-muted-foreground capitalize">{status.replace(/_/g, " ")}</span>
+                      </div>
+                      <span className="font-semibold text-foreground flex-shrink-0">{count}</span>
+                    </div>
+                  ))}
+                </div>
                 {(() => {
-                  const waiting = occupancyData.visits
-                    .filter(v => v.queue_status === "waiting")
-                    .sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
-                  if (waiting.length === 0) {
-                    return <p className="text-xs text-muted-foreground py-4 text-center">No patients waiting</p>;
-                  }
+                  const waiting = occupancyData.visits.filter(v => v.queue_status === "waiting");
+                  if (waiting.length === 0) return null;
                   return (
-                    <div className="space-y-1.5 max-h-[200px] overflow-y-auto pr-1">
-                      {waiting.map((v, i) => (
-                        <div key={v.id} className="flex items-center justify-between text-xs p-1.5 rounded hover:bg-muted/40 transition-colors">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="w-4 h-4 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground flex-shrink-0">{i + 1}</span>
-                            <span className="truncate font-medium">{v.patient_id?.slice(0, 8)}</span>
-                          </div>
-                          <span className="text-[10px] text-muted-foreground flex-shrink-0 ml-2">
-                            {(() => {
-                              const mins = Math.round((Date.now() - new Date(v.created_date).getTime()) / 60000);
-                              return mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ${mins % 60}m ago`;
-                            })()}
-                          </span>
+                    <div className="mt-3 pt-3 border-t border-border/40">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Next in Queue</p>
+                      {waiting.slice(0, 3).map((v, i) => (
+                        <div key={v.id} className="flex items-center gap-2 text-[10px] text-muted-foreground py-0.5">
+                          <span className="w-4 h-4 rounded-full bg-muted/60 flex items-center justify-center text-[9px] font-bold text-muted-foreground flex-shrink-0">{i + 1}</span>
+                          <span className="truncate">{v.patient_id?.slice(0, 8)}</span>
                         </div>
                       ))}
                     </div>
@@ -427,7 +482,7 @@ export default function Dashboard() {
               </div>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground py-12 text-center">Queue is clear</p>
+            <p className="text-xs text-muted-foreground py-12 text-center">Queue is clear</p>
             )}
             </div>
 
@@ -443,44 +498,45 @@ export default function Dashboard() {
             <Activity className="w-4 h-4 text-primary" /> Recent Visits
           </h3>
           {recentVisits.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">No visits recorded yet.</p>
+            <p className="text-xs text-muted-foreground py-8 text-center">No visits recorded yet.</p>
           ) : (
-            <div className="max-h-[200px] overflow-y-auto rounded-lg">
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-card z-10">
-                  <tr className="border-b border-border">
-                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Date</th>
-                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Patient</th>
-                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Type</th>
-                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Triage</th>
-                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Payment</th>
-                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Status</th>
+            <div className="max-h-[240px] overflow-y-auto rounded-lg border border-border/40">
+              <table className="w-full text-xs">
+                <thead className="sticky top-0 bg-muted/40 z-10">
+                  <tr className="border-b border-border/40">
+                    <th className="text-left py-2 px-3 font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Date</th>
+                    <th className="text-left py-2 px-3 font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Patient</th>
+                    <th className="text-left py-2 px-3 font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Type</th>
+                    <th className="text-left py-2 px-3 font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Priority</th>
+                    <th className="text-left py-2 px-3 font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Method</th>
+                    <th className="text-left py-2 px-3 font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/40">
                   {recentVisits.map((v) => (
-                    <tr key={v.id} className="hover:bg-muted/40 transition-colors">
-                      <td className="py-2.5 px-3">{new Date(v.created_date).toLocaleDateString("en-GB")}</td>
-                      <td className="py-2.5 px-3 font-mono text-xs">{v.patient_id?.slice(0, 8)}</td>
-                      <td className="py-2.5 px-3">
-                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">{visitTypeLabel(v.visit_type)}</span>
+                    <tr key={v.id} className="hover:bg-muted/20 transition-colors">
+                      <td className="py-2 px-3 text-muted-foreground">{new Date(v.created_date).toLocaleDateString("en-GB")}</td>
+                      <td className="py-2 px-3 font-mono text-[10px] text-foreground">{v.patient_id?.slice(0, 8)}</td>
+                      <td className="py-2 px-3">
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary">{visitTypeLabel(v.visit_type)}</span>
                       </td>
-                      <td className="py-2.5 px-3">
+                      <td className="py-2 px-3">
                         {v.priority === "emergency" ? (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-triage-emergency/10 text-triage-emergency border border-triage-emergency/20">Emergency</span>
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-triage-emergency/10 text-triage-emergency border border-triage-emergency/20">⚠ Emergency</span>
                         ) : v.priority === "urgent" ? (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-triage-urgent/10 text-triage-urgent border border-triage-urgent/20">Urgent</span>
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-triage-urgent/10 text-triage-urgent border border-triage-urgent/20">! Urgent</span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">Routine</span>
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium text-muted-foreground">Routine</span>
                         )}
                       </td>
-                      <td className="py-2.5 px-3 capitalize text-xs">{v.payment_type}</td>
-                      <td className="py-2.5 px-3">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                          v.queue_status === "completed" ? "bg-chart-2/10 text-chart-2" :
-                          v.queue_status === "waiting" ? "bg-chart-4/10 text-chart-4" :
+                      <td className="py-2 px-3 capitalize text-muted-foreground">{v.payment_type}</td>
+                      <td className="py-2 px-3">
+                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                          v.queue_status === "completed" ? "bg-clinical-normal/10 text-clinical-normal" :
+                          v.queue_status === "waiting" ? "bg-triage-urgent/10 text-triage-urgent" :
+                          v.queue_status === "in_consultation" ? "bg-primary/10 text-primary" :
                           "bg-muted text-muted-foreground"
-                        }`}>{v.queue_status}</span>
+                        }`}>{v.queue_status.replace(/_/g, " ")}</span>
                       </td>
                     </tr>
                   ))}
@@ -529,33 +585,36 @@ export default function Dashboard() {
                             const slaMin = SLAS[stage];
                             const isBreached = slaMin && mins > slaMin;
                             const pct = slaMin ? Math.min(100, (mins / slaMin) * 100) : 0;
+                            const statusColor = isBreached ? "bg-clinical-critical/5 border-clinical-critical/20" : pct > 75 ? "bg-triage-semi/5 border-triage-semi/20" : "bg-muted/5 border-muted/20";
                             return (
-                              <div key={j.id} className="px-4 py-2.5 hover:bg-muted/20 transition-colors">
-                                <div className="flex items-center justify-between gap-3">
+                              <div key={j.id} className={`px-3 py-2 rounded border transition-colors hover:bg-muted/10 ${statusColor}`}>
+                                <div className="flex items-center justify-between gap-2">
                                   <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-medium truncate">
+                                    <p className="text-xs font-semibold truncate text-foreground">
                                       {journeyPatients[j.patient_id] || j.patient_id?.slice(0, 8) || "Unknown"}
                                     </p>
-                                    <p className="text-[11px] text-muted-foreground">{j.visit_id?.slice(0, 8)} · {j.assigned_to_role || "unassigned"}</p>
+                                    <p className="text-[10px] text-muted-foreground">{j.visit_id?.slice(0, 8)} • {j.assigned_to_role || "unassigned"}</p>
                                   </div>
-                                  <div className="flex items-center gap-2 shrink-0">
+                                  <div className="flex items-center gap-1.5 shrink-0">
                                     <div className="text-right">
-                                      <span className={`text-xs font-bold ${isBreached ? "text-destructive" : "text-muted-foreground"}`}>
+                                      <span className={`text-[10px] font-bold ${isBreached ? "text-clinical-critical" : pct > 75 ? "text-triage-semi" : "text-primary"}`}>
                                         {mins}m
                                       </span>
                                       {slaMin && (
-                                        <span className="text-[10px] text-muted-foreground"> / {slaMin}m</span>
+                                        <span className="text-[9px] text-muted-foreground"> / {slaMin}m</span>
                                       )}
                                     </div>
                                     {slaMin && (
-                                      <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">
+                                      <div className="w-10 h-1 bg-muted/40 rounded-full overflow-hidden">
                                         <div
-                                          className={`h-full rounded-full transition-all ${isBreached ? "bg-destructive" : pct > 75 ? "bg-triage-semi" : "bg-primary"}`}
+                                          className={`h-full rounded-full transition-all ${isBreached ? "bg-clinical-critical" : pct > 75 ? "bg-triage-semi" : "bg-primary"}`}
                                           style={{ width: `${Math.min(100, pct)}%` }}
                                         />
                                       </div>
                                     )}
-                                    {isBreached && <AlertTriangle className="w-3.5 h-3.5 text-destructive" />}
+                                    {isBreached && (
+                                      <div className="w-1.5 h-1.5 rounded-full bg-clinical-critical animate-pulse" title="SLA Breached" />
+                                    )}
                                   </div>
                                 </div>
                               </div>
