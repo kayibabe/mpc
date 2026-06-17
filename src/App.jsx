@@ -37,6 +37,9 @@ import InsuranceClaimPortal from '@/pages/InsuranceClaimPortal';
 import DoctorPerformanceReport from '@/pages/DoctorPerformanceReport';
 import InventoryAudit from '@/pages/InventoryAudit';
 import PatientFeedback from '@/pages/PatientFeedback';
+import RadiologyReportLibrary from '@/pages/RadiologyReportLibrary';
+import SurgicalSupplyInventory from '@/pages/SurgicalSupplyInventory';
+import DischargeChecklistFlow from '@/pages/DischargeChecklistFlow';
 import EmergencyAlertSystem from '@/components/EmergencyAlertSystem';
 import Layout from '@/components/Layout';
 
@@ -97,6 +100,9 @@ const AuthenticatedApp = () => {
         <Route path="/doctor-performance" element={<DoctorPerformanceReport />} />
         <Route path="/inventory-audit" element={<InventoryAudit />} />
         <Route path="/patient-feedback" element={<PatientFeedback />} />
+        <Route path="/radiology-reports" element={<RadiologyReportLibrary />} />
+        <Route path="/surgical-supplies" element={<SurgicalSupplyInventory />} />
+        <Route path="/discharge-checklist" element={<DischargeChecklistFlow />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
