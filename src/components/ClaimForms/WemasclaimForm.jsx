@@ -5,12 +5,16 @@ const calculateAge = (dateOfBirth) => {
   if (!dateOfBirth) return "";
   const today = new Date();
   const birthDate = new Date(dateOfBirth);
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
+  let years = today.getFullYear() - birthDate.getFullYear();
+  let months = today.getMonth() - birthDate.getMonth();
+  if (months < 0 || (months === 0 && today.getDate() < birthDate.getDate())) {
+    years--;
+    months += 12;
   }
-  return age >= 0 ? age : "";
+  if (today.getDate() < birthDate.getDate()) {
+    months--;
+  }
+  return years === 0 ? `${months} month${months !== 1 ? 's' : ''}` : `${years} year${years !== 1 ? 's' : ''}`;
 };
 
 export default function WemasClaimForm() {
