@@ -160,22 +160,24 @@ export default function InsuranceClaimPortal() {
   };
 
   const exportClaimForm = async (claim) => {
-    if (!claim.invoice_id) {
-      alert("No invoice linked to this claim");
+    if (!claim.invoice_id || !claim.scheme_id) {
+      alert("Invoice and scheme are required to export the claim form");
       return;
     }
     setExportingClaimId(claim.id);
     try {
       const { data } = await base44.functions.invoke('exportClaimFormPdf', {
         invoice_id: claim.invoice_id,
-        scheme_id: claim.scheme_id || 'liberty'
+        patient_id: claim.patient_id,
+        scheme_id: claim.scheme_id,
+        claim_amount: claim.claim_amount
       });
       const link = document.createElement('a');
       link.href = `data:application/pdf;base64,${data.pdf_base64}`;
-      link.download = data.filename;
+      link.download = data.filename || `claim_${claim.id.slice(0, 8)}.pdf`;
       link.click();
     } catch (e) {
-      alert("Export failed: " + e.message);
+      alert("Export failed: " + e.response?.data?.error || e.message);
     } finally {
       setExportingClaimId(null);
     }
