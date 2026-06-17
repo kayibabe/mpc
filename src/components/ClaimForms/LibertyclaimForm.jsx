@@ -1,6 +1,18 @@
 import { useState } from "react";
 import { Save, Plus, Trash2 } from "lucide-react";
 
+const calculateAge = (dateOfBirth) => {
+  if (!dateOfBirth) return "";
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age >= 0 ? age : "";
+};
+
 export default function LibertyClaimForm() {
   const [form, setForm] = useState({
     invoiceNumber: "",
@@ -10,6 +22,7 @@ export default function LibertyClaimForm() {
     depCode: "",
     gender: "",
     dateOfBirth: "",
+    age: "",
     employerName: "",
     email: "",
     contactInfo: "",
@@ -64,7 +77,11 @@ export default function LibertyClaimForm() {
           </div>
           <div>
             <label className="block text-xs text-muted-foreground mb-1">Date of Birth</label>
-            <input type="date" className="w-full rounded-lg border border-border px-3 py-2 text-sm" value={form.dateOfBirth} onChange={e => setForm({...form, dateOfBirth: e.target.value})} />
+            <input type="date" className="w-full rounded-lg border border-border px-3 py-2 text-sm" value={form.dateOfBirth} onChange={e => setForm({...form, dateOfBirth: e.target.value, age: calculateAge(e.target.value)})} />
+          </div>
+          <div>
+            <label className="block text-xs text-muted-foreground mb-1">Age</label>
+            <input type="text" className="w-full rounded-lg border border-border px-3 py-2 text-sm bg-muted/50" value={form.age} readOnly />
           </div>
           <div>
             <label className="block text-xs text-muted-foreground mb-1">Gender</label>

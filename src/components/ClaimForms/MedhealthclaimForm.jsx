@@ -1,10 +1,22 @@
 import { useState } from "react";
 import { Save, Plus, Trash2 } from "lucide-react";
 
+const calculateAge = (dateOfBirth) => {
+  if (!dateOfBirth) return "";
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age >= 0 ? age : "";
+};
+
 export default function MedhealthClaimForm() {
   const [form, setForm] = useState({
     claimNo: "", invoiceNo: "", patientNo: "", memberSurname: "", firstName: "",
-    employerAddress: "", phoneNo: "", dob: "", gender: "",
+    employerAddress: "", phoneNo: "", dob: "", age: "", gender: "",
     admissionDate: "", dischargeDate: "", providerName: "", referringDoctor: "",
     treatments: [{ date: "", tariffCode: "", description: "", serviceType: "", unitDays: "", qty: "", fee: "" }],
     diagnosisCodes: ["", "", "", "", "", ""],
@@ -40,7 +52,8 @@ export default function MedhealthClaimForm() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div><label className="block text-xs text-muted-foreground mb-1">Member Surname</label><input className="w-full rounded-lg border border-border px-3 py-2 text-sm" value={form.memberSurname} onChange={e => setForm({...form, memberSurname: e.target.value})} /></div>
           <div><label className="block text-xs text-muted-foreground mb-1">First Name</label><input className="w-full rounded-lg border border-border px-3 py-2 text-sm" value={form.firstName} onChange={e => setForm({...form, firstName: e.target.value})} /></div>
-          <div><label className="block text-xs text-muted-foreground mb-1">DOB</label><input type="date" className="w-full rounded-lg border border-border px-3 py-2 text-sm" value={form.dob} onChange={e => setForm({...form, dob: e.target.value})} /></div>
+          <div><label className="block text-xs text-muted-foreground mb-1">DOB</label><input type="date" className="w-full rounded-lg border border-border px-3 py-2 text-sm" value={form.dob} onChange={e => setForm({...form, dob: e.target.value, age: calculateAge(e.target.value)})} /></div>
+          <div><label className="block text-xs text-muted-foreground mb-1">Age</label><input type="text" className="w-full rounded-lg border border-border px-3 py-2 text-sm bg-muted/50" value={form.age} readOnly /></div>
           <div><label className="block text-xs text-muted-foreground mb-1">Gender</label><select className="w-full rounded-lg border border-border px-3 py-2 text-sm" value={form.gender} onChange={e => setForm({...form, gender: e.target.value})}><option value="">Select</option><option value="M">Male</option><option value="F">Female</option></select></div>
         </div>
       </div>

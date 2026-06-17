@@ -1,11 +1,23 @@
 import { useState } from "react";
 import { Save, Plus, Trash2 } from "lucide-react";
 
+const calculateAge = (dateOfBirth) => {
+  if (!dateOfBirth) return "";
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age >= 0 ? age : "";
+};
+
 export default function PreciousClaimForm() {
   const [form, setForm] = useState({
     claimNumber: "", schemeType: "", memberSurname: "", firstName: "",
     employerAddress: "", telephone: "", patientSurname: "", patientFirstName: "",
-    address: "", dob: "", relationshipToMember: "", membershipNo: "",
+    address: "", dob: "", age: "", relationshipToMember: "", membershipNo: "",
     admissionDate: "", dischargeDate: "", facilityName: "", providerNo: "",
     treatments: [{ date: "", code: "", unitCost: "", days: "", qty: "", cost: "" }],
   });
@@ -43,7 +55,8 @@ export default function PreciousClaimForm() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div><label className="block text-xs text-muted-foreground mb-1">Patient Surname</label><input className="w-full rounded-lg border border-border px-3 py-2 text-sm" value={form.patientSurname} onChange={e => setForm({...form, patientSurname: e.target.value})} /></div>
           <div><label className="block text-xs text-muted-foreground mb-1">First Name</label><input className="w-full rounded-lg border border-border px-3 py-2 text-sm" value={form.patientFirstName} onChange={e => setForm({...form, patientFirstName: e.target.value})} /></div>
-          <div><label className="block text-xs text-muted-foreground mb-1">DOB</label><input type="date" className="w-full rounded-lg border border-border px-3 py-2 text-sm" value={form.dob} onChange={e => setForm({...form, dob: e.target.value})} /></div>
+          <div><label className="block text-xs text-muted-foreground mb-1">DOB</label><input type="date" className="w-full rounded-lg border border-border px-3 py-2 text-sm" value={form.dob} onChange={e => setForm({...form, dob: e.target.value, age: calculateAge(e.target.value)})} /></div>
+          <div><label className="block text-xs text-muted-foreground mb-1">Age</label><input type="text" className="w-full rounded-lg border border-border px-3 py-2 text-sm bg-muted/50" value={form.age} readOnly /></div>
           <div><label className="block text-xs text-muted-foreground mb-1">Relationship</label><input className="w-full rounded-lg border border-border px-3 py-2 text-sm" value={form.relationshipToMember} onChange={e => setForm({...form, relationshipToMember: e.target.value})} /></div>
         </div>
       </div>

@@ -1,9 +1,21 @@
 import { useState } from "react";
 import { Save, Plus, Trash2 } from "lucide-react";
 
+const calculateAge = (dateOfBirth) => {
+  if (!dateOfBirth) return "";
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age >= 0 ? age : "";
+};
+
 export default function NabmasClaimForm() {
   const [form, setForm] = useState({
-    employeeName: "", employeeId: "", centerHeadOffice: "", treatmentDate: "", patientName: "",
+    employeeName: "", employeeId: "", centerHeadOffice: "", treatmentDate: "", patientName: "", dob: "", age: "",
     doctorHospitalAddress: "", nabmasRegNo: "", visitType: "ordinary",
     treatments: [{ category: "", description: "", cost: "" }],
     diagnosis: "",
@@ -32,6 +44,8 @@ export default function NabmasClaimForm() {
           <div><label className="block text-xs text-muted-foreground mb-1">Employee ID</label><input className="w-full rounded-lg border border-border px-3 py-2 text-sm" value={form.employeeId} onChange={e => setForm({...form, employeeId: e.target.value})} /></div>
           <div><label className="block text-xs text-muted-foreground mb-1">Center/Head Office</label><input className="w-full rounded-lg border border-border px-3 py-2 text-sm" value={form.centerHeadOffice} onChange={e => setForm({...form, centerHeadOffice: e.target.value})} /></div>
           <div><label className="block text-xs text-muted-foreground mb-1">Patient Name</label><input className="w-full rounded-lg border border-border px-3 py-2 text-sm" value={form.patientName} onChange={e => setForm({...form, patientName: e.target.value})} /></div>
+          <div><label className="block text-xs text-muted-foreground mb-1">DOB</label><input type="date" className="w-full rounded-lg border border-border px-3 py-2 text-sm" value={form.dob} onChange={e => setForm({...form, dob: e.target.value, age: calculateAge(e.target.value)})} /></div>
+          <div><label className="block text-xs text-muted-foreground mb-1">Age</label><input type="text" className="w-full rounded-lg border border-border px-3 py-2 text-sm bg-muted/50" value={form.age} readOnly /></div>
         </div>
       </div>
 
