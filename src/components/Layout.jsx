@@ -14,49 +14,94 @@ import {
 
 const ALL_NAV_GROUPS = [
   {
-    label: "Clinical",
+    label: "Main",
     items: [
       { label: "Dashboard", path: "/", icon: LayoutDashboard, roles: ["admin", "user"] },
+    ],
+  },
+  {
+    label: "Patient Access",
+    items: [
       { label: "Reception", path: "/reception", icon: Users, roles: ["admin", "user"] },
       { label: "Patient Intake", path: "/patient-intake", icon: Users, roles: ["admin", "user"] },
       { label: "Appointments", path: "/appointments", icon: CalendarDays, roles: ["admin", "user"] },
-      { label: "Clinical", path: "/clinical", icon: Stethoscope, roles: ["admin", "user"] },
+      { label: "Triage", path: "/triage", icon: ClipboardCheck, roles: ["admin", "user"] },
+    ],
+  },
+  {
+    label: "Clinical",
+    items: [
+      { label: "Consultations", path: "/clinical", icon: Stethoscope, roles: ["admin", "user"] },
       { label: "Nursing", path: "/nursing", icon: ClipboardPen, roles: ["admin", "user"] },
       { label: "Laboratory", path: "/lab", icon: FlaskConical, roles: ["admin", "user"] },
       { label: "Imaging", path: "/imaging", icon: Scan, roles: ["admin", "user"] },
       { label: "Radiology Reports", path: "/radiology-reports", icon: FileText, roles: ["admin", "user"] },
       { label: "Pharmacy", path: "/pharmacy", icon: Pill, roles: ["admin", "user"] },
-      { label: "Inpatient", path: "/inpatient", icon: BedDouble, roles: ["admin", "user"] },
-      { label: "Discharge Checklist", path: "/discharge-checklist", icon: CheckCircle, roles: ["admin", "user"] },
-      { label: "Maternal", path: "/maternal", icon: Baby, roles: ["admin", "user"] },
-      { label: "Billing", path: "/billing", icon: Receipt, roles: ["admin", "user"] },
-      { label: "Insurance", path: "/insurance-claims", icon: FileBarChart, roles: ["admin", "user"] },
     ],
   },
   {
-    label: "Operations",
+    label: "Inpatient & Theatre",
+    items: [
+      { label: "Inpatient", path: "/inpatient", icon: BedDouble, roles: ["admin", "user"] },
+      { label: "Maternal", path: "/maternal", icon: Baby, roles: ["admin", "user"] },
+      { label: "Discharge Checklist", path: "/discharge-checklist", icon: CheckCircle, roles: ["admin", "user"] },
+      { label: "Theatre Calendar", path: "/surgery-calendar", icon: Scissors, roles: ["admin", "user"] },
+    ],
+  },
+  {
+    label: "Billing & Insurance",
+    items: [
+      { label: "Billing", path: "/billing", icon: Receipt, roles: ["admin", "user"] },
+      { label: "Insurance Claims", path: "/insurance-claims", icon: FileBarChart, roles: ["admin", "user"] },
+    ],
+  },
+  {
+    label: "Operations & Scheduling",
     items: [
       { label: "Calendar", path: "/calendar", icon: CalendarDays, roles: ["admin", "user"] },
       { label: "Doctor Schedule", path: "/doctor-schedule", icon: Clock, roles: ["admin", "user"] },
       { label: "Staff Shifts", path: "/staff-shifts", icon: Zap, roles: ["admin", "user"] },
+      { label: "Doctor Handover", path: "/doctor-handover", icon: ArrowRightLeft, roles: ["admin", "user"] },
       { label: "Queue Display", path: "/queue", icon: Monitor, roles: ["admin", "user"] },
-      { label: "Triage", path: "/triage", icon: ClipboardCheck, roles: ["admin", "user"] },
+    ],
+  },
+  {
+    label: "Tracking & Outcomes",
+    items: [
       { label: "Journey Map", path: "/journey-map", icon: GitBranch, roles: ["admin", "user"] },
       { label: "Treatment Adherence", path: "/treatment-adherence", icon: TrendingUp, roles: ["admin"] },
       { label: "Patient Outcomes", path: "/patient-outcomes", icon: Users, roles: ["admin"] },
-      { label: "Audit Logs", path: "/audit-logs", icon: FileText, roles: ["admin"] },
-      { label: "Theatre Calendar", path: "/surgery-calendar", icon: Scissors, roles: ["admin", "user"] },
-      { label: "MoH Reports", path: "/moh-reports", icon: FileBarChart, roles: ["admin"] },
-      { label: "Physician Perf.", path: "/physician-performance", icon: Stethoscope, roles: ["admin"] },
+      { label: "Patient Feedback", path: "/patient-feedback", icon: MessageSquare, roles: ["admin", "user"] },
+    ],
+  },
+  {
+    label: "Reports & Analytics",
+    items: [
+      { label: "Physician Performance", path: "/physician-performance", icon: Stethoscope, roles: ["admin"] },
       { label: "Doctor Performance", path: "/doctor-performance", icon: TrendingUp, roles: ["admin"] },
+      { label: "MoH Reports", path: "/moh-reports", icon: FileBarChart, roles: ["admin"] },
+      { label: "Audit Logs", path: "/audit-logs", icon: FileText, roles: ["admin"] },
+    ],
+  },
+  {
+    label: "Inventory & Facilities",
+    items: [
       { label: "Inventory Audit", path: "/inventory-audit", icon: Package, roles: ["admin"] },
       { label: "Surgical Supplies", path: "/surgical-supplies", icon: Package, roles: ["admin"] },
-      { label: "Patient Feedback", path: "/patient-feedback", icon: MessageSquare, roles: ["admin", "user"] },
       { label: "Waste Management", path: "/waste", icon: Trash2, roles: ["admin", "user"] },
-      { label: "Doctor Handover", path: "/doctor-handover", icon: ArrowRightLeft, roles: ["admin", "user"] },
+    ],
+  },
+  {
+    label: "Security & Documents",
+    items: [
       { label: "My Signatures", path: "/my-signatures", icon: PenTool, roles: ["admin", "user"] },
       { label: "Signature Audit", path: "/signature-audit", icon: ShieldCheck, roles: ["admin"] },
       { label: "Patient Portal", path: "/portal", icon: UserCircle, roles: ["admin", "user"] },
+    ],
+  },
+  {
+    label: "Administration",
+    items: [
       { label: "Admin", path: "/admin", icon: Shield, roles: ["admin"] },
     ],
   },
