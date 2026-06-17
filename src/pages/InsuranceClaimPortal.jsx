@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import InsuranceClaimFormBuilder from "@/components/InsuranceClaimFormBuilder";
 import { base44 } from "@/api/base44Client";
 import {
   FileText, Plus, Search, Download, Clock, CheckCircle,
@@ -253,6 +254,7 @@ export default function InsuranceClaimPortal() {
       {/* Tabs */}
       <div className="mb-6 border-b border-border flex gap-4 overflow-x-auto">
         {[
+          { id: "forms", label: "Digital Forms" },
           { id: "summary", label: "Summary" },
           { id: "list", label: "Claims List" },
           { id: "approval", label: "Approval Workflow" },
@@ -276,6 +278,9 @@ export default function InsuranceClaimPortal() {
       <div className="mb-6">
         <ClaimStatusTracker />
       </div>
+
+      {/* Tab Content - Digital Forms */}
+      {activeTab === "forms" && <InsuranceClaimFormBuilder />}
 
       {/* Tab Content - Summary */}
       {activeTab === "summary" && <ClaimSummaryDashboard />}
