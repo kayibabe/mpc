@@ -4,6 +4,7 @@ import { FlaskConical, Plus, Save, AlertTriangle, ClipboardCheck, Square, CheckS
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
 import DepartmentDashboard from "@/components/DepartmentDashboard";
 import ExpiryAlerts from "@/components/ExpiryAlerts";
+import PatientLabTrendChart from "@/components/PatientLabTrendChart";
 
 export default function Lab() {
   const [orders, setOrders] = useState([]);
@@ -145,6 +146,8 @@ export default function Lab() {
 
       <DepartmentDashboard department="lab" />
       <ExpiryAlerts department="laboratory" />
+
+      <PatientLabTrendChart />
 
       {/* Lab Workflow Queue */}
       {labJourneys.length > 0 && (
