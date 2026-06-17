@@ -159,7 +159,14 @@ export default function Layout() {
           <div key={group.label}>
             {!isMainGroup ? (
               <button
-                onClick={() => toggleGroupCollapse(group.label)}
+                onClick={() => {
+                  // Navigate to first item in group
+                  if (visibleItems.length > 0) {
+                    window.location.href = visibleItems[0].path;
+                  }
+                  setMobileOpen(false);
+                  toggleGroupCollapse(group.label);
+                }}
                 className={`flex items-center justify-between w-full px-2 py-1.5 rounded transition-colors ${!collapsed ? "hover:bg-sidebar-accent/30" : ""}`}
                 title={isGroupCollapsed ? "Expand" : "Collapse"}
               >
