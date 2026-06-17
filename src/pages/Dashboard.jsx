@@ -15,14 +15,16 @@ const CHART_COLORS = ["hsl(194, 65%, 42%)", "hsl(38, 92%, 50%)", "hsl(160, 60%, 
 
 function StatCard({ icon: Icon, label, value, sub, color, to }) {
   const content = (
-    <div className="stat-card flex items-start gap-4 group cursor-pointer hover:shadow-md hover:border-primary/30 transition-all duration-200">
+    <div className="stat-card flex items-start gap-4 group cursor-pointer hover:shadow-md hover:border-primary/30 transition-all duration-200 h-full">
       <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
         <Icon className="w-5 h-5 text-white" />
       </div>
-      <div className="flex-1">
-        <p className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">{label}</p>
-        <p className="text-2xl font-bold tracking-tight mt-0.5 font-mono tabular-nums">{value}</p>
-        {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
+      <div className="flex-1 flex flex-col justify-between">
+        <div>
+          <p className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">{label}</p>
+          <p className="text-2xl font-bold tracking-tight mt-0.5 font-mono tabular-nums">{value}</p>
+        </div>
+        {sub && <p className="text-xs text-muted-foreground mt-auto pt-1">{sub}</p>}
       </div>
       <ArrowRight className="w-4 h-4 text-muted-foreground/0 group-hover:text-muted-foreground/40 transition-all flex-shrink-0" />
     </div>
@@ -299,7 +301,7 @@ export default function Dashboard() {
 
       <InventoryAlerts />
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8 items-center">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
          <StatCard icon={Users} label="Registered Patients" value={stats.patients} color="bg-primary" to="/reception" />
          <StatCard icon={Calendar} label="Today's Appts" value={report?.total_appointments_today ?? stats.appointments} color="bg-triage-semi" sub={report ? `${report.appointments_completed} completed` : null} to="/appointments" />
          <StatCard icon={FlaskConical} label="Pending Lab Orders" value={report?.pending_lab_orders ?? stats.labOrders} color="bg-chart-3" to="/lab" />
