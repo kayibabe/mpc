@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { ArrowRightLeft, Plus, Check, Clock, User, Stethoscope, AlertTriangle, Users, Search, X, Save, Loader2, ClipboardList, ShieldCheck, ClipboardPen, FileDown, RefreshCw } from "lucide-react";
+import { ArrowRightLeft, Plus, Check, Clock, User, Stethoscope, AlertTriangle, Users, Search, X, Save, Loader2, ClipboardList, ShieldCheck, ClipboardPen, FileDown, RefreshCw, Bookmark, Copy } from "lucide-react";
 import StaffComplianceDashboard from "@/components/StaffComplianceDashboard";
 
 const SHIFT_TYPES = [
@@ -22,6 +22,8 @@ export default function DoctorHandover() {
   const [submitting, setSubmitting] = useState(false);
   const [selectedPatients, setSelectedPatients] = useState([]);
   const [patientSearch, setPatientSearch] = useState("");
+  const [templates, setTemplates] = useState([]);
+  const [selectedTemplate, setSelectedTemplate] = useState("");
   const [exporting, setExporting] = useState(false);
   const [form, setForm] = useState({
     to_doctor_id: "",
@@ -39,16 +41,18 @@ export default function DoctorHandover() {
   useEffect(() => {
     async function load() {
       try {
-        const [h, u, p, admissions] = await Promise.all([
+        const [h, u, p, admissions, templateList] = await Promise.all([
           base44.entities.DoctorHandover.list("-created_date", 50),
           base44.entities.User.list("", 50),
           base44.entities.Patient.list("-created_date", 200),
           base44.entities.Admission.filter({ status: "admitted" }, "-created_date", 100),
+          base44.entities.HandoverTemplate.filter({ is_active: true }, "name", 20),
         ]);
         setHandovers(h);
         setUsers(u);
         setPatients(p);
         setActivePatients(admissions);
+        setTemplates(templateList || []);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     }
@@ -130,6 +134,24 @@ export default function DoctorHandover() {
 
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState(null);
+
+  const applyTemplate = (templateId) => {
+    setSelectedTemplate(templateId);
+    const t = templates.find(tmpl => tmpl.id === templateId);
+    if (!t) return;
+    setForm({
+      ...form,
+      shift_type: t.shift_type || form.shift_type,
+      critical_cases: t.critical_cases || form.critical_cases,
+      pending_investigations: t.pending_investigations || form.pending_investigations,
+      pending_consults: t.pending_consults || form.pending_consults,
+      treatment_updates: t.treatment_updates || form.treatment_updates,
+      discharge_planning: t.discharge_planning || form.discharge_planning,
+      new_admissions: t.new_admissions || form.new_admissions,
+      incidents: t.incidents || form.incidents,
+      general_notes: t.general_notes || form.general_notes,
+    });
+  };
 
   const syncShiftReports = async () => {
     setSyncing(true);
@@ -235,6 +257,41 @@ export default function DoctorHandover() {
           <h4 className="font-heading font-semibold flex items-center gap-2">
             <ClipboardPen className="w-4 h-4 text-primary" /> New Clinical Handover
           </h4>
+
+          {/* Quick Template Selector */}
+          {templates.length > 0 && (
+            <div className="p-3 bg-primary/5 border border-primary/20 rounded-xl">
+              <label className="block text-xs font-semibold mb-2 flex items-center gap-1.5">
+                <Bookmark className="w-3.5 h-3.5 text-primary" /> Quick Template
+              </label>
+              <div className="flex items-center gap-2">
+                <select
+                  className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-xs"
+                  value={selectedTemplate}
+                  onChange={e => applyTemplate(e.target.value)}
+                >
+                  <option value="">Select a handover template...</option>
+                  {templates.map(t => (
+                    <option key={t.id} value={t.id}>{t.name} ({t.shift_type})</option>
+                  ))}
+                </select>
+                {selectedTemplate && (
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedTemplate(""); }}
+                    className="px-2.5 py-2 rounded-lg border border-border text-xs hover:bg-muted flex items-center gap-1"
+                  >
+                    <X className="w-3 h-3" /> Clear
+                  </button>
+                )}
+              </div>
+              {selectedTemplate && (
+                <p className="text-[10px] text-muted-foreground mt-1.5 flex items-center gap-1">
+                  <Copy className="w-3 h-3" /> Template applied — all sections pre-filled. Edit as needed.
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

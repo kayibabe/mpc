@@ -1,0 +1,66 @@
+{
+  "name": "HandoverTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Template name shown in quick-select"
+    },
+    "shift_type": {
+      "type": "string",
+      "enum": [
+        "morning",
+        "afternoon",
+        "night",
+        "weekend",
+        "on_call"
+      ],
+      "description": "Shift type this template is optimized for"
+    },
+    "department": {
+      "type": "string",
+      "description": "Optional department filter (clinical, nursing, etc.)"
+    },
+    "critical_cases": {
+      "type": "string",
+      "description": "Pre-filled critical cases template"
+    },
+    "pending_investigations": {
+      "type": "string",
+      "description": "Pre-filled pending investigations section"
+    },
+    "pending_consults": {
+      "type": "string",
+      "description": "Pre-filled pending consults section"
+    },
+    "treatment_updates": {
+      "type": "string",
+      "description": "Pre-filled treatment updates template"
+    },
+    "discharge_planning": {
+      "type": "string",
+      "description": "Pre-filled discharge planning section"
+    },
+    "new_admissions": {
+      "type": "string",
+      "description": "Pre-filled new admissions section"
+    },
+    "incidents": {
+      "type": "string",
+      "description": "Pre-filled incidents section"
+    },
+    "general_notes": {
+      "type": "string",
+      "description": "Pre-filled general notes template"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "shift_type"
+  ],
+  "description": "Quick handover templates for doctors and clinical staff \u2014 pre-filled sections for shift handoffs"
+}
