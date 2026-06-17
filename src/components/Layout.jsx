@@ -144,7 +144,7 @@ export default function Layout() {
         </div>
         {!collapsed &&
       <div className="overflow-hidden">
-            <h1 className="text-xs font-bold text-sidebar-foreground leading-tight tracking-tight">Zomba City Private C HIMS</h1>
+            <h1 className="text-xs font-bold text-sidebar-foreground leading-tight tracking-tight">Zomba City Private ClinicHIMS </h1>
             <p className="text-[9px] font-semibold text-sidebar-foreground/50 tracking-widest uppercase">Malawi</p>
           </div>
       }
