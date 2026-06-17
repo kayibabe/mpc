@@ -28,6 +28,7 @@ import DoctorHandover from '@/pages/DoctorHandover';
 import MySignatures from '@/pages/MySignatures';
 import PhysicianPerformance from '@/pages/PhysicianPerformance';
 import MoHReports from '@/pages/MoHReports';
+import TriageSummary from '@/pages/TriageSummary';
 import Layout from '@/components/Layout';
 
 const AuthenticatedApp = () => {
@@ -78,6 +79,7 @@ const AuthenticatedApp = () => {
         <Route path="/my-signatures" element={<MySignatures />} />
         <Route path="/physician-performance" element={<PhysicianPerformance />} />
         <Route path="/moh-reports" element={<MoHReports />} />
+        <Route path="/triage" element={<TriageSummary />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

@@ -58,11 +58,41 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Send email summary if there are critical alerts
+    // Send email summary to admin users
     const criticalAlerts = alerts.filter(a => a.severity === 'critical');
     if (criticalAlerts.length > 0) {
-      const emailBody = `Zomba City Private Clinic — Inventory Alert Summary\n\n${criticalAlerts.map(a => `• ${a.message}`).join('\n')}\n\nPlease take action immediately. Login to review: (your HIMS URL)\n\n— HIMS System`;
-      // Note: email would go to pharmacy/admin — for now we log; add admin emails when configured
+      try {
+        const adminUsers = await base44.asServiceRole.entities.User.filter({ role: 'admin' }, '', 20);
+        const emailBody = [
+          `Zomba City Private Clinic — Inventory Alert Summary`,
+          `Generated: ${new Date().toLocaleString('en-GB', { timeZone: 'Africa/Blantyre' })}`,
+          ``,
+          `CRITICAL ALERTS (${criticalAlerts.length}):`,
+          ...criticalAlerts.map(a => `  • ${a.message}`),
+          ``,
+          `SUMMARY:`,
+          `  Low Stock Items: ${lowStock.length}`,
+          `  Expiring Soon: ${expiring.length}`,
+          `  Expired: ${expired.length}`,
+          `  Total Active Drugs: ${drugs.length}`,
+          ``,
+          `Login to review and take action.`,
+          `— HIMS System, Zomba City Private Clinic`,
+        ].join('\n');
+
+        for (const admin of adminUsers) {
+          if (admin.email) {
+            await base44.asServiceRole.integrations.Core.SendEmail({
+              to: admin.email,
+              subject: `🚨 HIMS Inventory Alert — ${criticalAlerts.length} Critical Item${criticalAlerts.length !== 1 ? 's' : ''}`,
+              body: emailBody,
+            });
+          }
+        }
+      } catch (emailErr) {
+        // Email sending is best-effort; don't fail the whole check
+        console.error('Failed to send inventory alert email:', emailErr);
+      }
     }
 
     return Response.json({
