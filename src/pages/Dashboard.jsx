@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Users, Calendar, FlaskConical, BedDouble, Pill, Receipt, TrendingUp, Clock, Activity, RefreshCw, FileText, Bell, Send, Loader2, GitBranch, Megaphone, ArrowRight, AlertTriangle } from "lucide-react";
+import { Users, Calendar, FlaskConical, BedDouble, Pill, Receipt, TrendingUp, Clock, Activity, RefreshCw, Bell, Send, Loader2, GitBranch, Megaphone, ArrowRight, AlertTriangle } from "lucide-react";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
 import InventoryAlerts from "@/components/InventoryAlerts";
 import LivePulse from "@/components/LivePulse";
@@ -211,23 +211,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {dailyReport?.low_stock_drugs?.length > 0 && (
-        <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-5 mb-8">
-          <h3 className="font-heading font-semibold flex items-center gap-2 text-destructive mb-3">
-            <FileText className="w-4 h-4" /> Low Stock Alerts
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            {dailyReport.low_stock_drugs.map((d, i) => (
-              <div key={i} className="bg-card rounded-lg p-3 border border-border">
-                <p className="text-sm font-medium">{d.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  Stock: <span className="text-destructive font-medium">{d.stock}</span> / Reorder: {d.reorder_level}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+
 
       {/* Occupancy Visualization */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
