@@ -13,11 +13,20 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 const CHART_COLORS = ["hsl(194, 65%, 42%)", "hsl(38, 92%, 50%)", "hsl(160, 60%, 40%)", "hsl(280, 50%, 50%)", "hsl(340, 65%, 50%)", "hsl(0, 72%, 51%)"];
 
-function StatCard({ icon: Icon, label, value, sub, color, to }) {
+function StatCard({ label, value, sub, color, to }) {
   const content = (
-    <div className="stat-card flex flex-col gap-2 group cursor-pointer hover:shadow-md hover:border-primary/30 transition-all duration-200">
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{label}</p>
-      <p className="text-3xl font-bold tracking-tight font-mono tabular-nums">{value}</p>
+    <div className={`stat-card flex flex-col gap-2 bg-white border transition-all duration-200 group cursor-pointer ${
+      color === 'critical' ? 'border-clinical-critical/20 hover:border-clinical-critical/40 hover:shadow-md hover:shadow-clinical-critical/10' :
+      color === 'warning' ? 'border-triage-urgent/20 hover:border-triage-urgent/40 hover:shadow-md hover:shadow-triage-urgent/10' :
+      'border-border hover:border-primary/30 hover:shadow-md hover:shadow-primary/5'
+    }`}>
+      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">{label}</p>
+      <p className={`text-3xl font-bold tracking-tight font-mono tabular-nums ${
+        color === 'critical' ? 'text-clinical-critical' :
+        color === 'warning' ? 'text-triage-urgent' :
+        color === 'success' ? 'text-clinical-normal' :
+        'text-foreground'
+      }`}>{value}</p>
       {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
     </div>
   );
@@ -249,108 +258,106 @@ export default function Dashboard() {
   const report = dailyReport?.summary;
 
   return (
-    <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
+    <div className="page-container space-y-8">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="section-title">Dashboard</h2>
-          <p className="text-sm text-muted-foreground mt-1">Zomba City Private Clinic — Today's Overview</p>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-1">Zomba City Private Clinic — {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={syncShiftReports}
             disabled={shiftSyncLoading}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium hover:bg-muted transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs font-medium hover:bg-muted transition-colors disabled:opacity-50"
           >
             <RefreshCcw className={`w-3.5 h-3.5 ${shiftSyncLoading ? 'animate-spin' : ''}`} />
             {shiftSyncLoading ? 'Syncing...' : 'Sync Shifts'}
           </button>
-          {shiftSyncResult && !shiftSyncResult.error && (
-            <span className="text-xs text-chart-3 font-medium">{shiftSyncResult.synced_count} synced</span>
-          )}
-          {shiftSyncResult?.error && (
-            <span className="text-xs text-destructive">{shiftSyncResult.error}</span>
-          )}
           <button
             onClick={() => setBatchModal(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 shadow-sm"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90"
           >
-            <FileDown className="w-3.5 h-3.5" /> Batch Export
+            <FileDown className="w-3.5 h-3.5" /> Export
           </button>
           <button
             onClick={refreshDailyReport}
             disabled={reportLoading}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium hover:bg-muted transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs font-medium hover:bg-muted transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${reportLoading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
-          <span className="text-sm text-muted-foreground flex items-center gap-1">
-            <Clock className="w-4 h-4" />
-            {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-          </span>
         </div>
       </div>
 
       <InventoryAlerts />
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-         <StatCard icon={Users} label="Registered Patients" value={stats.patients} color="bg-primary" to="/reception" />
-         <StatCard icon={Calendar} label="Today's Appts" value={report?.total_appointments_today ?? stats.appointments} color="bg-triage-semi" sub={report ? `${report.appointments_completed} completed` : null} to="/appointments" />
-         <StatCard icon={FlaskConical} label="Pending Lab Orders" value={report?.pending_lab_orders ?? stats.labOrders} color="bg-chart-3" to="/lab" />
-         <StatCard icon={BedDouble} label="Occupied Beds" value={report?.active_inpatients ?? stats.occupiedBeds} color="bg-chart-4" to="/inpatient" />
-         <StatCard icon={Pill} label="Drugs Low Stock" value={report?.drugs_low_stock ?? stats.drugs} color="bg-destructive" to="/pharmacy" />
-         <StatCard icon={Receipt} label="Revenue (MWK)" value={(report?.total_revenue_mwk ?? stats.revenue).toLocaleString()} color="bg-chart-5" to="/billing" />
+      {/* KPI Cards */}
+      <div>
+        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Key Performance Indicators</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+         <StatCard label="Registered Patients" value={stats.patients} to="/reception" />
+         <StatCard label="Today's Appointments" value={report?.total_appointments_today ?? stats.appointments} sub={report ? `${report.appointments_completed} completed` : null} to="/appointments" />
+         <StatCard label="Pending Lab Orders" value={report?.pending_lab_orders ?? stats.labOrders} to="/lab" />
+         <StatCard label="Occupied Beds" value={report?.active_inpatients ?? stats.occupiedBeds} to="/inpatient" />
+         <StatCard label="Low Stock Drugs" value={report?.drugs_low_stock ?? stats.drugs} color={report?.drugs_low_stock > 0 ? 'warning' : 'success'} to="/pharmacy" />
+         <StatCard label="Revenue (MWK)" value={(report?.total_revenue_mwk ?? stats.revenue).toLocaleString()} to="/billing" />
        </div>
+      </div>
 
       {report && (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-8">
-          {report.total_visits_today !== undefined && (
-            <div className="bg-card rounded-lg border border-border/60 p-3 text-center">
-              <p className="text-2xl font-bold">{report.total_visits_today}</p>
-              <p className="text-xs text-muted-foreground">Today's Visits</p>
-            </div>
-          )}
-          {report.appointments_completed !== undefined && (
-            <div className="bg-card rounded-lg border border-border/60 p-3 text-center">
-              <p className="text-2xl font-bold text-chart-3">{report.appointments_completed}</p>
-              <p className="text-xs text-muted-foreground">Completed</p>
-            </div>
-          )}
-          {report.appointments_no_show !== undefined && (
-            <div className="bg-card rounded-lg border border-border/60 p-3 text-center">
-              <p className="text-2xl font-bold text-destructive">{report.appointments_no_show}</p>
-              <p className="text-xs text-muted-foreground">No-shows</p>
-            </div>
-          )}
-          {report.active_inpatients !== undefined && (
-            <div className="bg-card rounded-lg border border-border/60 p-3 text-center">
-              <p className="text-2xl font-bold text-chart-4">{report.active_inpatients}</p>
-              <p className="text-xs text-muted-foreground">Inpatients</p>
-            </div>
-          )}
-          {report.pending_lab_orders !== undefined && (
-            <div className="bg-card rounded-lg border border-border/60 p-3 text-center">
-              <p className="text-2xl font-bold text-chart-1">{report.pending_lab_orders}</p>
-              <p className="text-xs text-muted-foreground">Pending Labs</p>
-            </div>
-          )}
-          {report.drugs_low_stock !== undefined && (
-            <div className="bg-card rounded-lg border border-border/60 p-3 text-center">
-              <p className="text-2xl font-bold text-destructive">{report.drugs_low_stock}</p>
-              <p className="text-xs text-muted-foreground">Low Stock</p>
-            </div>
-          )}
+        <div>
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Operational Summary</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {report.total_visits_today !== undefined && (
+              <div className="bg-white rounded-lg border border-border p-4 text-center">
+                <p className="text-2xl font-bold">{report.total_visits_today}</p>
+                <p className="text-xs text-muted-foreground mt-1">Today's Visits</p>
+              </div>
+            )}
+            {report.appointments_completed !== undefined && (
+              <div className="bg-white rounded-lg border border-border p-4 text-center">
+                <p className="text-2xl font-bold text-clinical-normal">{report.appointments_completed}</p>
+                <p className="text-xs text-muted-foreground mt-1">Completed</p>
+              </div>
+            )}
+            {report.appointments_no_show !== undefined && (
+              <div className="bg-white rounded-lg border border-border p-4 text-center">
+                <p className="text-2xl font-bold text-clinical-critical">{report.appointments_no_show}</p>
+                <p className="text-xs text-muted-foreground mt-1">No-shows</p>
+              </div>
+            )}
+            {report.active_inpatients !== undefined && (
+              <div className="bg-white rounded-lg border border-border p-4 text-center">
+                <p className="text-2xl font-bold text-chart-4">{report.active_inpatients}</p>
+                <p className="text-xs text-muted-foreground mt-1">Inpatients</p>
+              </div>
+            )}
+            {report.pending_lab_orders !== undefined && (
+              <div className="bg-white rounded-lg border border-border p-4 text-center">
+                <p className="text-2xl font-bold text-chart-1">{report.pending_lab_orders}</p>
+                <p className="text-xs text-muted-foreground mt-1">Pending Labs</p>
+              </div>
+            )}
+            {report.drugs_low_stock !== undefined && (
+              <div className="bg-white rounded-lg border border-clinical-critical/20 p-4 text-center">
+                <p className="text-2xl font-bold text-clinical-critical">{report.drugs_low_stock}</p>
+                <p className="text-xs text-muted-foreground mt-1">Low Stock</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
 
 
-      {/* Occupancy Visualization */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      {/* Occupancy & Queue Visualization */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <TriageWidget />
 
-        <div className="bg-card rounded-xl border border-border/60 p-5 shadow-sm">
-          <h3 className="font-heading text-lg font-semibold mb-4">Bed Occupancy by Ward</h3>
+        <div className="bg-white rounded-lg border border-border p-5">
+          <h3 className="font-heading text-sm font-semibold mb-4">Bed Occupancy by Ward</h3>
           {occupancyData.wards.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={occupancyData.wards.map(w => {
@@ -373,8 +380,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="bg-card rounded-xl border border-border/60 p-5 shadow-sm mb-8">
-          <h3 className="font-heading text-lg font-semibold mb-4">Current Queue Status</h3>
+      <div className="bg-white rounded-lg border border-border p-5">
+          <h3 className="font-heading text-sm font-semibold mb-4">Current Queue Status</h3>
           {Object.keys(occupancyData.queueSummary).length > 0 ? (
             <div className="flex items-start gap-4">
               {/* Donut Chart — Left */}
@@ -430,10 +437,10 @@ export default function Dashboard() {
 
       <WardOccupancyChart compact />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 items-start">
-        <div className="lg:col-span-2 bg-card rounded-xl border border-border/60 p-5 shadow-sm">
-          <h3 className="font-heading text-lg font-semibold mb-4 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-primary" /> Recent Visits
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div className="lg:col-span-2 bg-white rounded-lg border border-border p-5">
+          <h3 className="font-heading text-sm font-semibold mb-4 flex items-center gap-2">
+            <Activity className="w-4 h-4 text-primary" /> Recent Visits
           </h3>
           {recentVisits.length === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center">No visits recorded yet.</p>
@@ -483,30 +490,30 @@ export default function Dashboard() {
           )}
 
           {/* Active Patient Journeys — Grouped by Stage */}
-          <div className="mt-5">
-            <h3 className="font-heading text-lg font-semibold mb-3 flex items-center gap-2">
-              <GitBranch className="w-5 h-5 text-primary" /> Active Journeys ({activeJourneys.length})
+          <div>
+            <h3 className="font-heading text-sm font-semibold mb-3 flex items-center gap-2">
+              <GitBranch className="w-4 h-4 text-primary" /> Active Journeys ({activeJourneys.length})
             </h3>
             {activeJourneys.length === 0 ? (
-              <p className="text-xs text-muted-foreground py-4 bg-card rounded-xl border border-border/60 px-4">No active patient journeys.</p>
+              <p className="text-xs text-muted-foreground py-4 bg-white rounded-lg border border-border px-4">No active patient journeys.</p>
             ) : (
               <div className="space-y-2">
                 {sortedStageKeys.map(stage => {
                   const group = jornadaPorEtapa[stage];
-                  const isExpanded = expandedStages[stage] !== false; // default expanded
+                  const isExpanded = expandedStages[stage] !== false;
                   const breached = group.filter(j => {
                     const mins = getSlaMinutes(j);
                     return SLAS[stage] && mins > SLAS[stage];
                   }).length;
                   return (
-                    <div key={stage} className="bg-card rounded-xl border border-border/60 shadow-sm overflow-hidden">
+                    <div key={stage} className="bg-white rounded-lg border border-border overflow-hidden">
                       <button
                         onClick={() => toggleStage(stage)}
-                        className={`w-full flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors border-l-[4px] ${STAGE_COLORS[stage] || "border-l-muted"}`}
+                        className={`w-full flex items-center justify-between px-4 py-3 hover:bg-muted/20 transition-colors border-l-[3px] ${STAGE_COLORS[stage] || "border-l-border"}`}
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-sm font-semibold">{STAGE_LABELS[stage] || stage.replace(/_/g, " ")}</span>
-                          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-muted">{group.length}</span>
+                          <span className="text-sm font-medium">{STAGE_LABELS[stage] || stage.replace(/_/g, " ")}</span>
+                          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-muted/60 text-muted-foreground">{group.length}</span>
                           {breached > 0 && (
                             <span className="flex items-center gap-1 text-xs text-destructive font-medium">
                               <AlertTriangle className="w-3 h-3" /> {breached} overdue
@@ -564,10 +571,10 @@ export default function Dashboard() {
           </div>
 
           {/* Quick Actions + Patient Reminders — side by side */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5">
-            <div className="bg-card rounded-xl border border-border/60 p-5 shadow-sm">
-              <h3 className="font-heading text-lg font-semibold mb-3 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-primary" /> Quick Actions
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="bg-white rounded-lg border border-border p-5">
+              <h3 className="font-heading text-sm font-semibold mb-3 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-primary" /> Quick Actions
               </h3>
               <div className="space-y-2">
                 {[
@@ -578,16 +585,16 @@ export default function Dashboard() {
                   { label: "Pharmacy Inventory", path: "/pharmacy" },
                   { label: "Process Payment", path: "/billing" },
                 ].map(action => (
-                  <a key={action.label} href={action.path} className="block px-3 py-2 rounded-lg border border-border hover:bg-muted hover:border-primary/30 transition-all text-sm font-medium">
+                  <a key={action.label} href={action.path} className="block px-3 py-2 rounded border border-border hover:bg-muted/50 hover:border-primary/30 transition-all text-xs font-medium">
                     {action.label}
                   </a>
                 ))}
               </div>
             </div>
 
-            <div className="bg-card rounded-xl border border-border/60 p-5 shadow-sm">
-              <h3 className="font-heading text-lg font-semibold mb-3 flex items-center gap-2">
-                <Bell className="w-5 h-5 text-chart-2" /> Patient Reminders
+            <div className="bg-white rounded-lg border border-border p-5">
+              <h3 className="font-heading text-sm font-semibold mb-3 flex items-center gap-2">
+                <Bell className="w-4 h-4 text-chart-2" /> Patient Reminders
               </h3>
               <p className="text-xs text-muted-foreground mb-3">
                 Send appointment reminders for tomorrow's scheduled patients. Runs daily at 6am.
@@ -613,16 +620,16 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="space-y-4">
-          {/* Live HIMS Pulse */}
-          <LivePulse />
+        <div className="space-y-6">
+           {/* Live HIMS Pulse */}
+           <LivePulse />
 
-          {/* Notifications Panel */}
-          {notifications.length > 0 && (
-            <div className="bg-card rounded-xl border border-border/60 p-5 shadow-sm">
-              <h3 className="font-heading text-lg font-semibold mb-3 flex items-center gap-2">
-                <Megaphone className="w-5 h-5 text-chart-2" /> Notifications ({notifications.length})
-              </h3>
+           {/* Notifications Panel */}
+           {notifications.length > 0 && (
+             <div className="bg-white rounded-lg border border-border p-5">
+               <h3 className="font-heading text-sm font-semibold mb-3 flex items-center gap-2">
+                 <Megaphone className="w-4 h-4 text-chart-2" /> Notifications ({notifications.length})
+               </h3>
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
                 {notifications.map(n => (
                   <div key={n.id} className="p-2.5 border border-border/40 rounded-lg bg-muted/10 flex items-start gap-2">
@@ -655,8 +662,8 @@ export default function Dashboard() {
             });
             if (breached.length === 0) return null;
             return (
-              <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-4 shadow-sm">
-                <h3 className="font-heading font-semibold text-sm mb-2 flex items-center gap-2 text-destructive">
+              <div className="bg-clinical-critical/5 border border-clinical-critical/20 rounded-lg p-4">
+                <h3 className="font-heading font-semibold text-sm mb-2 flex items-center gap-2 text-clinical-critical">
                   <AlertTriangle className="w-4 h-4" /> SLA Breaches ({breached.length})
                 </h3>
                 <div className="space-y-1.5">
@@ -672,8 +679,8 @@ export default function Dashboard() {
           })()}
 
           {dailyReport?.visit_breakdown && Object.keys(dailyReport.visit_breakdown).length > 0 && (
-            <div className="bg-card rounded-xl border border-border/60 p-5 shadow-sm">
-              <h3 className="font-heading text-lg font-semibold mb-3">Visit Breakdown</h3>
+            <div className="bg-white rounded-lg border border-border p-5">
+              <h3 className="font-heading text-sm font-semibold mb-3">Visit Breakdown</h3>
               <div className="space-y-2">
                 {Object.entries(dailyReport.visit_breakdown).map(([type, count]) => (
                   <div key={type} className="flex items-center justify-between text-sm">
