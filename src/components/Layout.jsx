@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import LivePulse from "@/components/LivePulse";
 
@@ -113,6 +113,7 @@ export default function Layout() {
   const [userRole, setUserRole] = useState("user");
   const [collapsedGroups, setCollapsedGroups] = useState({});
   const location = useLocation();
+  const navigate = useNavigate();
 
   const toggleGroupCollapse = (groupLabel) => {
     setCollapsedGroups(prev => {
@@ -162,7 +163,7 @@ export default function Layout() {
                 onClick={() => {
                   // Navigate to first item in group
                   if (visibleItems.length > 0) {
-                    window.location.href = visibleItems[0].path;
+                    navigate(visibleItems[0].path);
                   }
                   setMobileOpen(false);
                   toggleGroupCollapse(group.label);
