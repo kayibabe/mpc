@@ -335,7 +335,7 @@ export default function Dashboard() {
           {recentVisits.length === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center">No visits recorded yet.</p>
           ) : (
-            <div className="max-h-[300px] overflow-y-auto rounded-lg">
+            <div className="max-h-[200px] overflow-y-auto rounded-lg">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-card z-10">
                   <tr className="border-b border-border">
