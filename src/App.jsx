@@ -29,6 +29,7 @@ import MySignatures from '@/pages/MySignatures';
 import PhysicianPerformance from '@/pages/PhysicianPerformance';
 import MoHReports from '@/pages/MoHReports';
 import TriageSummary from '@/pages/TriageSummary';
+import SurgeryCalendar from '@/pages/SurgeryCalendar';
 import Layout from '@/components/Layout';
 
 const AuthenticatedApp = () => {
@@ -80,6 +81,7 @@ const AuthenticatedApp = () => {
         <Route path="/physician-performance" element={<PhysicianPerformance />} />
         <Route path="/moh-reports" element={<MoHReports />} />
         <Route path="/triage" element={<TriageSummary />} />
+        <Route path="/surgery-calendar" element={<SurgeryCalendar />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

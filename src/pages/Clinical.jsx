@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Stethoscope, Heart, FileText, Pill, Activity, Plus, Save, Search, AlertTriangle, ShieldAlert, FlaskConical, ArrowRight, CheckCircle, GitBranch, PenTool, ArrowRightLeft, Clock, Users, FileBadge, FileWarning, Zap } from "lucide-react";
+import { Stethoscope, Heart, FileText, Pill, Activity, Plus, Save, Search, AlertTriangle, ShieldAlert, FlaskConical, ArrowRight, CheckCircle, GitBranch, PenTool, ArrowRightLeft, Clock, Users, FileBadge, FileWarning, Zap, Scissors } from "lucide-react";
 import TemplateSelector from "@/components/TemplateSelector";
 import VitalSignsChart from "@/components/VitalSignsChart";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
@@ -421,6 +421,12 @@ export default function Clinical() {
                           className="inline-flex items-center gap-1 px-2.5 py-1 bg-chart-3/10 text-chart-3 rounded-md text-xs font-medium hover:bg-chart-3/20 disabled:opacity-50"
                         >
                           <CheckCircle className="w-3 h-3" /> Complete
+                        </button>
+                        <button
+                          onClick={() => window.location.href = `/surgery-calendar?patient=${selectedVisit.patient_id}`}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-chart-5/10 text-chart-5 rounded-md text-xs font-medium hover:bg-chart-5/20"
+                        >
+                          <Scissors className="w-3 h-3" /> Book Surgery
                         </button>
                       </div>
                     </div>

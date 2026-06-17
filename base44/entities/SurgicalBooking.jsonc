@@ -1,0 +1,147 @@
+{
+  "name": "SurgicalBooking",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string"
+    },
+    "visit_id": {
+      "type": "string"
+    },
+    "surgeon_id": {
+      "type": "string",
+      "description": "User ID of the lead surgeon"
+    },
+    "surgeon_name": {
+      "type": "string"
+    },
+    "anaesthetist_id": {
+      "type": "string"
+    },
+    "anaesthetist_name": {
+      "type": "string"
+    },
+    "assistant_ids": {
+      "type": "string",
+      "description": "JSON array of assistant/staff user IDs"
+    },
+    "theater_room": {
+      "type": "string",
+      "enum": [
+        "theatre_1",
+        "theatre_2",
+        "minor_theatre",
+        "maternity_theatre",
+        "emergency_theatre"
+      ]
+    },
+    "procedure_name": {
+      "type": "string"
+    },
+    "procedure_category": {
+      "type": "string",
+      "enum": [
+        "general",
+        "orthopaedic",
+        "obstetric",
+        "gynaecology",
+        "urology",
+        "ent",
+        "ophthalmology",
+        "paediatric",
+        "emergency",
+        "other"
+      ]
+    },
+    "scheduled_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "start_time": {
+      "type": "string",
+      "description": "HH:MM format"
+    },
+    "end_time": {
+      "type": "string",
+      "description": "HH:MM format, calculated or manual"
+    },
+    "estimated_duration_minutes": {
+      "type": "number",
+      "description": "Expected procedure duration in minutes"
+    },
+    "anaesthesia_type": {
+      "type": "string",
+      "enum": [
+        "general",
+        "spinal",
+        "epidural",
+        "regional",
+        "local",
+        "sedation",
+        "none"
+      ]
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "elective",
+        "urgent",
+        "emergency"
+      ],
+      "default": "elective"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "confirmed",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "postponed"
+      ],
+      "default": "scheduled"
+    },
+    "preop_notes": {
+      "type": "string"
+    },
+    "postop_notes": {
+      "type": "string"
+    },
+    "complications": {
+      "type": "string"
+    },
+    "instruments_required": {
+      "type": "string",
+      "description": "JSON array of required instruments/sets"
+    },
+    "implants_required": {
+      "type": "string",
+      "description": "JSON array of required implants/prosthetics"
+    },
+    "blood_products_needed": {
+      "type": "boolean",
+      "default": false
+    },
+    "consent_signed": {
+      "type": "boolean",
+      "default": false
+    },
+    "booked_by": {
+      "type": "string"
+    },
+    "booked_by_name": {
+      "type": "string"
+    },
+    "cancellation_reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "theater_room",
+    "procedure_name",
+    "scheduled_date",
+    "start_time"
+  ]
+}
