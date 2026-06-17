@@ -619,16 +619,14 @@ export default function InsuranceClaimPortal() {
                     {/* Export Claim Form */}
                     <div className="border-t border-border pt-4">
                       <button
-                        onClick={() => exportClaimForm(claim)}
-                        disabled={exportingClaimId === claim.id}
-                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-chart-3/10 text-chart-3 rounded-lg text-sm font-medium hover:bg-chart-3/20 border border-chart-3/20 disabled:opacity-50"
+                        onClick={() => {
+                          setShowDetails(null);
+                          setPreviewClaimId(claim.id);
+                        }}
+                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-chart-3/10 text-chart-3 rounded-lg text-sm font-medium hover:bg-chart-3/20 border border-chart-3/20"
                       >
-                        {exportingClaimId === claim.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Download className="w-4 h-4" />
-                        )}
-                        {exportingClaimId === claim.id ? "Exporting..." : "Export Claim Form (PDF)"}
+                        <Download className="w-4 h-4" />
+                        Export Claim Form (PDF)
                       </button>
                     </div>
                   </div>
