@@ -154,7 +154,7 @@ export default function Layout() {
           const visibleItems = group.items.filter(item => item.roles.includes(userRole));
           if (visibleItems.length === 0) return null;
           const isMainGroup = group.label === "Main";
-          const isGroupCollapsed = collapsedGroups[group.label] !== false;
+          const isGroupCollapsed = isMainGroup ? false : collapsedGroups[group.label] !== false;
           return (
           <div key={group.label}>
             {!isMainGroup ? (
