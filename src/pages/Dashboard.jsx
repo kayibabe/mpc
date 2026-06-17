@@ -273,14 +273,49 @@ export default function Dashboard() {
         <div className="bg-card rounded-xl border border-border/60 p-5 shadow-sm">
           <h3 className="font-heading text-lg font-semibold mb-4">Current Queue Status</h3>
           {Object.keys(occupancyData.queueSummary).length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie data={Object.entries(occupancyData.queueSummary).map(([k, v]) => ({ name: k.replace(/_/g, " "), value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} innerRadius={50} label={({ name, value }) => `${name}: ${value}`}>
-                  {Object.keys(occupancyData.queueSummary).map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="flex items-start gap-4">
+              {/* Donut Chart — Left */}
+              <div className="w-[45%] flex-shrink-0">
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie data={Object.entries(occupancyData.queueSummary).map(([k, v]) => ({ name: k.replace(/_/g, " "), value: v }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} innerRadius={45} label={({ name, value }) => `${name}: ${value}`}>
+                      {Object.keys(occupancyData.queueSummary).map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              {/* Waiting Patients List — Right */}
+              <div className="flex-1 min-w-0 border-l border-border pl-4">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Waiting Patients</p>
+                {(() => {
+                  const waiting = occupancyData.visits
+                    .filter(v => v.queue_status === "waiting")
+                    .sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+                  if (waiting.length === 0) {
+                    return <p className="text-xs text-muted-foreground py-4 text-center">No patients waiting</p>;
+                  }
+                  return (
+                    <div className="space-y-1.5 max-h-[200px] overflow-y-auto pr-1">
+                      {waiting.map((v, i) => (
+                        <div key={v.id} className="flex items-center justify-between text-xs p-1.5 rounded hover:bg-muted/40 transition-colors">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="w-4 h-4 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground flex-shrink-0">{i + 1}</span>
+                            <span className="truncate font-medium">{v.patient_id?.slice(0, 8)}</span>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground flex-shrink-0 ml-2">
+                            {(() => {
+                              const mins = Math.round((Date.now() - new Date(v.created_date).getTime()) / 60000);
+                              return mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ${mins % 60}m ago`;
+                            })()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
           ) : (
             <p className="text-sm text-muted-foreground py-12 text-center">Queue is clear</p>
           )}
