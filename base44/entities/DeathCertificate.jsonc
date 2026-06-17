@@ -1,0 +1,94 @@
+{
+  "name": "DeathCertificate",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string"
+    },
+    "visit_id": {
+      "type": "string"
+    },
+    "date_of_death": {
+      "type": "string",
+      "format": "date"
+    },
+    "time_of_death": {
+      "type": "string"
+    },
+    "cause_of_death_immediate": {
+      "type": "string",
+      "description": "Immediate cause (e.g. Cerebral Malaria)"
+    },
+    "cause_of_death_underlying": {
+      "type": "string",
+      "description": "Underlying condition"
+    },
+    "cause_of_death_contributing": {
+      "type": "string",
+      "description": "Other significant conditions"
+    },
+    "icd10_code": {
+      "type": "string"
+    },
+    "manner_of_death": {
+      "type": "string",
+      "enum": [
+        "natural",
+        "accident",
+        "suicide",
+        "homicide",
+        "undetermined",
+        "pending"
+      ]
+    },
+    "place_of_death": {
+      "type": "string",
+      "enum": [
+        "ward",
+        "icu",
+        "theatre",
+        "emergency",
+        "home",
+        "other"
+      ]
+    },
+    "certifying_doctor_id": {
+      "type": "string"
+    },
+    "certifying_doctor_name": {
+      "type": "string"
+    },
+    "certification_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "maternal_death": {
+      "type": "boolean",
+      "default": false
+    },
+    "neonatal_death": {
+      "type": "boolean",
+      "default": false
+    },
+    "autopsy_requested": {
+      "type": "boolean",
+      "default": false
+    },
+    "family_notified_by": {
+      "type": "string"
+    },
+    "family_notification_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "date_of_death",
+    "cause_of_death_immediate",
+    "certifying_doctor_id"
+  ]
+}

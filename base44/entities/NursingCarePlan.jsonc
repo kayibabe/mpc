@@ -1,0 +1,106 @@
+{
+  "name": "NursingCarePlan",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string"
+    },
+    "visit_id": {
+      "type": "string"
+    },
+    "admission_id": {
+      "type": "string"
+    },
+    "plan_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "nursing_diagnosis": {
+      "type": "string",
+      "description": "NANDA-I nursing diagnosis"
+    },
+    "goals": {
+      "type": "string",
+      "description": "Expected outcomes"
+    },
+    "interventions": {
+      "type": "string",
+      "description": "Nursing interventions (NIC)"
+    },
+    "evaluation": {
+      "type": "string"
+    },
+    "positioning_schedule": {
+      "type": "string",
+      "enum": [
+        "q2h",
+        "q4h",
+        "q6h",
+        "q8h",
+        "prn",
+        "none"
+      ]
+    },
+    "diet_plan": {
+      "type": "string"
+    },
+    "fluid_balance_target_ml": {
+      "type": "number"
+    },
+    "pain_management_plan": {
+      "type": "string"
+    },
+    "wound_care_plan": {
+      "type": "string"
+    },
+    "mobility_assistance": {
+      "type": "string",
+      "enum": [
+        "independent",
+        "assisted",
+        "bed_rest",
+        "strict_bed_rest",
+        "wheelchair"
+      ]
+    },
+    "fall_risk": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "pressure_ulcer_risk": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "reviewed",
+        "discontinued"
+      ],
+      "default": "active"
+    },
+    "review_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "created_by_name": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "nursing_diagnosis"
+  ]
+}

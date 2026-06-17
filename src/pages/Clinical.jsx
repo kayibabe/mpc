@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Stethoscope, Heart, FileText, Pill, Activity, Plus, Save, Search, AlertTriangle, ShieldAlert, FlaskConical, ArrowRight, CheckCircle, GitBranch, PenTool, ArrowRightLeft, Clock, Users, FileBadge } from "lucide-react";
+import { Stethoscope, Heart, FileText, Pill, Activity, Plus, Save, Search, AlertTriangle, ShieldAlert, FlaskConical, ArrowRight, CheckCircle, GitBranch, PenTool, ArrowRightLeft, Clock, Users, FileBadge, FileWarning } from "lucide-react";
 import TemplateSelector from "@/components/TemplateSelector";
 import VitalSignsChart from "@/components/VitalSignsChart";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
@@ -28,6 +28,14 @@ export default function Clinical() {
   const [journey, setJourney] = useState(null);
   const [transitioning, setTransitioning] = useState(false);
   const [handovers, setHandovers] = useState([]);
+  const [deathCerts, setDeathCerts] = useState([]);
+  const [deathForm, setDeathForm] = useState({
+    date_of_death: "", time_of_death: "", cause_of_death_immediate: "",
+    cause_of_death_underlying: "", cause_of_death_contributing: "", icd10_code: "",
+    manner_of_death: "natural", place_of_death: "ward", maternal_death: false,
+    neonatal_death: false, autopsy_requested: false, notes: "",
+  });
+  const [showDeathForm, setShowDeathForm] = useState(false);
 
   // Signature state
   const [signingDoc, setSigningDoc] = useState(null); // { document_type, document_id }
@@ -68,6 +76,9 @@ export default function Clinical() {
     setJourney(jList[0] || null);
     // Load handover history for this patient
     loadPatientHandovers(visit.patient_id);
+    // Load death certificates
+    const dcs = await base44.entities.DeathCertificate.filter({ patient_id: visit.patient_id }, "-created_date", 10);
+    setDeathCerts(dcs);
     // Run CDS checks
     runCdsChecks(visit, dList, lList);
   };
@@ -359,7 +370,7 @@ export default function Clinical() {
           ) : (
             <div className="bg-card rounded-xl border border-border/60 shadow-sm">
               <div className="border-b border-border flex">
-                {["vitals", "consultation", "prescriptions", "handovers", "signatures"].map(tab => (
+                {["vitals", "consultation", "prescriptions", "handovers", "signatures", "death"].map(tab => (
                   <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-3 text-sm font-medium transition-colors capitalize ${activeTab === tab ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>{tab}</button>
                 ))}
               </div>
@@ -683,6 +694,78 @@ export default function Clinical() {
                             </div>
                           </div>
                         ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === "death" && (
+                  <div>
+                    <h4 className="font-heading font-semibold mb-4 flex items-center gap-2"><FileWarning className="w-4 h-4 text-destructive" /> Death Certification</h4>
+                    {deathCerts.length > 0 && (
+                      <div className="space-y-3 mb-4">
+                        {deathCerts.map(dc => (
+                          <div key={dc.id} className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg">
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-sm font-semibold text-destructive">Death Certificate — {new Date(dc.certification_date || dc.created_date).toLocaleDateString("en-GB")}</p>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${dc.manner_of_death === "natural" ? "bg-muted" : "bg-destructive/10 text-destructive"}`}>{dc.manner_of_death}</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <p><strong>Immediate:</strong> {dc.cause_of_death_immediate}</p>
+                              {dc.cause_of_death_underlying && <p><strong>Underlying:</strong> {dc.cause_of_death_underlying}</p>}
+                              {dc.icd10_code && <p><strong>ICD-10:</strong> {dc.icd10_code}</p>}
+                              <p><strong>Date/Time:</strong> {dc.date_of_death} {dc.time_of_death || ""}</p>
+                              <p><strong>Place:</strong> {dc.place_of_death}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <button onClick={() => setShowDeathForm(true)} className="px-4 py-2 bg-destructive/10 text-destructive rounded-lg text-sm font-medium hover:bg-destructive/20 flex items-center gap-2">
+                      <FileWarning className="w-4 h-4" /> Record Death Certificate
+                    </button>
+                    {showDeathForm && (
+                      <div className="fixed inset-0 z-50 flex items-center justify-center">
+                        <div className="absolute inset-0 bg-black/40" onClick={() => setShowDeathForm(false)} />
+                        <div className="relative bg-card rounded-xl p-6 shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] overflow-y-auto">
+                          <h3 className="font-heading text-lg font-semibold mb-4">Death Certificate</h3>
+                          <form onSubmit={async (e) => {
+                            e.preventDefault();
+                            if (!deathForm.date_of_death || !deathForm.cause_of_death_immediate) return;
+                            await base44.entities.DeathCertificate.create({
+                              ...deathForm,
+                              patient_id: selectedVisit.patient_id,
+                              visit_id: selectedVisit.id,
+                              certifying_doctor_id: "current_user",
+                              certifying_doctor_name: getPatientName(selectedVisit.patient_id) ? "Attending" : "Medical Officer",
+                              certification_date: new Date().toISOString(),
+                            });
+                            const dcs = await base44.entities.DeathCertificate.filter({ patient_id: selectedVisit.patient_id }, "-created_date", 10);
+                            setDeathCerts(dcs);
+                            setShowDeathForm(false);
+                            setDeathForm({ date_of_death: "", time_of_death: "", cause_of_death_immediate: "", cause_of_death_underlying: "", cause_of_death_contributing: "", icd10_code: "", manner_of_death: "natural", place_of_death: "ward", maternal_death: false, neonatal_death: false, autopsy_requested: false, notes: "" });
+                          }} className="space-y-3">
+                            <div className="grid grid-cols-2 gap-3">
+                              <div><label className="block text-xs text-muted-foreground mb-1">Date of Death *</label><input type="date" required className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={deathForm.date_of_death} onChange={e => setDeathForm({...deathForm, date_of_death: e.target.value})} /></div>
+                              <div><label className="block text-xs text-muted-foreground mb-1">Time of Death</label><input type="time" className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={deathForm.time_of_death} onChange={e => setDeathForm({...deathForm, time_of_death: e.target.value})} /></div>
+                              <div className="col-span-2"><label className="block text-xs text-muted-foreground mb-1">Immediate Cause *</label><input required className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={deathForm.cause_of_death_immediate} onChange={e => setDeathForm({...deathForm, cause_of_death_immediate: e.target.value})} placeholder="e.g. Cerebral Malaria" /></div>
+                              <div className="col-span-2"><label className="block text-xs text-muted-foreground mb-1">Underlying Cause</label><input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={deathForm.cause_of_death_underlying} onChange={e => setDeathForm({...deathForm, cause_of_death_underlying: e.target.value})} /></div>
+                              <div className="col-span-2"><label className="block text-xs text-muted-foreground mb-1">Contributing Conditions</label><input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={deathForm.cause_of_death_contributing} onChange={e => setDeathForm({...deathForm, cause_of_death_contributing: e.target.value})} /></div>
+                              <div><label className="block text-xs text-muted-foreground mb-1">ICD-10 Code</label><input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={deathForm.icd10_code} onChange={e => setDeathForm({...deathForm, icd10_code: e.target.value})} /></div>
+                              <div><label className="block text-xs text-muted-foreground mb-1">Manner</label><select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={deathForm.manner_of_death} onChange={e => setDeathForm({...deathForm, manner_of_death: e.target.value})}><option value="natural">Natural</option><option value="accident">Accident</option><option value="suicide">Suicide</option><option value="homicide">Homicide</option><option value="undetermined">Undetermined</option></select></div>
+                              <div><label className="block text-xs text-muted-foreground mb-1">Place of Death</label><select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={deathForm.place_of_death} onChange={e => setDeathForm({...deathForm, place_of_death: e.target.value})}><option value="ward">Ward</option><option value="icu">ICU</option><option value="theatre">Theatre</option><option value="emergency">Emergency</option></select></div>
+                            </div>
+                            <div className="flex flex-wrap gap-4 text-sm">
+                              <label className="flex items-center gap-2"><input type="checkbox" checked={deathForm.maternal_death} onChange={e => setDeathForm({...deathForm, maternal_death: e.target.checked})} /> Maternal Death</label>
+                              <label className="flex items-center gap-2"><input type="checkbox" checked={deathForm.neonatal_death} onChange={e => setDeathForm({...deathForm, neonatal_death: e.target.checked})} /> Neonatal Death</label>
+                              <label className="flex items-center gap-2"><input type="checkbox" checked={deathForm.autopsy_requested} onChange={e => setDeathForm({...deathForm, autopsy_requested: e.target.checked})} /> Autopsy Requested</label>
+                            </div>
+                            <div className="flex gap-3 pt-2">
+                              <button type="submit" className="flex-1 px-4 py-2.5 bg-destructive text-destructive-foreground rounded-lg text-sm font-medium"><FileWarning className="w-4 h-4 inline mr-1" /> Certify Death</button>
+                              <button type="button" onClick={() => setShowDeathForm(false)} className="px-4 py-2.5 border border-border rounded-lg text-sm">Cancel</button>
+                            </div>
+                          </form>
+                        </div>
                       </div>
                     )}
                   </div>

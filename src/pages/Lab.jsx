@@ -67,11 +67,39 @@ export default function Lab() {
   const saveResult = async (orderId) => {
     const r = results[orderId];
     if (!r?.test_name || !r?.result_value) return;
+
+    // Critical result flagging
+    let isCritical = false;
+    try {
+      const refRange = r.reference_range || "";
+      const val = parseFloat(r.result_value);
+      if (!isNaN(val) && refRange) {
+        const rangeMatch = refRange.match(/([\d.]+)\s*[-–]\s*([\d.]+)/);
+        if (rangeMatch) {
+          const low = parseFloat(rangeMatch[1]);
+          const high = parseFloat(rangeMatch[2]);
+          if (val < low * 0.5 || val > high * 1.5) isCritical = true;
+        }
+      }
+    } catch (_) {}
+
     await base44.entities.LabResult.create({
       lab_order_id: orderId, patient_id: orders.find(o => o.id === orderId)?.patient_id,
-      ...r, status: "final",
+      ...r, status: isCritical ? "critical" : "final",
     });
-    await base44.entities.LabOrder.update(orderId, { status: "completed" });
+    await base44.entities.LabOrder.update(orderId, { status: isCritical ? "critical" : "completed" });
+
+    // Notify on critical result
+    if (isCritical) {
+      try {
+        await base44.functions.invoke("notifyLabResultReady", {
+          lab_order_id: orderId,
+          patient_id: orders.find(o => o.id === orderId)?.patient_id,
+          critical: true,
+        });
+      } catch (_) {}
+    }
+
     setResultForm(null);
     setResults({});
     const o = await base44.entities.LabOrder.list("-created_date", 100);
@@ -97,6 +125,7 @@ export default function Lab() {
     in_progress: "bg-chart-1/10 text-chart-1",
     completed: "bg-chart-2/10 text-chart-2",
     verified: "bg-chart-3/10 text-chart-3",
+    critical: "bg-destructive/10 text-destructive font-bold",
     cancelled: "bg-destructive/10 text-destructive",
   };
 
@@ -242,7 +271,15 @@ export default function Lab() {
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex gap-1">
-                      {o.status === "ordered" && <button onClick={() => updateStatus(o.id, "in_progress")} className="p-1.5 rounded hover:bg-chart-1/10 text-chart-1 text-xs">Start</button>}
+                      {o.status === "ordered" && (
+                        <button onClick={async () => {
+                          const barcode = `SPC-${Date.now().toString(36).toUpperCase()}`;
+                          await base44.entities.LabOrder.update(o.id, { status: "collected", collected_at: new Date().toISOString(), specimen_barcode: barcode });
+                          const oList = await base44.entities.LabOrder.list("-created_date", 100);
+                          setOrders(oList);
+                        }} className="p-1.5 rounded hover:bg-chart-4/10 text-chart-4 text-xs" title="Collect specimen & assign barcode">Collect</button>
+                      )}
+                      {o.status === "collected" && <button onClick={() => updateStatus(o.id, "in_progress")} className="p-1.5 rounded hover:bg-chart-1/10 text-chart-1 text-xs">Start</button>}
                       {o.status === "in_progress" && <button onClick={() => { setResultForm(o.id); setResults({...results, [o.id]: { test_name: "", result_value: "", unit: "", reference_range: "" }}); }} className="p-1.5 rounded hover:bg-chart-2/10 text-chart-2 text-xs"><ClipboardCheck className="w-4 h-4" /></button>}
                     </div>
                   </td>

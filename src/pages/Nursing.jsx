@@ -59,6 +59,16 @@ export default function Nursing() {
   const [notesList, setNotesList] = useState([]);
   const [noteSaved, setNoteSaved] = useState(false);
 
+  // Care plans
+  const [carePlans, setCarePlans] = useState([]);
+  const [showCarePlan, setShowCarePlan] = useState(false);
+  const [carePlanForm, setCarePlanForm] = useState({
+    patient_id: "", visit_id: "", nursing_diagnosis: "", goals: "", interventions: "",
+    evaluation: "", positioning_schedule: "q4h", diet_plan: "", fluid_balance_target_ml: "",
+    pain_management_plan: "", wound_care_plan: "", mobility_assistance: "independent",
+    fall_risk: "low", pressure_ulcer_risk: "low", notes: "",
+  });
+
   // Medication admin
   const [pendingMeds, setPendingMeds] = useState([]);
   const [medicationResult, setMedicationResult] = useState(null);
@@ -369,6 +379,9 @@ export default function Nursing() {
         <button onClick={() => setActiveTab("notes")} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-chart-4/10 text-chart-4 hover:bg-chart-4/20 border border-chart-4/20 flex items-center gap-1.5">
           <ClipboardCheck className="w-3.5 h-3.5" /> Notes
         </button>
+        <button onClick={() => setActiveTab("careplan")} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-chart-1/10 text-chart-1 hover:bg-chart-1/20 border border-chart-1/20 flex items-center gap-1.5">
+          <FileText className="w-3.5 h-3.5" /> Care Plans
+        </button>
         <button onClick={() => setShowWasteLog(true)} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20 flex items-center gap-1.5">
           <Trash2 className="w-3.5 h-3.5" /> Log Waste
         </button>
@@ -390,6 +403,7 @@ export default function Nursing() {
             { key: "vitals", label: "Vitals", icon: Heart },
             { key: "medication", label: "Meds", icon: Syringe, count: pendingMeds.length },
             { key: "notes", label: "Notes", icon: ClipboardCheck },
+            { key: "careplan", label: "Care Plans", icon: FileText },
           ].map(t => (
             <button
               key={t.key}
@@ -1080,7 +1094,137 @@ export default function Nursing() {
           )}
         </div>
       </div>
-      {/* Waste Log Modal */}
+          {/* CARE PLANS TAB */}
+          {activeTab === "careplan" && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-heading font-semibold flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-chart-1" /> Nursing Care Plans ({carePlans.length})
+                </h4>
+                <button onClick={() => setShowCarePlan(true)} className="px-3 py-1.5 bg-chart-1/10 text-chart-1 rounded-lg text-xs font-medium hover:bg-chart-1/20 flex items-center gap-1">
+                  <Plus className="w-3 h-3" /> New Care Plan
+                </button>
+              </div>
+              {carePlans.length === 0 ? (
+                <div className="py-12 text-center">
+                  <FileText className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">No care plans created.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {carePlans.map(cp => (
+                    <div key={cp.id} className="p-4 bg-muted/10 rounded-xl border border-border/40">
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <p className="text-sm font-semibold">{cp.nursing_diagnosis}</p>
+                          <p className="text-xs text-muted-foreground">{getPatientName(cp.patient_id)} · {new Date(cp.plan_date || cp.created_date).toLocaleDateString("en-GB")}</p>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          cp.status === "active" ? "bg-chart-3/10 text-chart-3" :
+                          cp.status === "reviewed" ? "bg-chart-1/10 text-chart-1" : "bg-muted text-muted-foreground"
+                        }`}>{cp.status}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        {cp.goals && <p><strong>Goals:</strong> {cp.goals}</p>}
+                        {cp.interventions && <p><strong>Interventions:</strong> {cp.interventions}</p>}
+                        {cp.fall_risk && <p><strong>Fall Risk:</strong> <span className={cp.fall_risk === "high" ? "text-destructive font-bold" : "text-muted-foreground"}>{cp.fall_risk}</span></p>}
+                        {cp.pressure_ulcer_risk && <p><strong>PU Risk:</strong> <span className={cp.pressure_ulcer_risk === "high" ? "text-destructive font-bold" : "text-muted-foreground"}>{cp.pressure_ulcer_risk}</span></p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {showCarePlan && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/40" onClick={() => setShowCarePlan(false)} />
+                  <div className="relative bg-card rounded-xl p-6 shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] overflow-y-auto">
+                    <h3 className="font-heading text-lg font-semibold mb-4">New Nursing Care Plan</h3>
+                    <form onSubmit={async (e) => {
+                      e.preventDefault();
+                      if (!carePlanForm.patient_id || !carePlanForm.nursing_diagnosis) return;
+                      await base44.entities.NursingCarePlan.create({
+                        ...carePlanForm,
+                        plan_date: new Date().toISOString(),
+                        fluid_balance_target_ml: Number(carePlanForm.fluid_balance_target_ml) || 0,
+                        status: "active",
+                      });
+                      const plans = await base44.entities.NursingCarePlan.filter({ status: "active" }, "-created_date", 30);
+                      setCarePlans(plans);
+                      setShowCarePlan(false);
+                    }} className="space-y-3">
+                      <div>
+                        <label className="block text-xs text-muted-foreground mb-1">Patient *</label>
+                        <select required className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={carePlanForm.patient_id} onChange={e => setCarePlanForm({...carePlanForm, patient_id: e.target.value})}>
+                          <option value="">Select patient</option>
+                          {[...triageQueue, ...activePatients].map(j => (
+                            <option key={j.patient_id} value={j.patient_id}>{getPatientName(j.patient_id)}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-muted-foreground mb-1">Nursing Diagnosis (NANDA-I) *</label>
+                        <input required className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={carePlanForm.nursing_diagnosis} onChange={e => setCarePlanForm({...carePlanForm, nursing_diagnosis: e.target.value})} placeholder="e.g. Impaired Mobility, Risk for Infection" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-muted-foreground mb-1">Goals / Expected Outcomes</label>
+                          <textarea className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" rows={2} value={carePlanForm.goals} onChange={e => setCarePlanForm({...carePlanForm, goals: e.target.value})} />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-muted-foreground mb-1">Nursing Interventions (NIC)</label>
+                          <textarea className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" rows={2} value={carePlanForm.interventions} onChange={e => setCarePlanForm({...carePlanForm, interventions: e.target.value})} />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-muted-foreground mb-1">Fall Risk</label>
+                          <select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={carePlanForm.fall_risk} onChange={e => setCarePlanForm({...carePlanForm, fall_risk: e.target.value})}>
+                            <option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-muted-foreground mb-1">Pressure Ulcer Risk</label>
+                          <select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={carePlanForm.pressure_ulcer_risk} onChange={e => setCarePlanForm({...carePlanForm, pressure_ulcer_risk: e.target.value})}>
+                            <option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-muted-foreground mb-1">Mobility</label>
+                          <select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={carePlanForm.mobility_assistance} onChange={e => setCarePlanForm({...carePlanForm, mobility_assistance: e.target.value})}>
+                            <option value="independent">Independent</option><option value="assisted">Assisted</option><option value="bed_rest">Bed Rest</option><option value="wheelchair">Wheelchair</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-muted-foreground mb-1">Positioning Schedule</label>
+                          <select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={carePlanForm.positioning_schedule} onChange={e => setCarePlanForm({...carePlanForm, positioning_schedule: e.target.value})}>
+                            <option value="q2h">Every 2 hours</option><option value="q4h">Every 4 hours</option><option value="q8h">Every 8 hours</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-muted-foreground mb-1">Diet Plan</label>
+                          <input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={carePlanForm.diet_plan} onChange={e => setCarePlanForm({...carePlanForm, diet_plan: e.target.value})} placeholder="e.g. Low salt, diabetic" />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-muted-foreground mb-1">Fluid Target (mL)</label>
+                          <input type="number" className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={carePlanForm.fluid_balance_target_ml} onChange={e => setCarePlanForm({...carePlanForm, fluid_balance_target_ml: e.target.value})} />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-muted-foreground mb-1">Pain Management</label>
+                        <input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={carePlanForm.pain_management_plan} onChange={e => setCarePlanForm({...carePlanForm, pain_management_plan: e.target.value})} />
+                      </div>
+                      <div className="flex gap-3 pt-2">
+                        <button type="submit" className="flex-1 px-4 py-2.5 bg-chart-1 text-white rounded-lg text-sm font-medium"><Save className="w-3.5 h-3.5 inline mr-1" /> Create Plan</button>
+                        <button type="button" onClick={() => setShowCarePlan(false)} className="px-4 py-2.5 border border-border rounded-lg text-sm">Cancel</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Waste Log Modal */}
       {showWasteLog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowWasteLog(false)} />

@@ -67,7 +67,7 @@ export default function Pharmacy() {
   const [dispenseQty, setDispenseQty] = useState("");
 
   const openDispenseModal = (drug, prescriptionItem = null) => {
-    setDispenseModal({ drug, prescriptionItem });
+    setDispenseModal({ drug, prescriptionItem, counselingNotes: "" });
     setDispenseQty(prescriptionItem ? String(prescriptionItem.quantity) : "1");
   };
 
@@ -88,6 +88,7 @@ export default function Pharmacy() {
       batch_number: drug.batch_number || "",
       dispensing_date: new Date().toISOString(),
       dispensed_by: "pharmacy",
+      counseling_notes: dispenseModal.counselingNotes || "",
     });
 
     // Update prescription item status
@@ -305,15 +306,20 @@ export default function Pharmacy() {
           {activeTab === "inventory" && (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead><tr className="border-b border-border"><th className="text-left py-2 px-3 font-medium text-muted-foreground">Drug</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Strength</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Stock</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Price</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Expiry</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Actions</th></tr></thead>
+                <thead><tr className="border-b border-border"><th className="text-left py-2 px-3 font-medium text-muted-foreground">Drug</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Strength</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Stock</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Price</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Expiry</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">FEFO</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Actions</th></tr></thead>
                 <tbody>
-                  {drugs.map(d => (
+                  {[...drugs].sort((a, b) => { if (!a.expiry_date) return 1; if (!b.expiry_date) return -1; return new Date(a.expiry_date) - new Date(b.expiry_date); }).map(d => {
+                    const daysToExpiry = d.expiry_date ? Math.round((new Date(d.expiry_date) - Date.now()) / 86400000) : null;
+                    return (
                     <tr key={d.id} className={`border-b border-border/40 hover:bg-muted/30 ${d.quantity_in_stock <= d.reorder_level ? "bg-destructive/5" : ""}`}>
                       <td className="py-2.5 px-3"><p className="font-medium">{d.name}</p><p className="text-xs text-muted-foreground">{d.generic_name}</p></td>
                       <td className="py-2.5 px-3">{d.strength || "—"}</td>
                       <td className="py-2.5 px-3"><span className={d.quantity_in_stock <= d.reorder_level ? "text-destructive font-semibold" : ""}>{d.quantity_in_stock}</span></td>
                       <td className="py-2.5 px-3">MWK {d.unit_price?.toLocaleString()}</td>
                       <td className="py-2.5 px-3">{d.expiry_date || "—"}</td>
+                      <td className={`py-2.5 px-3 text-xs font-mono ${daysToExpiry !== null && daysToExpiry <= 30 ? "text-destructive font-bold" : daysToExpiry !== null && daysToExpiry <= 90 ? "text-triage-semi font-semibold" : "text-muted-foreground"}`}>
+                        {daysToExpiry !== null ? `${daysToExpiry}d` : "—"}
+                      </td>
                       <td className="py-2.5 px-3">
                         <div className="flex gap-1 flex-wrap">
                           <button onClick={() => openDispenseModal(d)} className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium hover:bg-primary/20">Dispense</button>
@@ -325,8 +331,8 @@ export default function Pharmacy() {
                         </div>
                       </td>
                     </tr>
-                  ))}
-                  {drugs.length === 0 && <tr><td colSpan={6} className="py-12 text-center text-sm text-muted-foreground">No drugs in inventory.</td></tr>}
+                  );})}
+                  {drugs.length === 0 && <tr><td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">No drugs in inventory.</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -532,6 +538,16 @@ export default function Pharmacy() {
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   value={dispenseQty}
                   onChange={e => setDispenseQty(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-muted-foreground mb-1">Counseling Notes</label>
+                <textarea
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  rows={2}
+                  placeholder="Medication counseling: dosage, side effects, storage..."
+                  value={dispenseModal.counselingNotes}
+                  onChange={e => setDispenseModal({...dispenseModal, counselingNotes: e.target.value})}
                 />
               </div>
             </div>

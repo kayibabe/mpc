@@ -23,6 +23,11 @@ export default function Maternal() {
     pulse: "", temperature: "", urine_volume: "",
   });
   const [newborns, setNewborns] = useState([]);
+  const [showNewborn, setShowNewborn] = useState(false);
+  const [newbornForm, setNewbornForm] = useState({
+    baby_name: "", gender: "male", birth_weight_kg: "", birth_date: new Date().toISOString().slice(0,10),
+    delivery_type: "normal_vaginal", apgar_1min: "", apgar_5min: "",
+  });
 
   useEffect(() => {
     async function load() {
@@ -96,21 +101,23 @@ export default function Maternal() {
     setPartograph(p);
   };
 
-  const addNewborn = async () => {
+  const addNewborn = async (e) => {
+    e.preventDefault();
     if (!selectedVisit) return;
-    const name = prompt("Baby name:");
-    const gender = prompt("Gender (male/female):");
-    const weight = prompt("Birth weight (kg):");
-    if (!name || !gender || !weight) return;
+    if (!newbornForm.baby_name || !newbornForm.birth_weight_kg) return;
     await base44.entities.NewbornRecord.create({
       maternal_visit_id: selectedVisit.id, mother_id: selectedVisit.patient_id,
-      baby_name: name, gender, birth_weight_kg: Number(weight),
-      birth_date: new Date().toISOString(), delivery_type: "normal_vaginal",
-      apgar_1min: Number(prompt("APGAR 1 min:")) || 0,
-      apgar_5min: Number(prompt("APGAR 5 min:")) || 0,
+      baby_name: newbornForm.baby_name, gender: newbornForm.gender,
+      birth_weight_kg: Number(newbornForm.birth_weight_kg),
+      birth_date: new Date(newbornForm.birth_date).toISOString(),
+      delivery_type: newbornForm.delivery_type,
+      apgar_1min: Number(newbornForm.apgar_1min) || 0,
+      apgar_5min: Number(newbornForm.apgar_5min) || 0,
     });
     const n = await base44.entities.NewbornRecord.filter({ maternal_visit_id: selectedVisit.id }, "-created_date", 10);
     setNewborns(n);
+    setShowNewborn(false);
+    setNewbornForm({ baby_name: "", gender: "male", birth_weight_kg: "", birth_date: new Date().toISOString().slice(0,10), delivery_type: "normal_vaginal", apgar_1min: "", apgar_5min: "" });
   };
 
   if (loading) return <div className="page-container flex justify-center py-20"><div className="w-8 h-8 border-3 border-muted border-t-primary rounded-full animate-spin" /></div>;
@@ -189,7 +196,7 @@ export default function Maternal() {
                 </div>
                 <div className="flex gap-2">
                   <button onClick={addPartographEntry} className="px-3 py-1.5 bg-primary text-primary-foreground rounded text-xs font-medium"><Plus className="w-3 h-3 inline mr-1" /> Add Entry</button>
-                  <button onClick={addNewborn} className="px-3 py-1.5 bg-chart-2 text-white rounded text-xs font-medium"><Baby className="w-3 h-3 inline mr-1" /> Record Newborn</button>
+                  <button type="button" onClick={() => setShowNewborn(true)} className="px-3 py-1.5 bg-chart-2 text-white rounded text-xs font-medium"><Baby className="w-3 h-3 inline mr-1" /> Record Newborn</button>
                 </div>
                 {partograph.length > 0 && (
                   <div className="mt-3 overflow-x-auto"><table className="w-full text-xs"><thead><tr className="border-b border-border"><th className="text-left py-1 px-2">Time</th><th className="text-left py-1 px-2">Dilation</th><th className="text-left py-1 px-2">Contractions</th><th className="text-left py-1 px-2">FHR</th><th className="text-left py-1 px-2">Fluid</th><th className="text-left py-1 px-2">Moulding</th></tr></thead><tbody>{partograph.map(p => (<tr key={p.id} className="border-b border-border/40"><td className="py-1 px-2">{new Date(p.entry_time).toLocaleTimeString("en-GB", {hour:"2-digit",minute:"2-digit"})}</td><td className="py-1 px-2">{p.cervical_dilation_cm}cm</td><td className="py-1 px-2">{p.contractions_per_10min}/10</td><td className="py-1 px-2">{p.fetal_heart_rate}</td><td className="py-1 px-2">{p.amniotic_fluid}</td><td className="py-1 px-2">{p.moulding}</td></tr>))}</tbody></table></div>
@@ -209,8 +216,61 @@ export default function Maternal() {
               )}
             </div>
           )}
+
         </div>
       </div>
+
+      {/* Newborn Recording Modal */}
+      {showNewborn && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowNewborn(false)} />
+          <div className="relative bg-card rounded-xl p-6 shadow-2xl w-full max-w-md mx-4">
+            <h3 className="font-heading text-lg font-semibold mb-4 flex items-center gap-2"><Baby className="w-5 h-5 text-chart-2" /> Record Newborn</h3>
+            <form onSubmit={addNewborn} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <label className="block text-xs text-muted-foreground mb-1">Baby Name *</label>
+                  <input required className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={newbornForm.baby_name} onChange={e => setNewbornForm({...newbornForm, baby_name: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">Gender</label>
+                  <select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={newbornForm.gender} onChange={e => setNewbornForm({...newbornForm, gender: e.target.value})}>
+                    <option value="male">Male</option><option value="female">Female</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">Weight (kg) *</label>
+                  <input required type="number" step="0.01" className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={newbornForm.birth_weight_kg} onChange={e => setNewbornForm({...newbornForm, birth_weight_kg: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">Birth Date</label>
+                  <input type="date" className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={newbornForm.birth_date} onChange={e => setNewbornForm({...newbornForm, birth_date: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">Delivery Type</label>
+                  <select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={newbornForm.delivery_type} onChange={e => setNewbornForm({...newbornForm, delivery_type: e.target.value})}>
+                    <option value="normal_vaginal">Normal Vaginal</option>
+                    <option value="assisted_vaginal">Assisted Vaginal</option>
+                    <option value="c_section">C-Section</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">APGAR 1min</label>
+                  <input type="number" min="0" max="10" className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={newbornForm.apgar_1min} onChange={e => setNewbornForm({...newbornForm, apgar_1min: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">APGAR 5min</label>
+                  <input type="number" min="0" max="10" className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={newbornForm.apgar_5min} onChange={e => setNewbornForm({...newbornForm, apgar_5min: e.target.value})} />
+                </div>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="submit" className="flex-1 px-4 py-2.5 bg-chart-2 text-white rounded-lg text-sm font-medium"><Baby className="w-3.5 h-3.5 inline mr-1" /> Save Record</button>
+                <button type="button" onClick={() => setShowNewborn(false)} className="px-4 py-2.5 border border-border rounded-lg text-sm">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
