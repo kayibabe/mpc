@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { ArrowRightLeft, Plus, Check, Clock, User, Stethoscope, AlertTriangle, Users, Search, X, Save, Loader2, ClipboardList, ShieldCheck, ClipboardPen } from "lucide-react";
+import { ArrowRightLeft, Plus, Check, Clock, User, Stethoscope, AlertTriangle, Users, Search, X, Save, Loader2, ClipboardList, ShieldCheck, ClipboardPen, FileDown } from "lucide-react";
 import StaffComplianceDashboard from "@/components/StaffComplianceDashboard";
 
 const SHIFT_TYPES = [
@@ -22,6 +22,7 @@ export default function DoctorHandover() {
   const [submitting, setSubmitting] = useState(false);
   const [selectedPatients, setSelectedPatients] = useState([]);
   const [patientSearch, setPatientSearch] = useState("");
+  const [exporting, setExporting] = useState(false);
   const [form, setForm] = useState({
     to_doctor_id: "",
     shift_type: "morning",
@@ -127,6 +128,21 @@ export default function DoctorHandover() {
 
   const shiftColor = (type) => SHIFT_TYPES.find(s => s.value === type)?.color || "";
 
+  const exportHandoverCSV = async () => {
+    setExporting(true);
+    try {
+      const response = await base44.functions.invoke("exportHandoverReport", {});
+      const blob = new Blob([response.data], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `doctor-handover-report-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) { console.error(e); }
+    finally { setExporting(false); }
+  };
+
   if (loading) {
     return (
       <div className="page-container flex justify-center py-20">
@@ -142,12 +158,22 @@ export default function DoctorHandover() {
           <h2 className="section-title">Doctor Shift Handover</h2>
           <p className="text-sm text-muted-foreground mt-1">Clinical shift handover with patient handoff & compliance tracking</p>
         </div>
-        <button
-          onClick={() => { setShowForm(!showForm); setTab("handover"); }}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 shadow-sm"
-        >
-          <Plus className="w-4 h-4" /> New Handover
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={exportHandoverCSV}
+            disabled={exporting}
+            className="inline-flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg text-sm font-medium hover:bg-muted transition-colors disabled:opacity-50"
+          >
+            {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+            Export CSV
+          </button>
+          <button
+            onClick={() => { setShowForm(!showForm); setTab("handover"); }}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 shadow-sm"
+          >
+            <Plus className="w-4 h-4" /> New Handover
+          </button>
+        </div>
       </div>
 
       <div className="mb-4 border-b border-border flex gap-1">

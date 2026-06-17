@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
       { created_date: { $gte: thirtyDaysAgo } }, "-created_date", 1000
     );
 
-    // ── Lab Orders (ordered by doctors) ──
+    // ── Lab Orders ──
     const allLabOrders = await base44.asServiceRole.entities.LabOrder.filter(
       { created_date: { $gte: thirtyDaysAgo } }, "-created_date", 1000
     );
@@ -64,6 +64,17 @@ Deno.serve(async (req) => {
       { created_date: { $gte: thirtyDaysAgo } }, "-created_date", 500
     );
 
+    // ── Diagnosis distribution ──
+    const diagnosisCounts = {};
+    allDiagnoses.forEach(d => {
+      const name = (d.diagnosis_name || d.name || "Unknown").trim();
+      if (name) diagnosisCounts[name] = (diagnosisCounts[name] || 0) + 1;
+    });
+    const topDiagnoses = Object.entries(diagnosisCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([name, count]) => ({ name, count }));
+
     // ── Build per-physician metrics ──
     const physicianIds = new Set();
     allConsults.forEach(c => physicianIds.add(c.clinician_id || c.created_by_id));
@@ -92,7 +103,7 @@ Deno.serve(async (req) => {
       // Imaging
       const imagingOrders = allImagingOrders.filter(i => (i.ordered_by || i.created_by_id) === pid);
 
-      // Admissions (as admitting doctor)
+      // Admissions
       const admissions = allAdmissions.filter(a => a.admitting_doctor_id === pid);
       const activeAdmissions = admissions.filter(a => a.status === "admitted");
 
@@ -110,35 +121,48 @@ Deno.serve(async (req) => {
         (h.from_doctor_id === pid || h.created_by_id === pid) && h.acknowledged
       );
 
-      // Average diagnoses per consult
+      // ── Wait time analysis ──
+      const consultPatientIds = new Set(consults.map(c => c.patient_id));
+      const patientJourneys = journeys.filter(j => consultPatientIds.has(j.patient_id));
+
+      let totalWaitMinutes = 0;
+      let waitCount = 0;
+      let longestWait = 0;
+
+      patientJourneys.forEach(j => {
+        try {
+          const history = j.stage_history ? JSON.parse(j.stage_history) : [];
+          const triageEntry = history.find(h => h.to === "TRIAGE");
+          const consultEntry = history.find(h => h.to === "CONSULTATION");
+          if (triageEntry && consultEntry) {
+            const triageTime = new Date(triageEntry.timestamp);
+            const consultTime = new Date(consultEntry.timestamp);
+            const wait = (consultTime - triageTime) / 60000;
+            if (wait > 0 && wait < 1440) {
+              totalWaitMinutes += wait;
+              waitCount++;
+              if (wait > longestWait) longestWait = wait;
+            }
+          }
+        } catch (_) {}
+      });
+
+      const avgWaitMinutes = waitCount > 0 ? Math.round(totalWaitMinutes / waitCount) : 0;
+
+      // Averages
       const avgDxPerConsult = consults.length > 0
-        ? Math.round((dx.length / consults.length) * 10) / 10
-        : 0;
-
-      // Average prescriptions per consult
+        ? Math.round((dx.length / consults.length) * 10) / 10 : 0;
       const avgRxPerConsult = consults.length > 0
-        ? Math.round((rx.length / consults.length) * 10) / 10
-        : 0;
-
-      // Lab investigation rate (% of consults with lab orders)
+        ? Math.round((rx.length / consults.length) * 10) / 10 : 0;
       const labRate = consults.length > 0
-        ? Math.round((labOrders.length / consults.length) * 100)
-        : 0;
-
-      // Signature compliance
+        ? Math.round((labOrders.length / consults.length) * 100) : 0;
       const sigCompliance = consults.length > 0
-        ? Math.round((signedConsultIds.size / consults.length) * 100)
-        : 100;
-
-      // Handover compliance
+        ? Math.round((signedConsultIds.size / consults.length) * 100) : 100;
       const handoverCompliance = handovers.length > 0
-        ? Math.round((handoversAcknowledged.length / handovers.length) * 100)
-        : 100;
-
-      // Daily averages
+        ? Math.round((handoversAcknowledged.length / handovers.length) * 100) : 100;
       const avgConsultsPerDay = Math.round(consultsLast7.length / 7 * 10) / 10;
 
-      // Overall efficiency score (weighted)
+      // Overall efficiency score
       const efficiencyScore = Math.round(
         (sigCompliance * 0.3) +
         (handoverCompliance * 0.2) +
@@ -174,6 +198,11 @@ Deno.serve(async (req) => {
           active: activeAdmissions.length,
         },
         discharges: discharges.length,
+        wait_time: {
+          avg_minutes: avgWaitMinutes,
+          longest_minutes: Math.round(longestWait),
+          tracked_visits: waitCount,
+        },
         compliance: {
           signature_rate: sigCompliance,
           unsigned_consults: unsignedConsults,
@@ -184,7 +213,6 @@ Deno.serve(async (req) => {
       });
     });
 
-    // Sort by consultations (desc)
     physicians.sort((a, b) => b.consultations.total - a.consultations.total);
 
     // ── Summary metrics ──
@@ -198,7 +226,12 @@ Deno.serve(async (req) => {
     const totalSignatures = allSignatures.length;
     const activePhysicians = physicians.length;
 
-    // ── Weekly trend (last 7 days) ──
+    // Overall clinic avg wait time
+    const avgClinicWait = physicians.length > 0
+      ? Math.round(physicians.reduce((s, p) => s + p.wait_time.avg_minutes, 0) / physicians.filter(p => p.wait_time.avg_minutes > 0).length || physicians.length)
+      : 0;
+
+    // ── Weekly trend ──
     const dailyTrend = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
@@ -207,6 +240,7 @@ Deno.serve(async (req) => {
         consultations: allConsults.filter(c => c.created_date?.startsWith(d)).length,
         prescriptions: allPrescriptions.filter(p => p.created_date?.startsWith(d)).length,
         admissions: allAdmissions.filter(a => a.created_date?.startsWith(d)).length,
+        discharges: allDischarges.filter(dc => dc.created_date?.startsWith(d)).length,
       });
     }
 
@@ -230,10 +264,12 @@ Deno.serve(async (req) => {
         total_discharges: totalDischarges,
         total_signatures: totalSignatures,
         avg_consultations_per_physician: activePhysicians > 0 ? Math.round(totalConsults / activePhysicians) : 0,
+        avg_clinic_wait_minutes: avgClinicWait,
       },
       daily_trend: dailyTrend,
       physicians,
       top_by_efficiency: topByEfficiency,
+      top_diagnoses: topDiagnoses,
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

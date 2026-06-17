@@ -1,17 +1,17 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   Stethoscope, TrendingUp, Users, ClipboardCheck, Pill, FlaskConical, Scan,
-  BedDouble, PenTool, Shield, Award, Loader2, Calendar
+  BedDouble, PenTool, Shield, Award, Loader2, Calendar, Clock, BarChart3
 } from "lucide-react";
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, BarChart, Bar } from "recharts";
 
 export default function PhysicianPerformance() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedPhysician, setSelectedPhysician] = useState(null);
 
-  const emptyData = { summary: { active_physicians: 0, total_consultations: 0, total_prescriptions: 0, total_diagnoses: 0, total_lab_orders: 0, total_imaging_orders: 0, total_admissions: 0, total_discharges: 0, total_signatures: 0, avg_consultations_per_physician: 0 }, daily_trend: [], physicians: [], top_by_efficiency: [] };
+  const emptyData = { summary: { active_physicians: 0, total_consultations: 0, total_prescriptions: 0, total_diagnoses: 0, total_lab_orders: 0, total_imaging_orders: 0, total_admissions: 0, total_discharges: 0, total_signatures: 0, avg_consultations_per_physician: 0, avg_clinic_wait_minutes: 0 }, daily_trend: [], physicians: [], top_by_efficiency: [], top_diagnoses: [] };
 
   useEffect(() => {
     async function load() {
@@ -37,7 +37,7 @@ export default function PhysicianPerformance() {
 
   if (!data) return null;
 
-  const { summary, daily_trend, physicians, top_by_efficiency } = data;
+  const { summary, daily_trend, physicians, top_by_efficiency, top_diagnoses } = data;
 
   const getScoreColor = (score) => {
     if (score >= 80) return "text-clinical-normal";
@@ -73,12 +73,13 @@ export default function PhysicianPerformance() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
         {[
           { label: "Active Physicians", value: summary.active_physicians, icon: Users, color: "bg-primary" },
           { label: "Total Consultations", value: summary.total_consultations, icon: Stethoscope, color: "bg-chart-1" },
           { label: "Avg/Physician", value: summary.avg_consultations_per_physician, icon: TrendingUp, color: "bg-chart-2" },
-          { label: "Total Signatures", value: summary.total_signatures, icon: PenTool, color: "bg-chart-3" },
+          { label: "Avg Wait Time", value: `${summary.avg_clinic_wait_minutes}min`, icon: Clock, color: "bg-chart-3" },
+          { label: "Total Signatures", value: summary.total_signatures, icon: PenTool, color: "bg-chart-4" },
         ].map(s => (
           <div key={s.label} className="stat-card flex items-center gap-3">
             <div className={`w-10 h-10 rounded-xl ${s.color} flex items-center justify-center`}>
@@ -110,24 +111,45 @@ export default function PhysicianPerformance() {
         ))}
       </div>
 
-      {/* Daily Trend Chart */}
-      <div className="bg-card rounded-xl border border-border/60 p-4 mb-6">
-        <h4 className="font-heading font-semibold text-sm mb-3 flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-primary" /> Daily Activity (7 Days)
-        </h4>
-        <ResponsiveContainer width="100%" height={200}>
-          <LineChart data={daily_trend}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))"
-              tickFormatter={d => new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} />
-            <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="consultations" stroke="hsl(var(--primary))" name="Consults" strokeWidth={2} dot={{ r: 4 }} />
-            <Line type="monotone" dataKey="prescriptions" stroke="hsl(var(--chart-2))" name="Prescriptions" strokeWidth={2} dot={{ r: 4 }} />
-            <Line type="monotone" dataKey="admissions" stroke="hsl(var(--chart-4))" name="Admissions" strokeWidth={2} dot={{ r: 4 }} />
-          </LineChart>
-        </ResponsiveContainer>
+      {/* Daily Trend + Diagnosis Distribution */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="bg-card rounded-xl border border-border/60 p-4">
+          <h4 className="font-heading font-semibold text-sm mb-3 flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-primary" /> Daily Activity (7 Days)
+          </h4>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={daily_trend}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))"
+                tickFormatter={d => new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} />
+              <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="consultations" stroke="hsl(var(--primary))" name="Consults" strokeWidth={2} dot={{ r: 4 }} />
+              <Line type="monotone" dataKey="prescriptions" stroke="hsl(var(--chart-2))" name="Prescriptions" strokeWidth={2} dot={{ r: 4 }} />
+              <Line type="monotone" dataKey="admissions" stroke="hsl(var(--chart-4))" name="Admissions" strokeWidth={2} dot={{ r: 4 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-card rounded-xl border border-border/60 p-4">
+          <h4 className="font-heading font-semibold text-sm mb-3 flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-chart-2" /> Top Diagnoses
+          </h4>
+          {top_diagnoses.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={top_diagnoses.slice(0, 8)} layout="vertical" margin={{ left: 80 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis type="number" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" width={75} />
+                <Tooltip />
+                <Bar dataKey="count" fill="hsl(var(--chart-2))" radius={[0, 4, 4, 0]} name="Cases" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="py-12 text-center text-xs text-muted-foreground">No diagnosis data yet.</p>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -170,7 +192,7 @@ export default function PhysicianPerformance() {
                   <th className="text-left py-2 px-2 font-semibold text-muted-foreground">Consults</th>
                   <th className="text-left py-2 px-2 font-semibold text-muted-foreground">Avg/Day</th>
                   <th className="text-left py-2 px-2 font-semibold text-muted-foreground">Rx</th>
-                  <th className="text-left py-2 px-2 font-semibold text-muted-foreground">Lab%</th>
+                  <th className="text-left py-2 px-2 font-semibold text-muted-foreground">Wait</th>
                   <th className="text-left py-2 px-2 font-semibold text-muted-foreground">Sig%</th>
                   <th className="text-left py-2 px-2 font-semibold text-muted-foreground">Score</th>
                 </tr>
@@ -191,7 +213,11 @@ export default function PhysicianPerformance() {
                     <td className="py-2 px-2 font-mono">{p.consultations.total}</td>
                     <td className="py-2 px-2 font-mono">{p.consultations.avg_per_day}</td>
                     <td className="py-2 px-2 font-mono">{p.prescriptions.total}</td>
-                    <td className="py-2 px-2 font-mono">{p.investigations.lab_investigation_rate}%</td>
+                    <td className="py-2 px-2">
+                      <span className={p.wait_time?.avg_minutes > 30 ? "text-triage-urgent font-semibold" : "text-muted-foreground"}>
+                        {p.wait_time?.avg_minutes || 0}m
+                      </span>
+                    </td>
                     <td className="py-2 px-2">
                       <span className={p.compliance.signature_rate < 80 ? "text-destructive font-semibold" : "text-clinical-normal"}>
                         {p.compliance.signature_rate}%
@@ -205,7 +231,7 @@ export default function PhysicianPerformance() {
                   </tr>
                 ))}
                 {physicians.length === 0 && (
-                  <tr><td colSpan={7} className="py-12 text-center text-muted-foreground">No physician data found.</td></tr>
+                  <tr><td colSpan={8} className="py-12 text-center text-muted-foreground">No physician data found.</td></tr>
                 )}
               </tbody>
             </table>
@@ -263,6 +289,36 @@ export default function PhysicianPerformance() {
                   <p className="text-lg font-bold">{selectedPhysician.admissions.total}</p>
                   <p className="text-[10px] text-muted-foreground">{selectedPhysician.admissions.active} active</p>
                 </div>
+                {selectedPhysician.wait_time && (
+                  <>
+                    <div className="p-2.5 bg-muted/20 rounded-lg">
+                      <p className="text-[10px] text-muted-foreground">Avg Wait Time</p>
+                      <p className={`text-lg font-bold ${selectedPhysician.wait_time.avg_minutes > 30 ? "text-triage-urgent" : "text-clinical-normal"}`}>
+                        {selectedPhysician.wait_time.avg_minutes}m
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">{selectedPhysician.wait_time.tracked_visits} visits tracked</p>
+                    </div>
+                    <div className="p-2.5 bg-muted/20 rounded-lg">
+                      <p className="text-[10px] text-muted-foreground">Longest Wait</p>
+                      <p className={`text-lg font-bold ${selectedPhysician.wait_time.longest_minutes > 60 ? "text-destructive" : "text-muted-foreground"}`}>
+                        {selectedPhysician.wait_time.longest_minutes}m
+                      </p>
+                    </div>
+                  </>
+                )}
+                {!selectedPhysician.wait_time && (
+                  <>
+                    <div className="p-2.5 bg-muted/20 rounded-lg">
+                      <p className="text-[10px] text-muted-foreground">Wait Time</p>
+                      <p className="text-lg font-bold text-muted-foreground/50">—</p>
+                      <p className="text-[10px] text-muted-foreground">No journey data</p>
+                    </div>
+                    <div className="p-2.5 bg-muted/20 rounded-lg">
+                      <p className="text-[10px] text-muted-foreground">Procedures</p>
+                      <p className="text-lg font-bold">{selectedPhysician.admissions.total + selectedPhysician.discharges}</p>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Compliance */}
