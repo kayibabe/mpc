@@ -9,6 +9,7 @@ import DepartmentDashboard from "@/components/DepartmentDashboard";
 import RealTimeVitals from "@/components/RealTimeVitals";
 import SignaturePad from "@/components/SignaturePad";
 import SignatureStatus from "@/components/SignatureStatus";
+import ClinicalQuickNav from "@/components/ClinicalQuickNav";
 
 export default function Clinical() {
   const navigate = useNavigate();
@@ -412,11 +413,12 @@ export default function Clinical() {
           ) : (
            <div className="bg-white rounded-lg border border-border">
              <div className="border-b border-border flex">
-                {["vitals", "consultation", "prescriptions", "handovers", "signatures", "death"].map(tab => (
-                  <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-3 text-sm font-medium transition-colors capitalize ${activeTab === tab ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>{tab}</button>
-                ))}
-              </div>
-              <div className="p-5">
+               {["vitals", "consultation", "prescriptions", "handovers", "signatures", "death"].map(tab => (
+                 <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-3 text-sm font-medium transition-colors capitalize ${activeTab === tab ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>{tab}</button>
+               ))}
+             </div>
+             <div className="p-5 space-y-4">
+               <ClinicalQuickNav activeTab={activeTab} onTabChange={setActiveTab} />
                 {/* Patient Journey Timeline */}
                 {journey && (
                   <div className="mb-4">
@@ -524,7 +526,7 @@ export default function Clinical() {
                   </div>
                 )}
                 {activeTab === "vitals" && (
-                  <div>
+                   <div className="space-y-4">
                     <div className="mb-4">
                       <RealTimeVitals compact />
                     </div>
