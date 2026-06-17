@@ -44,6 +44,11 @@
         "signed"
       ],
       "default": "in_progress"
+    },
+    "is_draft": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if consultation is being actively edited (only one draft per visit allowed)"
     }
   },
   "required": [

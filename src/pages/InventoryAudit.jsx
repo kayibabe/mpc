@@ -48,8 +48,9 @@ export default function InventoryAudit() {
 
       const discrepancy = physicalCount - systemCount;
 
+      // Persist discrepancy to AuditLog if variance exists
       if (discrepancy !== 0) {
-        setDiscrepancies(prev => [...prev, {
+        const discrepancyRecord = {
           item: selectedItem.name,
           type: isReagent ? "Reagent" : "Drug",
           system_count: systemCount,
@@ -57,7 +58,18 @@ export default function InventoryAudit() {
           discrepancy: discrepancy,
           notes: auditForm.notes,
           date: new Date().toISOString(),
-        }]);
+        };
+        setDiscrepancies(prev => [...prev, discrepancyRecord]);
+
+        // Log to backend AuditLog
+        await base44.entities.AuditLog.create({
+          user_id: (await base44.auth.me()).id,
+          action: "inventory_audit_discrepancy",
+          entity_type: isReagent ? "LabReagent" : "Drug",
+          entity_id: selectedItem.id,
+          changes: JSON.stringify(discrepancyRecord),
+          timestamp: new Date().toISOString(),
+        });
       }
 
       // Update system with physical count

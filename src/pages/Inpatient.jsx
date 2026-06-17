@@ -38,6 +38,28 @@ export default function Inpatient() {
       finally { setLoading(false); }
     }
     load();
+
+    // Subscribe to real-time bed status updates
+    const unsubscribeBeds = base44.entities.Bed.subscribe((event) => {
+      if (event.type === "update") {
+        setBeds(prev => prev.map(b => b.id === event.id ? event.data : b));
+      }
+    });
+
+    // Subscribe to real-time admission updates
+    const unsubscribeAdmissions = base44.entities.Admission.subscribe((event) => {
+      if (event.type === "update" || event.type === "create") {
+        // Re-load admissions to keep in sync
+        base44.entities.Admission.filter({ status: "admitted" }, "-created_date", 50)
+          .then(a => setAdmissions(a))
+          .catch(e => console.error("Failed to refresh admissions:", e));
+      }
+    });
+
+    return () => {
+      unsubscribeBeds();
+      unsubscribeAdmissions();
+    };
   }, []);
 
   const getPatientName = (pid) => { const p = patients.find(pt => pt.id === pid); return p ? `${p.first_name} ${p.last_name}` : "Unknown"; };

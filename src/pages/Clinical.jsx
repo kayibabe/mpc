@@ -127,9 +127,17 @@ export default function Clinical() {
 
   const saveConsultation = async () => {
     if (!selectedVisit) return;
+    
+    // Enforce single active consultation per visit
+    const existingDrafts = consultations.filter(c => c.is_draft === true || c.status === "in_progress");
+    if (existingDrafts.length > 0) {
+      const proceed = confirm(`⚠️ There is already an active consultation for this visit.\n\nCreating a new consultation will leave the previous one incomplete.\n\nProceed?`);
+      if (!proceed) return;
+    }
+
     const consultation = await base44.entities.Consultation.create({
       visit_id: selectedVisit.id, patient_id: selectedVisit.patient_id,
-      ...consultForm, consultation_date: new Date().toISOString(),
+      ...consultForm, consultation_date: new Date().toISOString(), is_draft: true,
     });
     // Save diagnosis if name provided
     if (diagnosisForm.diagnosis_name.trim()) {
@@ -153,6 +161,10 @@ export default function Clinical() {
     setDiagnoses(d);
     // Update queue status
     await base44.entities.Visit.update(selectedVisit.id, { queue_status: "in_consultation" });
+    // Mark previous drafts as completed when new one created
+    for (const draft of c.filter(con => con.is_draft && con.id !== consultation.id)) {
+      await base44.entities.Consultation.update(draft.id, { is_draft: false, status: "completed" });
+    }
     // Trigger signature capture
     setSigningDoc({ document_type: "consultation", document_id: consultation.id });
   };
@@ -440,10 +452,23 @@ export default function Clinical() {
                           onClick={async () => {
                             if (!selectedVisit) return;
                             try {
+                              // Check for existing pending orders for same diagnoses
+                              const existingOrders = labOrders.filter(lo => lo.status === "pending" || lo.status === "ordered");
+                              const diagnosisNames = diagnoses.map(d => d.diagnosis_name);
+                              const duplicates = existingOrders.filter(lo => {
+                                const loTests = (lo.tests || "").toLowerCase();
+                                return diagnosisNames.some(dn => loTests.includes(dn.toLowerCase()));
+                              });
+                              
+                              if (duplicates.length > 0) {
+                                const proceed = confirm(`⚠️ ${duplicates.length} pending lab order(s) already exist for these diagnoses.\n\nCreate additional orders anyway?`);
+                                if (!proceed) return;
+                              }
+
                               const { data } = await base44.functions.invoke("autoGenerateLabOrders", {
                                 visit_id: selectedVisit.id,
                                 patient_id: selectedVisit.patient_id,
-                                diagnoses: diagnoses.map(d => d.diagnosis_name),
+                                diagnoses: diagnosisNames,
                               });
                               alert(`✅ ${data.orders_created} lab order(s) generated.\n\n${data.orders.map(o => `• ${o.diagnosis}: ${o.tests.join(", ")}`).join("\n")}`);
                               // Refresh lab orders
