@@ -10,6 +10,7 @@ export default function DigitalClaimFormBuilder({ invoice, onClose, onSave }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [validationErrors, setValidationErrors] = useState([]);
 
   const [form, setForm] = useState({
     scheme_id: "",
@@ -136,13 +137,47 @@ export default function DigitalClaimFormBuilder({ invoice, onClose, onSave }) {
     setForm((prev) => ({ ...prev, total_amount: total.toString() }));
   };
 
+  const validateForm = () => {
+    const errors = [];
+
+    // Validate patient ID exists
+    if (!invoice?.patient_id || !patient?.id) {
+      errors.push("Invalid patient ID — patient record not found");
+    }
+
+    // Validate diagnosis is present
+    if (!form.diagnosis || form.diagnosis.trim() === "") {
+      errors.push("Diagnosis description is required");
+    }
+
+    // Validate diagnosis code (ICD-10) format
+    if (form.diagnosis && form.diagnosis.trim() !== "" && !form.diagnosis_code) {
+      errors.push("ICD-10 diagnosis code is required when diagnosis is entered");
+    }
+
+    // Validate ICD-10 code format (basic validation: starts with A-Z, followed by numbers, optional decimals)
+    if (form.diagnosis_code && !/^[A-Z]\d{1,2}(?:\.\d{1,2})?$/.test(form.diagnosis_code)) {
+      errors.push("Invalid ICD-10 code format (e.g., A00, B12.5)");
+    }
+
+    // Validate scheme selection
+    if (!form.scheme_id) {
+      errors.push("Medical aid scheme is required");
+    }
+
+    return errors;
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!form.scheme_id || !form.diagnosis) {
-      alert("Please select a scheme and confirm diagnosis");
+    const errors = validateForm();
+    
+    if (errors.length > 0) {
+      setValidationErrors(errors);
       return;
     }
 
+    setValidationErrors([]);
     setSaving(true);
     try {
       await base44.entities.InsuranceClaim.create({
@@ -161,7 +196,7 @@ export default function DigitalClaimFormBuilder({ invoice, onClose, onSave }) {
         if (onSave) onSave();
       }, 1500);
     } catch (e) {
-      alert("Save failed: " + e.message);
+      setValidationErrors(["Save failed: " + e.message]);
     } finally {
       setSaving(false);
     }
@@ -189,6 +224,19 @@ export default function DigitalClaimFormBuilder({ invoice, onClose, onSave }) {
       {successMessage && (
         <div className="mb-4 p-3 bg-chart-3/10 border border-chart-3/20 rounded-lg flex items-center gap-2 text-sm text-chart-3">
           <Check className="w-4 h-4" /> {successMessage}
+        </div>
+      )}
+
+      {validationErrors.length > 0 && (
+        <div className="mb-4 p-4 bg-destructive/5 border border-destructive/20 rounded-lg">
+          <p className="text-xs font-semibold text-destructive mb-2 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" /> Validation Errors
+          </p>
+          <ul className="space-y-1">
+            {validationErrors.map((err, i) => (
+              <li key={i} className="text-xs text-destructive">• {err}</li>
+            ))}
+          </ul>
         </div>
       )}
 
@@ -221,20 +269,24 @@ export default function DigitalClaimFormBuilder({ invoice, onClose, onSave }) {
         </div>
 
         {/* Patient Details (Read-only) */}
-        <div className="grid grid-cols-3 gap-4 p-4 bg-muted/20 rounded-lg">
-          <div>
-            <p className="text-xs text-muted-foreground font-medium">Patient Name</p>
-            <p className="text-sm font-semibold mt-1">{form.patient_name}</p>
+          <div className={`grid grid-cols-3 gap-4 p-4 rounded-lg border ${
+            patient?.id ? "bg-muted/20 border-border/40" : "bg-destructive/5 border-destructive/20"
+          }`}>
+            <div>
+              <p className="text-xs text-muted-foreground font-medium">Patient Name</p>
+              <p className={`text-sm font-semibold mt-1 ${!patient?.id ? "text-destructive" : ""}`}>
+                {form.patient_name || (patient ? "Invalid" : "Not loaded")}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground font-medium">DOB</p>
+              <p className="text-sm font-semibold mt-1">{form.patient_dob || "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground font-medium">Member #</p>
+              <p className="text-sm font-semibold mt-1">{form.member_number || "N/A"}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground font-medium">DOB</p>
-            <p className="text-sm font-semibold mt-1">{form.patient_dob || "N/A"}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground font-medium">Member #</p>
-            <p className="text-sm font-semibold mt-1">{form.member_number || "N/A"}</p>
-          </div>
-        </div>
 
         {/* Diagnosis Section */}
         <div className="border-t border-border pt-4">
@@ -254,14 +306,21 @@ export default function DigitalClaimFormBuilder({ invoice, onClose, onSave }) {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-2">ICD-10 Code</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-2">
+                ICD-10 Code {form.diagnosis && !form.diagnosis_code && <span className="text-destructive">*Required</span>}
+              </label>
               <input
                 type="text"
                 value={form.diagnosis_code}
                 onChange={(e) => setForm((prev) => ({ ...prev, diagnosis_code: e.target.value }))}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                placeholder="e.g., A00"
+                className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background ${
+                  form.diagnosis && !form.diagnosis_code ? "border-destructive/50" : "border-border"
+                }`}
+                placeholder="e.g., A00, B12.5"
               />
+              {form.diagnosis_code && !/^[A-Z]\d{1,2}(?:\.\d{1,2})?$/.test(form.diagnosis_code) && (
+                <p className="text-xs text-destructive mt-1">Invalid format. Use A00 or B12.5 format.</p>
+              )}
             </div>
           </div>
         </div>
