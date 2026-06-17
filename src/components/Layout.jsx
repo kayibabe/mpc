@@ -164,18 +164,18 @@ export default function Layout() {
                 title={isGroupCollapsed ? "Expand" : "Collapse"}
               >
                 {!collapsed && (
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/70">
                     {group.label}
                   </p>
                 )}
                 {!collapsed && (
-                  <ChevronDown className={`w-4 h-4 text-sidebar-foreground/40 transition-transform duration-200 flex-shrink-0 ${isGroupCollapsed ? "-rotate-90" : ""}`} />
+                  <ChevronDown className={`w-4 h-4 text-sidebar-foreground/70 transition-transform duration-200 flex-shrink-0 ${isGroupCollapsed ? "-rotate-90" : ""}`} />
                 )}
               </button>
             ) : (
               <div className="flex items-center justify-between">
                 {!collapsed && (
-                  <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
+                  <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/70">
                     {group.label}
                   </p>
                 )}
