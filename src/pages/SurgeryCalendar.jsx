@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { ChevronLeft, ChevronRight, Plus, Clock, MapPin, User, AlertCircle, X, Search, CheckCircle, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Clock, MapPin, User, AlertCircle, X, Search, CheckCircle, Calendar, ClipboardCheck, Activity } from "lucide-react";
 import moment from "moment";
+import SurgicalChecklist from "@/components/SurgicalChecklist";
+import AnesthesiaLog from "@/components/AnesthesiaLog";
 
 const THEATER_LABELS = {
   theatre_1: "Theatre 1",
@@ -50,6 +52,8 @@ export default function SurgeryCalendar() {
   });
   const [saving, setSaving] = useState(false);
   const [patientSearch, setPatientSearch] = useState("");
+  const [activeModal, setActiveModal] = useState(null); // "checklist" | "anesthesia"
+  const [selectedBooking, setSelectedBooking] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -233,7 +237,7 @@ export default function SurgeryCalendar() {
                             {b.anaesthetist_name && <span className="flex items-center gap-1"><User className="w-2.5 h-2.5" />{b.anaesthetist_name}</span>}
                           </div>
                         )}
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium border ${STATUS_COLORS[b.status] || ""}`}>
                             {b.status?.replace(/_/g, " ")}
                           </span>
@@ -243,6 +247,12 @@ export default function SurgeryCalendar() {
                             </span>
                           )}
                           <div className="ml-auto flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => { setSelectedBooking(b); setActiveModal("checklist"); }} className="px-1.5 py-0.5 bg-chart-4/10 text-chart-4 rounded text-[10px] font-medium" title="WHO Checklist">
+                              <ClipboardCheck className="w-3 h-3" />
+                            </button>
+                            <button onClick={() => { setSelectedBooking(b); setActiveModal("anesthesia"); }} className="px-1.5 py-0.5 bg-chart-5/10 text-chart-5 rounded text-[10px] font-medium" title="Anaesthesia Log">
+                              <Activity className="w-3 h-3" />
+                            </button>
                             {b.status === "scheduled" && (
                               <button onClick={() => updateStatus(b, "in_progress")} className="px-1.5 py-0.5 bg-chart-2/10 text-chart-2 rounded text-[10px] font-medium" title="Start">
                                 <CheckCircle className="w-3 h-3" />
@@ -267,6 +277,50 @@ export default function SurgeryCalendar() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Checklist Modal */}
+      {activeModal === "checklist" && selectedBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => { setActiveModal(null); setSelectedBooking(null); }} />
+          <div className="relative bg-card rounded-xl p-6 shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-heading text-lg font-semibold">WHO Surgical Safety Checklist</h3>
+              <button onClick={() => { setActiveModal(null); setSelectedBooking(null); }} className="text-muted-foreground hover:text-foreground"><X className="w-5 h-5" /></button>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              {getPatientName(selectedBooking.patient_id)} — {selectedBooking.procedure_name} ({THEATER_LABELS[selectedBooking.theater_room]})
+            </p>
+            <SurgicalChecklist
+              bookingId={selectedBooking.id}
+              patientId={selectedBooking.patient_id}
+              patientName={getPatientName(selectedBooking.patient_id)}
+              onComplete={() => { setActiveModal(null); setSelectedBooking(null); }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Anesthesia Log Modal */}
+      {activeModal === "anesthesia" && selectedBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => { setActiveModal(null); setSelectedBooking(null); }} />
+          <div className="relative bg-card rounded-xl p-6 shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-heading text-lg font-semibold">Anaesthesia Log</h3>
+              <button onClick={() => { setActiveModal(null); setSelectedBooking(null); }} className="text-muted-foreground hover:text-foreground"><X className="w-5 h-5" /></button>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              {getPatientName(selectedBooking.patient_id)} — {selectedBooking.procedure_name}
+            </p>
+            <AnesthesiaLog
+              bookingId={selectedBooking.id}
+              patientId={selectedBooking.patient_id}
+              booking={selectedBooking}
+              onComplete={() => { setActiveModal(null); setSelectedBooking(null); }}
+            />
+          </div>
         </div>
       )}
 

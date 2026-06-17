@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Stethoscope, Heart, FileText, Pill, Activity, Plus, Save, Search, AlertTriangle, ShieldAlert, FlaskConical, ArrowRight, CheckCircle, GitBranch, PenTool, ArrowRightLeft, Clock, Users, FileBadge, FileWarning, Zap, Scissors } from "lucide-react";
+import { Stethoscope, Heart, FileText, Pill, Activity, Plus, Save, Search, AlertTriangle, ShieldAlert, FlaskConical, ArrowRight, CheckCircle, GitBranch, PenTool, ArrowRightLeft, Clock, Users, FileBadge, FileWarning, Zap, Scissors, Beaker } from "lucide-react";
 import TemplateSelector from "@/components/TemplateSelector";
 import VitalSignsChart from "@/components/VitalSignsChart";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
@@ -407,6 +407,27 @@ export default function Clinical() {
                           className="inline-flex items-center gap-1 px-2.5 py-1 bg-chart-3/10 text-chart-3 rounded-md text-xs font-medium hover:bg-chart-3/20 disabled:opacity-50"
                         >
                           <FlaskConical className="w-3 h-3" /> Send to Lab
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!selectedVisit) return;
+                            try {
+                              const { data } = await base44.functions.invoke("autoGenerateLabOrders", {
+                                visit_id: selectedVisit.id,
+                                patient_id: selectedVisit.patient_id,
+                                diagnoses: diagnoses.map(d => d.diagnosis_name),
+                              });
+                              alert(`✅ ${data.orders_created} lab order(s) generated.\n\n${data.orders.map(o => `• ${o.diagnosis}: ${o.tests.join(", ")}`).join("\n")}`);
+                              // Refresh lab orders
+                              const lList = await base44.entities.LabOrder.filter({ patient_id: selectedVisit.patient_id }, "-created_date", 30);
+                              setLabOrders(lList);
+                            } catch (e) {
+                              alert("Lab order generation failed: " + (e.response?.data?.error || e.message));
+                            }
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-chart-4/10 text-chart-4 rounded-md text-xs font-medium hover:bg-chart-4/20"
+                        >
+                          <Beaker className="w-3 h-3" /> Auto-Generate Labs
                         </button>
                         <button
                           onClick={() => transitionWorkflow("BILLING", "Consultation complete")}
