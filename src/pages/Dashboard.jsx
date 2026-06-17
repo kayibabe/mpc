@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Users, Calendar, FlaskConical, BedDouble, Pill, Receipt, TrendingUp, Clock, Activity, RefreshCw, Bell, Send, Loader2, GitBranch, Megaphone, ArrowRight, AlertTriangle, FileDown, CheckSquare, Square, X, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import { Users, Calendar, FlaskConical, BedDouble, Pill, Receipt, TrendingUp, Clock, Activity, RefreshCw, Bell, Send, Loader2, GitBranch, Megaphone, ArrowRight, AlertTriangle, FileDown, CheckSquare, Square, X, FileText, ChevronDown, ChevronUp, RefreshCcw, Download } from "lucide-react";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
 import InventoryAlerts from "@/components/InventoryAlerts";
 import LivePulse from "@/components/LivePulse";
@@ -46,6 +46,9 @@ export default function Dashboard() {
   const [batchReports, setBatchReports] = useState([]);
   const [batchExporting, setBatchExporting] = useState(false);
   const [batchResult, setBatchResult] = useState(null);
+  const [shiftSyncLoading, setShiftSyncLoading] = useState(false);
+  const [shiftSyncResult, setShiftSyncResult] = useState(null);
+  const [patientExportLoading, setPatientExportLoading] = useState(false);
 
   const refreshDailyReport = async () => {
     setReportLoading(true);
@@ -85,6 +88,42 @@ export default function Dashboard() {
     } finally {
       setBatchExporting(false);
     }
+  };
+
+  const syncShiftReports = async () => {
+    setShiftSyncLoading(true);
+    setShiftSyncResult(null);
+    try {
+      const { data } = await base44.functions.invoke('syncShiftReports', {});
+      setShiftSyncResult(data);
+    } catch (e) {
+      setShiftSyncResult({ error: 'Shift sync failed' });
+    } finally {
+      setShiftSyncLoading(false);
+    }
+  };
+
+  const exportPatientData = async (type) => {
+    setPatientExportLoading(true);
+    try {
+      const { data } = await base44.functions.invoke('batchExportReports', { reports: [type] });
+      if (data?.exports?.[type]?.status === 'ok') {
+        // Build CSV from the export data
+        const csvData = data.exports[type].data || [];
+        if (csvData.length > 0) {
+          const headers = Object.keys(csvData[0]);
+          const csv = [headers.join(','), ...csvData.map(row => headers.map(h => JSON.stringify(row[h] || '').replace(/"/g, '""')).join(','))].join('\n');
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${type}_export_${new Date().toISOString().slice(0, 10)}.csv`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      }
+    } catch (e) { /* silent */ }
+    finally { setPatientExportLoading(false); }
   };
 
   const loadOccupancyData = async () => {
@@ -221,6 +260,20 @@ export default function Dashboard() {
           <p className="text-sm text-muted-foreground mt-1">Zomba City Private Clinic — Today's Overview</p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={syncShiftReports}
+            disabled={shiftSyncLoading}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium hover:bg-muted transition-colors disabled:opacity-50"
+          >
+            <RefreshCcw className={`w-3.5 h-3.5 ${shiftSyncLoading ? 'animate-spin' : ''}`} />
+            {shiftSyncLoading ? 'Syncing...' : 'Sync Shifts'}
+          </button>
+          {shiftSyncResult && !shiftSyncResult.error && (
+            <span className="text-xs text-chart-3 font-medium">{shiftSyncResult.synced_count} synced</span>
+          )}
+          {shiftSyncResult?.error && (
+            <span className="text-xs text-destructive">{shiftSyncResult.error}</span>
+          )}
           <button
             onClick={() => setBatchModal(true)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 shadow-sm"
@@ -392,6 +445,7 @@ export default function Dashboard() {
                     <th className="text-left py-2 px-3 font-medium text-muted-foreground">Date</th>
                     <th className="text-left py-2 px-3 font-medium text-muted-foreground">Patient</th>
                     <th className="text-left py-2 px-3 font-medium text-muted-foreground">Type</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Triage</th>
                     <th className="text-left py-2 px-3 font-medium text-muted-foreground">Payment</th>
                     <th className="text-left py-2 px-3 font-medium text-muted-foreground">Status</th>
                   </tr>
@@ -403,6 +457,15 @@ export default function Dashboard() {
                       <td className="py-2.5 px-3 font-mono text-xs">{v.patient_id?.slice(0, 8)}</td>
                       <td className="py-2.5 px-3">
                         <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">{visitTypeLabel(v.visit_type)}</span>
+                      </td>
+                      <td className="py-2.5 px-3">
+                        {v.priority === "emergency" ? (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-triage-emergency/10 text-triage-emergency border border-triage-emergency/20">Emergency</span>
+                        ) : v.priority === "urgent" ? (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-triage-urgent/10 text-triage-urgent border border-triage-urgent/20">Urgent</span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">Routine</span>
+                        )}
                       </td>
                       <td className="py-2.5 px-3 capitalize text-xs">{v.payment_type}</td>
                       <td className="py-2.5 px-3">
@@ -646,6 +709,8 @@ export default function Dashboard() {
                     { id: "daily", label: "Daily Report", desc: "Visits, revenue, appointments summary" },
                     { id: "revenue", label: "Revenue Report", desc: "Detailed revenue by payment type & date" },
                     { id: "dhis2", label: "DHIS2 Export", desc: "Aggregate data for Ministry of Health" },
+                    { id: "patients", label: "Patient List", desc: "Export all patient records as CSV" },
+                    { id: "visits", label: "Visit List", desc: "Export today's visit records as CSV" },
                     { id: "reorder", label: "Reorder Requests", desc: "Low-stock drug reorder list" },
                     { id: "forecast", label: "Inventory Forecast", desc: "90-day consumption projections" },
                   ].map(r => (
@@ -689,7 +754,9 @@ export default function Dashboard() {
                       Generated {new Date(batchResult.generated_at).toLocaleTimeString("en-GB")}
                     </p>
                     <div className="space-y-2 mb-5 max-h-[300px] overflow-y-auto">
-                      {Object.entries(batchResult.exports).map(([name, result]) => (
+                      {Object.entries(batchResult.exports).map(([name, result]) => {
+                        const hasData = result.data && Array.isArray(result.data) && result.data.length > 0;
+                        return (
                         <div key={name} className={`p-3 rounded-lg border text-sm ${
                           result.status === "ok" ? "border-chart-3/20 bg-chart-3/5" :
                           result.status === "error" ? "border-destructive/20 bg-destructive/5" :
@@ -697,13 +764,33 @@ export default function Dashboard() {
                         }`}>
                           <div className="flex items-center justify-between">
                             <span className="font-medium capitalize">{name.replace(/_/g, " ")}</span>
-                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                              result.status === "ok" ? "bg-chart-3/10 text-chart-3" : "bg-destructive/10 text-destructive"
-                            }`}>{result.status}</span>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                                result.status === "ok" ? "bg-chart-3/10 text-chart-3" : "bg-destructive/10 text-destructive"
+                              }`}>{result.status}</span>
+                              {hasData && (
+                                <button
+                                  onClick={() => {
+                                    const headers = Object.keys(result.data[0]);
+                                    const csv = [headers.join(','), ...result.data.map(row => headers.map(h => JSON.stringify(row[h] || '').replace(/"/g, '""')).join(','))].join('\n');
+                                    const blob = new Blob([csv], { type: 'text/csv' });
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = `${name}_export_${new Date().toISOString().slice(0, 10)}.csv`;
+                                    a.click();
+                                    URL.revokeObjectURL(url);
+                                  }}
+                                  className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary hover:bg-primary/20"
+                                >
+                                  <Download className="w-3 h-3" /> CSV
+                                </button>
+                              )}
+                            </div>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">{result.summary}</p>
                         </div>
-                      ))}
+                      )})}
                     </div>
                   </>
                 )}

@@ -70,6 +70,38 @@ Deno.serve(async (req) => {
             results[name] = { status: 'ok', summary: `${active.length} drugs: ${critical} critical, ${warning} warning, ${active.length - critical - warning} adequate` };
             break;
           }
+          case 'patients': {
+            const patients = await base44.asServiceRole.entities.Patient.list('-created_date', 1000);
+            const data = patients.map(p => ({
+              mrn: p.mrn || '',
+              first_name: p.first_name || '',
+              last_name: p.last_name || '',
+              gender: p.gender || '',
+              date_of_birth: p.date_of_birth || '',
+              phone: p.phone || '',
+              district: p.district || '',
+              village: p.village || '',
+              status: p.status || '',
+              registration_date: p.created_date || '',
+            }));
+            results[name] = { status: 'ok', summary: `${patients.length} patients exported`, data };
+            break;
+          }
+          case 'visits': {
+            const todayStart = new Date().toISOString().slice(0, 10) + 'T00:00:00';
+            const visits = await base44.asServiceRole.entities.Visit.filter({ created_date: { $gte: todayStart } }, '-created_date', 1000);
+            const data = visits.map(v => ({
+              visit_type: v.visit_type || '',
+              payment_type: v.payment_type || '',
+              queue_status: v.queue_status || '',
+              priority: v.priority || 'normal',
+              department: v.department || '',
+              scheme_name: v.scheme_name || '',
+              visit_date: v.created_date || '',
+            }));
+            results[name] = { status: 'ok', summary: `${visits.length} visits exported`, data };
+            break;
+          }
           default:
             results[name] = { status: 'skipped', summary: 'Unknown report type' };
         }
