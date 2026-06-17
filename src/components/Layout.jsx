@@ -8,7 +8,8 @@ import {
   Scan, Pill, BedDouble, Baby, Receipt, Shield, UserCircle,
   ChevronLeft, ChevronRight, LogOut, Menu, X, Activity,
   Bell, Search, ClipboardPen, Monitor, FileBarChart, Trash2, PenTool,
-  ArrowRightLeft, ShieldCheck, ClipboardCheck, Scissors, GitBranch, Clock, Zap
+  ArrowRightLeft, ShieldCheck, ClipboardCheck, Scissors, GitBranch, Clock, Zap,
+  TrendingUp, Package, MessageSquare
 } from "lucide-react";
 
 const ALL_NAV_GROUPS = [
@@ -41,6 +42,9 @@ const ALL_NAV_GROUPS = [
       { label: "Theatre Calendar", path: "/surgery-calendar", icon: Scissors, roles: ["admin", "user"] },
       { label: "MoH Reports", path: "/moh-reports", icon: FileBarChart, roles: ["admin"] },
       { label: "Physician Perf.", path: "/physician-performance", icon: Stethoscope, roles: ["admin"] },
+      { label: "Doctor Performance", path: "/doctor-performance", icon: TrendingUp, roles: ["admin"] },
+      { label: "Inventory Audit", path: "/inventory-audit", icon: Package, roles: ["admin"] },
+      { label: "Patient Feedback", path: "/patient-feedback", icon: MessageSquare, roles: ["admin", "user"] },
       { label: "Waste Management", path: "/waste", icon: Trash2, roles: ["admin", "user"] },
       { label: "Doctor Handover", path: "/doctor-handover", icon: ArrowRightLeft, roles: ["admin", "user"] },
       { label: "My Signatures", path: "/my-signatures", icon: PenTool, roles: ["admin", "user"] },

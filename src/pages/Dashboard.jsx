@@ -7,6 +7,7 @@ import InventoryAlerts from "@/components/InventoryAlerts";
 import LivePulse from "@/components/LivePulse";
 import RealTimeVitals from "@/components/RealTimeVitals";
 import TriageWidget from "@/components/TriageWidget";
+import WardSummary from "@/components/WardSummary";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const CHART_COLORS = ["hsl(194, 65%, 42%)", "hsl(38, 92%, 50%)", "hsl(160, 60%, 40%)", "hsl(280, 50%, 50%)", "hsl(340, 65%, 50%)", "hsl(0, 72%, 51%)"];
@@ -429,6 +430,8 @@ export default function Dashboard() {
       </div>
 
       <RealTimeVitals />
+
+      <WardSummary />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 items-start">
         <div className="lg:col-span-2 bg-card rounded-xl border border-border/60 p-5 shadow-sm">
