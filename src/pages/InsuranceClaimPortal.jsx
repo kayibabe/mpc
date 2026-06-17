@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   FileText, Plus, Search, Download, Clock, CheckCircle,
-  AlertTriangle, X, Save, Loader2, RefreshCw, Filter, Edit3
+  AlertTriangle, X, Save, Loader2, RefreshCw, Filter, Edit3, CheckSquare, Square
 } from "lucide-react";
 import DigitalClaimFormBuilder from "@/components/DigitalClaimFormBuilder";
+import ClaimStatusTracker from "@/components/ClaimStatusTracker";
 
 const STATUS_COLORS = {
   pending: "bg-chart-4/10 text-chart-4 border-chart-4/20",
@@ -38,6 +39,8 @@ export default function InsuranceClaimPortal() {
   const [exportingClaimId, setExportingClaimId] = useState(null);
   const [showDigitalForm, setShowDigitalForm] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [selectedForBatch, setSelectedForBatch] = useState([]);
+  const [batchAction, setBatchAction] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -203,6 +206,11 @@ export default function InsuranceClaimPortal() {
         </div>
       </div>
 
+      {/* Insurance Claims Tracker */}
+      <div className="mb-6">
+        <ClaimStatusTracker />
+      </div>
+
       {/* Status Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 mb-6">
         {[
@@ -246,6 +254,64 @@ export default function InsuranceClaimPortal() {
         </button>
       </div>
 
+      {/* Batch Actions */}
+      {selectedForBatch.length > 0 && (
+        <div className="mb-6 p-4 bg-primary/5 border border-primary/20 rounded-xl flex items-center justify-between">
+          <span className="text-sm font-medium">{selectedForBatch.length} claim(s) selected</span>
+          <div className="flex gap-2">
+            <button
+              onClick={async () => {
+                setLoading(true);
+                try {
+                  for (const id of selectedForBatch) {
+                    await base44.entities.InsuranceClaim.update(id, {
+                      status: "submitted",
+                      submitted_date: new Date().toISOString()
+                    });
+                  }
+                  setSelectedForBatch([]);
+                  loadData();
+                } catch (e) {
+                  alert("Batch submit failed: " + e.message);
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              className="px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-xs font-medium hover:bg-primary/20"
+            >
+              Submit Selected
+            </button>
+            <button
+              onClick={async () => {
+                const csv = [
+                  "Claim ID,Invoice,Patient,Scheme,Amount,Status,Submitted",
+                  ...selectedForBatch.map(id => {
+                    const c = claims.find(x => x.id === id);
+                    return `${c.id.slice(0, 8)},${c.invoice_id?.slice(0, 8) || "N/A"},${c.patient_id?.slice(0, 8) || "N/A"},${c.scheme_name},${c.claim_amount},${c.status},${c.submitted_date ? new Date(c.submitted_date).toLocaleDateString() : "N/A"}`;
+                  })
+                ].join("\n");
+                const blob = new Blob([csv], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `claims_batch_${new Date().toISOString().slice(0, 10)}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="px-3 py-1.5 bg-chart-3/10 text-chart-3 rounded-lg text-xs font-medium hover:bg-chart-3/20"
+            >
+              Export CSV
+            </button>
+            <button
+              onClick={() => setSelectedForBatch([])}
+              className="px-3 py-1.5 border border-border rounded-lg text-xs font-medium hover:bg-muted"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Claims Table */}
       <div className="bg-card rounded-xl border border-border/60 shadow-sm overflow-hidden">
         {filteredClaims.length === 0 ? (
@@ -258,6 +324,19 @@ export default function InsuranceClaimPortal() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted/30">
+                  <th className="text-center py-3 px-4 font-medium text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      checked={selectedForBatch.length === filteredClaims.length}
+                      onChange={() => {
+                        if (selectedForBatch.length === filteredClaims.length) {
+                          setSelectedForBatch([]);
+                        } else {
+                          setSelectedForBatch(filteredClaims.map(c => c.id));
+                        }
+                      }}
+                    />
+                  </th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Patient</th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Invoice</th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Scheme</th>
@@ -270,6 +349,19 @@ export default function InsuranceClaimPortal() {
               <tbody>
                 {filteredClaims.map(claim => (
                   <tr key={claim.id} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
+                    <td className="text-center py-3 px-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedForBatch.includes(claim.id)}
+                        onChange={() => {
+                          if (selectedForBatch.includes(claim.id)) {
+                            setSelectedForBatch(selectedForBatch.filter(id => id !== claim.id));
+                          } else {
+                            setSelectedForBatch([...selectedForBatch, claim.id]);
+                          }
+                        }}
+                      />
+                    </td>
                     <td className="py-3 px-4">
                       <p className="font-medium text-sm">{getPatientName(claim.patient_id)}</p>
                       <p className="text-[10px] text-muted-foreground font-mono">{claim.patient_id?.slice(0, 8)}</p>
