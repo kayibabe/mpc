@@ -23,6 +23,8 @@ export default function Billing() {
   const [paymentForm, setPaymentForm] = useState({ amount: "", payment_method: "cash", reference: "", split_id: "" });
   const [billingJourneys, setBillingJourneys] = useState([]);
   const [transitioning, setTransitioning] = useState(false);
+  const [patientSearch, setPatientSearch] = useState("");
+  const [showDischargeSummary, setShowDischargeSummary] = useState(null);
 
   // Split billing state
   const [splitBilling, setSplitBilling] = useState(false);
@@ -254,7 +256,54 @@ export default function Billing() {
     <div className="page-container">
       <div className="flex items-center justify-between mb-6">
         <div><h2 className="section-title">Billing</h2><p className="text-sm text-muted-foreground mt-1">Invoices, payments, split billing & claims</p></div>
-        <button onClick={() => setShowCreateInvoice(!showCreateInvoice)} className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 shadow-sm"><Plus className="w-4 h-4" /> New Invoice</button>
+        <div className="flex gap-2">
+          <button onClick={() => setShowDischargeSummary(true)} className="inline-flex items-center gap-2 px-4 py-2.5 bg-chart-1/10 text-chart-1 rounded-lg text-sm font-medium hover:bg-chart-1/20 border border-chart-1/20"><FileText className="w-4 h-4" /> Discharge Summary</button>
+          <button onClick={() => setShowCreateInvoice(!showCreateInvoice)} className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 shadow-sm"><Plus className="w-4 h-4" /> New Invoice</button>
+        </div>
+      </div>
+
+      {/* Patient Search */}
+      <div className="mb-6 relative">
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-card rounded-lg border border-border/60 shadow-sm">
+          <Search className="w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search patient by name or MRN..."
+            value={patientSearch}
+            onChange={e => setPatientSearch(e.target.value)}
+            className="flex-1 bg-transparent outline-none text-sm"
+          />
+        </div>
+        {patientSearch && (
+          <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border/60 rounded-lg shadow-lg max-h-80 overflow-y-auto z-40">
+            {patients.filter(p => {
+              const full = `${p.first_name} ${p.last_name}`.toLowerCase();
+              const mrn = (p.mrn || "").toLowerCase();
+              const search = patientSearch.toLowerCase();
+              return full.includes(search) || mrn.includes(search);
+            }).map(p => (
+              <button
+                key={p.id}
+                onClick={() => {
+                  setInvoiceForm({ ...invoiceForm, patient_id: p.id });
+                  setPatientSearch("");
+                }}
+                className="w-full text-left px-4 py-2.5 hover:bg-muted/50 border-b border-border/40 text-sm"
+              >
+                <p className="font-medium">{p.first_name} {p.last_name}</p>
+                <p className="text-xs text-muted-foreground">MRN: {p.mrn || "—"}</p>
+              </button>
+            ))}
+            {patients.filter(p => {
+              const full = `${p.first_name} ${p.last_name}`.toLowerCase();
+              const mrn = (p.mrn || "").toLowerCase();
+              const search = patientSearch.toLowerCase();
+              return full.includes(search) || mrn.includes(search);
+            }).length === 0 && (
+              <p className="px-4 py-3 text-xs text-muted-foreground text-center">No patients found</p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Live Audit Monitor */}
@@ -491,6 +540,45 @@ export default function Billing() {
           )}
         </div>
       </div>
+
+      {/* Discharge Summary Modal */}
+      {showDischargeSummary && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowDischargeSummary(false)} />
+          <div className="relative bg-card rounded-xl p-6 shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 className="font-heading text-lg font-semibold mb-4">Generate Discharge Summary</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-2">Select Patient *</label>
+                <select
+                  defaultValue=""
+                  onChange={async (e) => {
+                    const patientId = e.target.value;
+                    if (patientId) {
+                      try {
+                        await base44.functions.invoke('generateDischargeSummary', { patient_id: patientId });
+                        alert("Discharge summary generated successfully!");
+                        setShowDischargeSummary(false);
+                      } catch (err) {
+                        alert("Error: " + (err.response?.data?.error || err.message));
+                      }
+                    }
+                  }}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                >
+                  <option value="">Choose patient</option>
+                  {patients.map(p => (
+                    <option key={p.id} value={p.id}>{p.first_name} {p.last_name} (MRN: {p.mrn || "—"})</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => setShowDischargeSummary(false)} className="flex-1 px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Payment Modal — with split selector */}
       {showPayment && (
