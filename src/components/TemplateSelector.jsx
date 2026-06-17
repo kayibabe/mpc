@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { FileText, Search, X, Zap, Clock, XCircle } from "lucide-react";
+import TemplateEditorModal from "@/components/TemplateEditorModal";
 
 const CATEGORY_LABELS = {
   general: "General Medicine",
@@ -25,6 +26,7 @@ export default function TemplateSelector({ onSelectTemplate }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [recentIds, setRecentIds] = useState([]);
+  const [editingTemplate, setEditingTemplate] = useState(null);
 
   useEffect(() => {
     base44.entities.ClinicalTemplate.filter({ is_active: true }, "category", 100)
@@ -62,35 +64,25 @@ export default function TemplateSelector({ onSelectTemplate }) {
   }, [filtered]);
 
   const handleSelect = (template) => {
-    let prescriptions = [];
-    try { prescriptions = JSON.parse(template.default_prescriptions || "[]"); } catch {}
-    let investigations = [];
-    try { investigations = JSON.parse(template.default_investigations || "[]"); } catch {}
+    // Close the template selector, then open the editor modal
+    setOpen(false);
+    setSearch("");
+    setEditingTemplate(template);
+  };
 
-    const consultData = {
-      chief_complaint: template.subjective_template || "",
-      history_present_illness: "",
-      physical_examination: template.objective_template || "",
-      assessment: template.assessment_template || "",
-      plan: template.plan_template || "",
-      clinical_notes: `Template: ${template.name} (${template.icd10_code || "No ICD-10"})${template.treatment_plan ? "\n\nTreatment Plan:\n" + template.treatment_plan : ""}`,
-    };
+  const handleEditorSave = (editedData) => {
+    onSelectTemplate?.(editedData);
 
-    onSelectTemplate?.({
-      consultData,
-      prescriptions,
-      investigations,
-      diagnosis: template.diagnosis_name,
-      icd10: template.icd10_code,
-      treatmentPlan: template.treatment_plan || "",
-    });
-
-    const updated = [template.id, ...recentIds.filter(id => id !== template.id)].slice(0, 10);
+    // Track recent usage
+    const updated = [editingTemplate.id, ...recentIds.filter(id => id !== editingTemplate.id)].slice(0, 10);
     setRecentIds(updated);
     try { localStorage.setItem("recentClinicalTemplates", JSON.stringify(updated)); } catch {}
 
-    setOpen(false);
-    setSearch("");
+    setEditingTemplate(null);
+  };
+
+  const handleEditorCancel = () => {
+    setEditingTemplate(null);
   };
 
   const handleClose = () => {
@@ -244,6 +236,15 @@ export default function TemplateSelector({ onSelectTemplate }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Template Editor Modal */}
+      {editingTemplate && (
+        <TemplateEditorModal
+          template={editingTemplate}
+          onSave={handleEditorSave}
+          onCancel={handleEditorCancel}
+        />
       )}
     </div>
   );
