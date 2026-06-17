@@ -42,6 +42,8 @@ import SurgicalSupplyInventory from '@/pages/SurgicalSupplyInventory';
 import DischargeChecklistFlow from '@/pages/DischargeChecklistFlow';
 import PatientIntake from '@/pages/PatientIntake';
 import TreatmentAdherence from '@/pages/TreatmentAdherence';
+import PatientOutcomeTracker from '@/pages/PatientOutcomeTracker';
+import ClinicalAuditLog from '@/pages/ClinicalAuditLog';
 import EmergencyAlertSystem from '@/components/EmergencyAlertSystem';
 import Layout from '@/components/Layout';
 
@@ -107,6 +109,8 @@ const AuthenticatedApp = () => {
         <Route path="/discharge-checklist" element={<DischargeChecklistFlow />} />
         <Route path="/patient-intake" element={<PatientIntake />} />
         <Route path="/treatment-adherence" element={<TreatmentAdherence />} />
+        <Route path="/patient-outcomes" element={<PatientOutcomeTracker />} />
+        <Route path="/audit-logs" element={<ClinicalAuditLog />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

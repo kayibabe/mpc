@@ -43,6 +43,8 @@ const ALL_NAV_GROUPS = [
       { label: "Triage", path: "/triage", icon: ClipboardCheck, roles: ["admin", "user"] },
       { label: "Journey Map", path: "/journey-map", icon: GitBranch, roles: ["admin", "user"] },
       { label: "Treatment Adherence", path: "/treatment-adherence", icon: TrendingUp, roles: ["admin"] },
+      { label: "Patient Outcomes", path: "/patient-outcomes", icon: Users, roles: ["admin"] },
+      { label: "Audit Logs", path: "/audit-logs", icon: FileText, roles: ["admin"] },
       { label: "Theatre Calendar", path: "/surgery-calendar", icon: Scissors, roles: ["admin", "user"] },
       { label: "MoH Reports", path: "/moh-reports", icon: FileBarChart, roles: ["admin"] },
       { label: "Physician Perf.", path: "/physician-performance", icon: Stethoscope, roles: ["admin"] },
