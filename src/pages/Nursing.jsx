@@ -4,12 +4,14 @@ import {
   Heart, Thermometer, Activity, Wind, Stethoscope, Pill, Syringe,
   ClipboardCheck, GitBranch, ArrowRight, Loader2, CheckCircle,
   Clock, AlertTriangle, FileText, Search, Users, Plus, Save, Brain,
-  BarChart3, ChevronDown, ChevronUp, RefreshCw, FlaskConical, Bell, Trash2, Square, CheckSquare, Zap
+  BarChart3, ChevronDown, ChevronUp, RefreshCw, FlaskConical, Bell, Trash2, Square, CheckSquare, Zap,
+  ClipboardList
 } from "lucide-react";
 import DepartmentDashboard from "@/components/DepartmentDashboard";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
 import RealTimeVitals from "@/components/RealTimeVitals";
 import BedsideNotifications from "@/components/BedsideNotifications";
+import NurseTasklist from "@/components/NurseTasklist";
 
 const VITAL_FIELDS = [
   { key: "bp_systolic", label: "BP Systolic", suffix: "mmHg", icon: Activity, min: 60, max: 220 },
@@ -382,6 +384,9 @@ export default function Nursing() {
         <button onClick={() => setActiveTab("careplan")} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-chart-1/10 text-chart-1 hover:bg-chart-1/20 border border-chart-1/20 flex items-center gap-1.5">
           <FileText className="w-3.5 h-3.5" /> Care Plans
         </button>
+        <button onClick={() => setActiveTab("tasklist")} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-chart-3/10 text-chart-3 hover:bg-chart-3/20 border border-chart-3/20 flex items-center gap-1.5">
+          <ClipboardList className="w-3.5 h-3.5" /> Tasks
+        </button>
         <button onClick={() => setShowWasteLog(true)} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20 flex items-center gap-1.5">
           <Trash2 className="w-3.5 h-3.5" /> Log Waste
         </button>
@@ -404,6 +409,7 @@ export default function Nursing() {
             { key: "medication", label: "Meds", icon: Syringe, count: pendingMeds.length },
             { key: "notes", label: "Notes", icon: ClipboardCheck },
             { key: "careplan", label: "Care Plans", icon: FileText },
+            { key: "tasklist", label: "Tasks", icon: ClipboardList },
           ].map(t => (
             <button
               key={t.key}
@@ -1095,6 +1101,10 @@ export default function Nursing() {
         </div>
       </div>
           {/* CARE PLANS TAB */}
+          {activeTab === "tasklist" && (
+            <NurseTasklist />
+          )}
+
           {activeTab === "careplan" && (
             <div>
               <div className="flex items-center justify-between mb-3">
