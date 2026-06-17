@@ -34,6 +34,7 @@ export default function InsuranceClaimPortal() {
     claim_amount: "",
     co_pay_amount: "0",
   });
+  const [exportingClaimId, setExportingClaimId] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -134,6 +135,28 @@ export default function InsuranceClaimPortal() {
   const getInvoiceNumber = (id) => {
     const i = invoices.find(inv => inv.id === id);
     return i?.invoice_number || id?.slice(0, 8);
+  };
+
+  const exportClaimForm = async (claim) => {
+    if (!claim.invoice_id) {
+      alert("No invoice linked to this claim");
+      return;
+    }
+    setExportingClaimId(claim.id);
+    try {
+      const { data } = await base44.functions.invoke('exportClaimFormPdf', {
+        invoice_id: claim.invoice_id,
+        scheme_id: claim.scheme_id || 'liberty'
+      });
+      const link = document.createElement('a');
+      link.href = `data:application/pdf;base64,${data.pdf_base64}`;
+      link.download = data.filename;
+      link.click();
+    } catch (e) {
+      alert("Export failed: " + e.message);
+    } finally {
+      setExportingClaimId(null);
+    }
   };
 
   if (loading) {
@@ -372,6 +395,22 @@ export default function InsuranceClaimPortal() {
                           </button>
                         ))}
                       </div>
+                    </div>
+
+                    {/* Export Claim Form */}
+                    <div className="border-t border-border pt-4">
+                      <button
+                        onClick={() => exportClaimForm(claim)}
+                        disabled={exportingClaimId === claim.id}
+                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-chart-3/10 text-chart-3 rounded-lg text-sm font-medium hover:bg-chart-3/20 border border-chart-3/20 disabled:opacity-50"
+                      >
+                        {exportingClaimId === claim.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Download className="w-4 h-4" />
+                        )}
+                        {exportingClaimId === claim.id ? "Exporting..." : "Export Claim Form (PDF)"}
+                      </button>
                     </div>
                   </div>
                 </>
