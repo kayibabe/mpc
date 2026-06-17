@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Users, Calendar, FlaskConical, BedDouble, Pill, Receipt, TrendingUp, Clock, Activity, RefreshCw, Bell, Send, Loader2, GitBranch, Megaphone, ArrowRight, AlertTriangle, FileDown, CheckSquare, Square, X, FileText } from "lucide-react";
+import { Users, Calendar, FlaskConical, BedDouble, Pill, Receipt, TrendingUp, Clock, Activity, RefreshCw, Bell, Send, Loader2, GitBranch, Megaphone, ArrowRight, AlertTriangle, FileDown, CheckSquare, Square, X, FileText, ChevronDown, ChevronUp } from "lucide-react";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
 import InventoryAlerts from "@/components/InventoryAlerts";
 import LivePulse from "@/components/LivePulse";
@@ -39,7 +39,9 @@ export default function Dashboard() {
   const [reminderResult, setReminderResult] = useState(null);
   const [occupancyData, setOccupancyData] = useState({ beds: [], wards: [], visits: [], queueSummary: {} });
   const [activeJourneys, setActiveJourneys] = useState([]);
+  const [journeyPatients, setJourneyPatients] = useState({});
   const [notifications, setNotifications] = useState([]);
+  const [expandedStages, setExpandedStages] = useState({});
   const [batchModal, setBatchModal] = useState(false);
   const [batchReports, setBatchReports] = useState([]);
   const [batchExporting, setBatchExporting] = useState(false);
@@ -138,11 +140,20 @@ export default function Dashboard() {
   const loadWorkflowData = async () => {
     try {
       const [journeys, notifs] = await Promise.all([
-        base44.entities.PatientJourney.filter({ status: "active" }, "-created_date", 20),
+        base44.entities.PatientJourney.filter({ status: "active" }, "-created_date", 50),
         base44.entities.Notification.filter({ is_read: false }, "-created_date", 10),
       ]);
       setActiveJourneys(journeys);
       setNotifications(notifs);
+
+      // Fetch patient names for journeys
+      const pids = [...new Set(journeys.map(j => j.patient_id).filter(Boolean))];
+      const pMap = {};
+      await Promise.all(pids.map(async (pid) => {
+        try { const p = await base44.entities.Patient.get(pid); if (p) pMap[pid] = `${p.first_name} ${p.last_name}`; }
+        catch (_) { pMap[pid] = pid?.slice(0, 8) || "Unknown"; }
+      }));
+      setJourneyPatients(pMap);
     } catch (e) { /* silent */ }
   };
 
@@ -152,6 +163,45 @@ export default function Dashboard() {
   };
 
   const visitTypeLabel = (t) => ({ outpatient: "OPD", inpatient: "IPD", emergency: "ER", anc: "ANC", postnatal: "PNC", procedure: "PROC" }[t] || t);
+
+  const STAGE_LABELS = {
+    RECEPTION: "Reception", TRIAGE: "Triage", CONSULTATION: "Doctor",
+    LAB_PENDING: "Lab Wait", LAB_PROCESSING: "Lab", IMAGING_PENDING: "Imaging Wait",
+    IMAGING_PROCESSING: "Imaging", PHARMACY_PENDING: "Pharmacy Wait",
+    PHARMACY_DISPENSING: "Pharmacy", NURSING_ADMINISTRATION: "Nursing", BILLING: "Billing", COMPLETED: "Done",
+  };
+  const STAGE_COLORS = {
+    RECEPTION: "border-l-primary", TRIAGE: "border-l-triage-semi", CONSULTATION: "border-l-chart-1",
+    LAB_PENDING: "border-l-chart-3", LAB_PROCESSING: "border-l-chart-3", IMAGING_PENDING: "border-l-chart-4",
+    IMAGING_PROCESSING: "border-l-chart-4", PHARMACY_PENDING: "border-l-chart-2", PHARMACY_DISPENSING: "border-l-chart-2",
+    NURSING_ADMINISTRATION: "border-l-chart-1", BILLING: "border-l-chart-5",
+  };
+  const SLAS = {RECEPTION:15,TRIAGE:20,CONSULTATION:45,LAB_PENDING:30,LAB_PROCESSING:60,IMAGING_PENDING:30,IMAGING_PROCESSING:60,PHARMACY_PENDING:30,PHARMACY_DISPENSING:45,NURSING_ADMINISTRATION:60,BILLING:30};
+
+  // Group journeys by stage
+  const jornadaPorEtapa = {};
+  activeJourneys.forEach(j => {
+    const s = j.current_stage || "Unknown";
+    if (!jornadaPorEtapa[s]) jornadaPorEtapa[s] = [];
+    jornadaPorEtapa[s].push(j);
+  });
+  const stageOrder = Object.keys(STAGE_LABELS);
+  const sortedStageKeys = Object.keys(jornadaPorEtapa).sort((a, b) => stageOrder.indexOf(a) - stageOrder.indexOf(b));
+
+  const toggleStage = (stage) => {
+    setExpandedStages(prev => ({ ...prev, [stage]: !prev[stage] }));
+  };
+
+  const getSlaMinutes = (journey) => {
+    try {
+      const history = journey.stage_history ? JSON.parse(journey.stage_history) : [];
+      const lastEntry = history[history.length - 1];
+      if (lastEntry && lastEntry.to === journey.current_stage) {
+        return Math.round((Date.now() - new Date(lastEntry.timestamp).getTime()) / 60000);
+      }
+    } catch(_){}
+    return Math.round((Date.now() - new Date(journey.created_date).getTime()) / 60000);
+  };
 
   if (loading) {
     return (
@@ -369,38 +419,83 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Active Patient Journeys */}
-          <div className="bg-card rounded-xl border border-border/60 p-5 shadow-sm mt-5">
+          {/* Active Patient Journeys — Grouped by Stage */}
+          <div className="mt-5">
             <h3 className="font-heading text-lg font-semibold mb-3 flex items-center gap-2">
               <GitBranch className="w-5 h-5 text-primary" /> Active Journeys ({activeJourneys.length})
             </h3>
             {activeJourneys.length === 0 ? (
-              <p className="text-xs text-muted-foreground py-2">No active patient journeys.</p>
+              <p className="text-xs text-muted-foreground py-4 bg-card rounded-xl border border-border/60 px-4">No active patient journeys.</p>
             ) : (
-              <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                {activeJourneys.slice(0, 5).map(j => {
-                  let slaBreached = false;
-                  try {
-                    const history = j.stage_history ? JSON.parse(j.stage_history) : [];
-                    const lastEntry = history[history.length - 1];
-                    if (lastEntry && lastEntry.to === j.current_stage) {
-                      const stageStart = new Date(lastEntry.timestamp);
-                      const mins = (Date.now() - stageStart.getTime()) / 60000;
-                      const SLAS = {RECEPTION:15,TRIAGE:20,CONSULTATION:45,LAB_PENDING:30,LAB_PROCESSING:60,IMAGING_PENDING:30,IMAGING_PROCESSING:60,PHARMACY_PENDING:30,PHARMACY_DISPENSING:45,NURSING_ADMINISTRATION:60,BILLING:30};
-                      slaBreached = SLAS[j.current_stage] ? mins > SLAS[j.current_stage] : false;
-                    }
-                  } catch(_){}
+              <div className="space-y-2">
+                {sortedStageKeys.map(stage => {
+                  const group = jornadaPorEtapa[stage];
+                  const isExpanded = expandedStages[stage] !== false; // default expanded
+                  const breached = group.filter(j => {
+                    const mins = getSlaMinutes(j);
+                    return SLAS[stage] && mins > SLAS[stage];
+                  }).length;
                   return (
-                    <div key={j.id} className={`flex items-center justify-between p-2.5 border rounded-lg ${slaBreached ? "border-destructive/30 bg-destructive/5" : "border-border/40 bg-muted/10"}`}>
-                      <div className="min-w-0 flex-1">
-                        <PatientJourneyTimeline journeyId={j.id} compact />
-                      </div>
+                    <div key={stage} className="bg-card rounded-xl border border-border/60 shadow-sm overflow-hidden">
+                      <button
+                        onClick={() => toggleStage(stage)}
+                        className={`w-full flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors border-l-[4px] ${STAGE_COLORS[stage] || "border-l-muted"}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-semibold">{STAGE_LABELS[stage] || stage.replace(/_/g, " ")}</span>
+                          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-muted">{group.length}</span>
+                          {breached > 0 && (
+                            <span className="flex items-center gap-1 text-xs text-destructive font-medium">
+                              <AlertTriangle className="w-3 h-3" /> {breached} overdue
+                            </span>
+                          )}
+                        </div>
+                        {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                      </button>
+                      {isExpanded && (
+                        <div className="divide-y divide-border/30">
+                          {group.map(j => {
+                            const mins = getSlaMinutes(j);
+                            const slaMin = SLAS[stage];
+                            const isBreached = slaMin && mins > slaMin;
+                            const pct = slaMin ? Math.min(100, (mins / slaMin) * 100) : 0;
+                            return (
+                              <div key={j.id} className="px-4 py-2.5 hover:bg-muted/20 transition-colors">
+                                <div className="flex items-center justify-between gap-3">
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-medium truncate">
+                                      {journeyPatients[j.patient_id] || j.patient_id?.slice(0, 8) || "Unknown"}
+                                    </p>
+                                    <p className="text-[11px] text-muted-foreground">{j.visit_id?.slice(0, 8)} · {j.assigned_to_role || "unassigned"}</p>
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <div className="text-right">
+                                      <span className={`text-xs font-bold ${isBreached ? "text-destructive" : "text-muted-foreground"}`}>
+                                        {mins}m
+                                      </span>
+                                      {slaMin && (
+                                        <span className="text-[10px] text-muted-foreground"> / {slaMin}m</span>
+                                      )}
+                                    </div>
+                                    {slaMin && (
+                                      <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">
+                                        <div
+                                          className={`h-full rounded-full transition-all ${isBreached ? "bg-destructive" : pct > 75 ? "bg-triage-semi" : "bg-primary"}`}
+                                          style={{ width: `${Math.min(100, pct)}%` }}
+                                        />
+                                      </div>
+                                    )}
+                                    {isBreached && <AlertTriangle className="w-3.5 h-3.5 text-destructive" />}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
-                {activeJourneys.length > 5 && (
-                  <p className="text-xs text-muted-foreground text-center">+{activeJourneys.length - 5} more active</p>
-                )}
               </div>
             )}
           </div>
