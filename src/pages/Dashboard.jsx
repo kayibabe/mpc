@@ -328,34 +328,34 @@ export default function Dashboard() {
       <RealTimeVitals />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        <div className="lg:col-span-2 bg-card rounded-xl border border-border/60 p-5 shadow-sm">
-          <h3 className="font-heading text-lg font-semibold mb-4 flex items-center gap-2">
+        <div className="lg:col-span-2 bg-card rounded-xl border border-border/60 p-5 shadow-sm flex flex-col">
+          <h3 className="font-heading text-lg font-semibold mb-4 flex items-center gap-2 shrink-0">
             <Activity className="w-5 h-5 text-primary" /> Recent Visits
           </h3>
           {recentVisits.length === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center">No visits recorded yet.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-hidden flex-1 min-h-0">
               <table className="w-full text-sm">
-                <thead>
+                <thead className="sticky top-0 bg-card z-10">
                   <tr className="border-b border-border">
                     <th className="text-left py-2 px-3 font-medium text-muted-foreground">Date</th>
-                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Patient ID</th>
+                    <th className="text-left py-2 px-3 font-medium text-muted-foreground">Patient</th>
                     <th className="text-left py-2 px-3 font-medium text-muted-foreground">Type</th>
                     <th className="text-left py-2 px-3 font-medium text-muted-foreground">Payment</th>
                     <th className="text-left py-2 px-3 font-medium text-muted-foreground">Status</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-border/40 max-h-[280px] overflow-y-auto block">
                   {recentVisits.map((v) => (
-                    <tr key={v.id} className="border-b border-border/40 hover:bg-muted/40 transition-colors">
-                      <td className="py-2.5 px-3">{new Date(v.created_date).toLocaleDateString("en-GB")}</td>
-                      <td className="py-2.5 px-3 font-mono text-xs">{v.patient_id?.slice(0, 8)}</td>
-                      <td className="py-2.5 px-3">
+                    <tr key={v.id} className="hover:bg-muted/40 transition-colors flex table-fixed w-full">
+                      <td className="py-2.5 px-3 w-[28%]">{new Date(v.created_date).toLocaleDateString("en-GB")}</td>
+                      <td className="py-2.5 px-3 w-[22%] font-mono text-xs">{v.patient_id?.slice(0, 8)}</td>
+                      <td className="py-2.5 px-3 w-[16%]">
                         <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">{visitTypeLabel(v.visit_type)}</span>
                       </td>
-                      <td className="py-2.5 px-3 capitalize">{v.payment_type}</td>
-                      <td className="py-2.5 px-3">
+                      <td className="py-2.5 px-3 w-[16%] capitalize text-xs">{v.payment_type}</td>
+                      <td className="py-2.5 px-3 w-[18%]">
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                           v.queue_status === "completed" ? "bg-chart-2/10 text-chart-2" :
                           v.queue_status === "waiting" ? "bg-chart-4/10 text-chart-4" :

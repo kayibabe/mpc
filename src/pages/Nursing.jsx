@@ -744,23 +744,27 @@ export default function Nursing() {
                     const visit = getVisit(j.visit_id);
                     const assess = assessments[j.id];
                     const isAssessExpanded = expandedAssess[j.id];
-                    const suggestedColor = assess?.suggested_priority === "emergency"
-                      ? "border-destructive/40 bg-destructive/5"
-                      : assess?.suggested_priority === "urgent"
-                      ? "border-chart-2/40 bg-chart-2/5"
-                      : "";
+                    const waitMins = Math.round((Date.now() - new Date(j.created_date).getTime()) / 60000);
+                    const waitDisplay = waitMins < 60 ? `${waitMins}m` : `${Math.floor(waitMins / 60)}h ${waitMins % 60}m`;
+                    const priorityBorder = assess?.suggested_priority === "emergency" ? "border-l-[4px] border-l-destructive" :
+                      assess?.suggested_priority === "urgent" ? "border-l-[4px] border-l-chart-2" : "";
+                    const priorityBg = assess?.suggested_priority === "emergency" ? "bg-destructive/5 border-destructive/20" :
+                      assess?.suggested_priority === "urgent" ? "bg-chart-2/5 border-chart-2/20" : "";
                     const isSelected = bulkSelect.has(j.id);
                     return (
-                      <div key={j.id} className={`rounded-xl p-4 border ${assess ? suggestedColor || "border-border/40" : "border-border/40"} ${isSelected ? "ring-2 ring-primary/30 bg-primary/5" : "bg-muted/20"}`}>
+                      <div key={j.id} className={`rounded-xl overflow-hidden border ${assess ? `${priorityBg} ${priorityBorder}` : "border-border/40 bg-muted/20"} ${isSelected ? "ring-2 ring-primary/30" : ""} transition-all duration-200`}>
                         <div className="flex items-start gap-3">
                           <button onClick={() => toggleBulkSelect(j.id)} className="mt-0.5 flex-shrink-0 text-muted-foreground hover:text-primary">
                             {isSelected ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
                           </button>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <p className="font-semibold text-sm">
                                 {patient ? `${patient.first_name} ${patient.last_name}` : j.patient_id?.slice(0, 8)}
                               </p>
+                              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                <Clock className="w-3 h-3" />{waitDisplay}
+                              </span>
                               {assess && (
                                 <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
                                   assess.suggested_priority === "emergency"
@@ -773,13 +777,16 @@ export default function Nursing() {
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                              <span className="font-mono">{patient?.mrn || "—"}</span>
-                              {visit && <span>• {visit.visit_type}</span>}
-                              {visit && <span>• {visit.priority}</span>}
+                            <div className="flex items-center gap-2 mt-1.5 text-[11px] text-muted-foreground">
+                              {patient?.mrn && <span className="font-mono text-xs">{patient.mrn}</span>}
+                              {patient?.mrn && visit && <span className="text-border">•</span>}
+                              {visit && <span className="capitalize">{visit.visit_type}</span>}
+                              {visit && <span className="text-border">•</span>}
+                              {visit && <span className={`font-medium ${visit.priority === "emergency" ? "text-destructive" : visit.priority === "urgent" ? "text-chart-2" : ""}`}>{visit.priority}</span>}
+                              {patient?.blood_group && <><span className="text-border">•</span><span className="font-mono font-semibold text-xs">{patient.blood_group}</span></>}
                             </div>
                             {visit?.notes && (
-                              <p className="text-xs text-muted-foreground mt-1.5 italic">{visit.notes}</p>
+                              <p className="text-xs text-muted-foreground mt-2 italic bg-muted/30 rounded-lg px-2.5 py-1.5">{visit.notes}</p>
                             )}
                             <PatientJourneyTimeline journeyId={j.id} compact />
 
