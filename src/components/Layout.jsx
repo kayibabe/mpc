@@ -133,7 +133,7 @@ export default function Layout() {
   }, []);
 
   const handleLogout = () => {
-    base44.auth.logout("/login");
+    base44.auth.logout();
   };
 
   const sidebarContent =
