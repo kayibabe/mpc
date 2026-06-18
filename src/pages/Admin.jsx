@@ -5,6 +5,7 @@ import WasteManagement from "@/components/WasteManagement";
 import ShiftManagement from "@/components/ShiftManagement";
 import StaffPerformance from "@/components/StaffPerformance";
 import CashierShiftAudit from "@/components/CashierShiftAudit";
+import DHIS2ReportsDownloads from "@/components/AdminDashboard/DHIS2ReportsDownloads";
 
 export default function Admin() {
   const [users, setUsers] = useState([]);
@@ -281,15 +282,12 @@ export default function Admin() {
           {activeTab === "performance" && <StaffPerformance />}
 
           {activeTab === "dhis2" && (
-            <div>
+            <div className="space-y-4">
               <div className="flex justify-between items-center mb-4">
-                <p className="text-sm text-muted-foreground">{exports.length} exports generated</p>
+                <div></div>
                 <button onClick={generateDHIS2Export} disabled={exporting} className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium disabled:opacity-50">{exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} {exporting ? "Generating..." : "Generate Export"}</button>
               </div>
-              <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-border"><th className="text-left py-2 px-3 font-medium text-muted-foreground">Date</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Period</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Type</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Status</th></tr></thead><tbody>
-                {exports.map(e => (<tr key={e.id} className="border-b border-border/40"><td className="py-2.5 px-3">{new Date(e.export_date).toLocaleDateString("en-GB")}</td><td className="py-2.5 px-3">{e.period}</td><td className="py-2.5 px-3">{e.report_type}</td><td className="py-2.5 px-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${e.status === "confirmed" ? "bg-chart-2/10 text-chart-2" : e.status === "failed" ? "bg-destructive/10 text-destructive" : "bg-chart-4/10 text-chart-4"}`}>{e.status}</span></td></tr>))}
-                {exports.length === 0 && <tr><td colSpan={4} className="py-12 text-center text-sm text-muted-foreground">No DHIS2 exports generated yet.</td></tr>}
-              </tbody></table></div>
+              <DHIS2ReportsDownloads />
             </div>
           )}
 
