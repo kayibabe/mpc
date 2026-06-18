@@ -10,9 +10,10 @@ export default function DailyIntakeSummary() {
     async function fetchIntake() {
       try {
         const today = new Date().toISOString().split('T')[0];
+        const todayStart = `${today}T00:00:00`;
         const visits = await base44.entities.Visit.filter(
-          { visit_date: { $gte: `${today}T00:00:00Z` } },
-          "-visit_date",
+          { created_date: { $gte: todayStart } },
+          "-created_date",
           500
         );
         
