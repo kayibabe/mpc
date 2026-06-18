@@ -55,8 +55,9 @@ export default function WardSummary() {
     );
   }
 
-  const totalOccupancy = wardData.length > 0
-    ? (wardData.reduce((sum, w) => sum + parseInt(w.occupancy_rate), 0) / wardData.length).toFixed(0)
+  const occupiedBedCount = beds.filter(b => b.status === "occupied").length;
+  const totalOccupancy = beds.length > 0
+    ? ((occupiedBedCount / beds.length) * 100).toFixed(0)
     : 0;
 
   return (
