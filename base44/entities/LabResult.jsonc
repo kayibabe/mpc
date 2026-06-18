@@ -64,11 +64,13 @@
           "data.performed_by": "{{user.id}}"
         },
         {
-          "data.verified_by": "{{user.id}}"
+          "user_condition": {
+            "role": "admin"
+          }
         },
         {
           "user_condition": {
-            "role": "admin"
+            "role": "lab_technician"
           }
         }
       ]
@@ -91,6 +93,26 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "user_condition": {
+            "role": "lab_technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "doctor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "clinician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "nurse"
+          }
         }
       ]
     },
@@ -108,6 +130,11 @@
         {
           "user_condition": {
             "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "lab_technician"
           }
         }
       ]
