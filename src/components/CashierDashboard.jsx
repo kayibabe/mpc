@@ -40,6 +40,13 @@ export default function CashierDashboard() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-foreground">Cashier Dashboard</h2>
+        <a href="/" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium hover:bg-muted transition-colors">
+          📊 Go to Dashboard
+        </a>
+      </div>
+
       <div>
         <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Daily Revenue Summary</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
