@@ -117,6 +117,7 @@ export default function Layout() {
   const [userRole, setUserRole] = useState("user");
   const [currentUser, setCurrentUser] = useState(null);
   const [collapsedGroups, setCollapsedGroups] = useState({});
+  const [profileOpen, setProfileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -315,16 +316,37 @@ export default function Layout() {
               <Bell className="w-5 h-5" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-clinical-critical" />
             </button>
-            <div className="flex items-center gap-2 pl-3 lg:pl-4 border-l border-border/50">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <span className="text-xs font-bold text-primary">
-                  {(currentUser?.display_name || currentUser?.full_name || currentUser?.email || "U")[0]?.toUpperCase()}
-                </span>
-              </div>
-              <div className="text-left">
-                <p className="text-xs font-semibold text-foreground leading-tight truncate max-w-[100px] sm:max-w-[140px]">{currentUser?.display_name || currentUser?.full_name || currentUser?.email || "User"}</p>
-                <p className="text-[10px] text-muted-foreground capitalize">{currentUser?.role || "user"}</p>
-              </div>
+            <div className="relative">
+              <button
+                onClick={() => setProfileOpen(!profileOpen)}
+                className="flex items-center gap-2 pl-3 lg:pl-4 border-l border-border/50 hover:opacity-80 transition-opacity"
+              >
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <span className="text-xs font-bold text-primary">
+                    {(currentUser?.display_name || currentUser?.full_name || currentUser?.email || "U")[0]?.toUpperCase()}
+                  </span>
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-semibold text-foreground leading-tight truncate max-w-[100px] sm:max-w-[140px]">{currentUser?.display_name || currentUser?.full_name || currentUser?.email || "User"}</p>
+                  <p className="text-[10px] text-muted-foreground capitalize">{currentUser?.role || "user"}</p>
+                </div>
+              </button>
+              {profileOpen && (
+                <div className="absolute right-0 top-14 w-48 bg-card border border-border rounded-lg shadow-lg z-50">
+                  <button
+                    onClick={() => { navigate('/totp-management'); setProfileOpen(false); }}
+                    className="w-full px-4 py-2 text-sm text-left hover:bg-primary/5 border-b border-border/50"
+                  >
+                    2FA Settings
+                  </button>
+                  <button
+                    onClick={() => { handleLogout(); setProfileOpen(false); }}
+                    className="w-full px-4 py-2 text-sm text-left hover:bg-destructive/5 text-destructive"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
