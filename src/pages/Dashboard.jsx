@@ -10,6 +10,7 @@ import TriageWidget from "@/components/TriageWidget";
 import WardSummary from "@/components/WardSummary";
 import WardOccupancyChart from "@/components/WardOccupancyChart";
 import DepartmentHeatmap from "@/components/DepartmentHeatmap";
+import BedOccupancyAlert from "@/components/BedOccupancyAlert";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const CHART_COLORS = ["hsl(194, 65%, 42%)", "hsl(38, 92%, 50%)", "hsl(160, 60%, 40%)", "hsl(280, 50%, 50%)", "hsl(340, 65%, 50%)", "hsl(0, 72%, 51%)"];
@@ -293,6 +294,7 @@ export default function Dashboard() {
       </div>
 
       <InventoryAlerts />
+      <BedOccupancyAlert threshold={80} />
 
       {/* KPI Cards */}
       <div>
