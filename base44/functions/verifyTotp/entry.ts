@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
-import { authenticator } from 'npm:otplib@12.0.1';
+import { totp } from 'npm:otplib@12.0.1';
 
 Deno.serve(async (req) => {
   try {
@@ -32,8 +32,8 @@ Deno.serve(async (req) => {
     // Verify the token using otplib
     let verified = false;
     try {
-      // otplib's check allows for time window tolerance
-      verified = authenticator.check(token, totp_secret);
+      // otplib's check allows for time window tolerance (default ±1 window = 60 seconds)
+      verified = totp.check(token, totp_secret);
     } catch (verifyErr) {
       return Response.json({ error: 'Verification failed: ' + verifyErr.message }, { status: 400 });
     }
