@@ -71,12 +71,16 @@ export default function Maternal() {
 
   const selectVisit = async (visit) => {
     setSelectedVisit(visit);
-    const [p, n] = await Promise.all([
-      base44.entities.PartographEntry.filter({ maternal_visit_id: visit.id }, "entry_time", 50),
-      base44.entities.NewbornRecord.filter({ maternal_visit_id: visit.id }, "-created_date", 10),
-    ]);
-    setPartograph(p);
-    setNewborns(n);
+    setPartograph([]);
+    setNewborns([]);
+    try {
+      const p = await base44.entities.PartographEntry.filter({ maternal_visit_id: visit.id }, "entry_time", 50);
+      const n = await base44.entities.NewbornRecord.filter({ maternal_visit_id: visit.id }, "-created_date", 10);
+      setPartograph(p);
+      setNewborns(n);
+    } catch (e) {
+      console.error("Failed to load visit details:", e);
+    }
   };
 
   const addPartographEntry = async () => {
