@@ -51,10 +51,31 @@
   ],
   "rls": {
     "create": {
-      "data.patient_id": "{{user.id}}",
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "doctor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "clinician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "nurse"
+          }
+        }
+      ]
     },
     "read": {
       "$or": [
@@ -71,6 +92,31 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "user_condition": {
+            "role": "doctor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "clinician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "nurse"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "midwife"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "cashier"
+          }
         }
       ]
     },
@@ -82,6 +128,21 @@
         {
           "user_condition": {
             "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "doctor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "clinician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "nurse"
           }
         }
       ]
