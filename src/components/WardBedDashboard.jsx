@@ -242,8 +242,16 @@ export default function WardBedDashboard() {
                           </div>
                         )}
 
+                        {/* Occupied but no linked admission record */}
+                        {bed.status === "occupied" && !admission && (
+                          <div className="mt-2 pt-2 border-t border-border/40 flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <AlertCircle className="w-3 h-3 text-triage-semi" />
+                            <span>No admission record</span>
+                          </div>
+                        )}
+
                         {/* Not occupied — show type & rate */}
-                        {!admission && (
+                        {bed.status !== "occupied" && !admission && (
                           <div className="mt-2 pt-2 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground">
                             <span className="capitalize">{bed.type}</span>
                             {bed.rate_per_day > 0 && <span>MWK {Number(bed.rate_per_day).toLocaleString()}/day</span>}
