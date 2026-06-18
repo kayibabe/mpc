@@ -10,6 +10,7 @@ import RealTimeVitals from "@/components/RealTimeVitals";
 import SignaturePad from "@/components/SignaturePad";
 import SignatureStatus from "@/components/SignatureStatus";
 import ClinicalQuickNav from "@/components/ClinicalQuickNav";
+import DischargeSummaryTemplate from "@/components/DischargeSummaryTemplate";
 
 export default function Clinical() {
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ export default function Clinical() {
     neonatal_death: false, autopsy_requested: false, notes: "",
   });
   const [showDeathForm, setShowDeathForm] = useState(false);
+  const [showDischargeSummary, setShowDischargeSummary] = useState(false);
   const [activeTemplate, setActiveTemplate] = useState(null); // { name, category }
 
   // Signature state
@@ -389,16 +391,24 @@ export default function Clinical() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Visit List */}
         <div className="bg-white rounded-lg border border-border">
-          <div className="p-4 border-b border-border">
+          <div className="p-3 border-b border-border flex items-center justify-between">
             <h3 className="font-heading text-sm font-semibold">Patient Queue</h3>
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{visits.length}</span>
           </div>
           <div className="divide-y divide-border max-h-[600px] overflow-y-auto">
-            {visits.map(v => (
-              <button key={v.id} onClick={() => selectVisit(v)} className={`w-full text-left p-3 hover:bg-muted/40 transition-colors ${selectedVisit?.id === v.id ? "bg-primary/5 border-l-2 border-primary" : ""}`}>
-                <p className="text-sm font-medium">{getPatientName(v.patient_id)}</p>
-                <p className="text-xs text-muted-foreground capitalize">{v.visit_type} • {v.queue_status}</p>
-              </button>
-            ))}
+            {visits.map(v => {
+              const priority = v.priority;
+              return (
+                <button key={v.id} onClick={() => selectVisit(v)} className={`w-full text-left p-3 hover:bg-muted/40 transition-colors border-l-2 ${selectedVisit?.id === v.id ? "bg-primary/5 border-l-primary" : priority === "emergency" ? "border-l-triage-emergency" : priority === "urgent" ? "border-l-triage-urgent" : "border-l-transparent"}`}>
+                  <div className="flex items-center justify-between gap-1">
+                    <p className="text-sm font-medium truncate">{getPatientName(v.patient_id)}</p>
+                    {priority === "emergency" && <span className="text-[9px] font-bold text-triage-emergency bg-triage-emergency/10 px-1 rounded flex-shrink-0">EMRG</span>}
+                    {priority === "urgent" && <span className="text-[9px] font-bold text-triage-urgent bg-triage-urgent/10 px-1 rounded flex-shrink-0">URG</span>}
+                  </div>
+                  <p className="text-xs text-muted-foreground capitalize">{v.visit_type} · {v.queue_status?.replace(/_/g, " ")}</p>
+                </button>
+              );
+            })}
             {visits.length === 0 && <p className="p-4 text-sm text-muted-foreground">No visits.</p>}
           </div>
         </div>
@@ -412,10 +422,13 @@ export default function Clinical() {
             </div>
           ) : (
            <div className="bg-white rounded-lg border border-border">
-             <div className="border-b border-border flex">
+             <div className="border-b border-border flex overflow-x-auto scrollbar-none">
                {["vitals", "consultation", "prescriptions", "handovers", "signatures", "death"].map(tab => (
-                 <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-3 text-sm font-medium transition-colors capitalize ${activeTab === tab ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>{tab}</button>
+                 <button key={tab} onClick={() => setActiveTab(tab)} className={`px-3 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors capitalize flex-shrink-0 ${activeTab === tab ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>{tab}</button>
                ))}
+               <button onClick={() => setShowDischargeSummary(true)} className="px-3 py-2.5 text-xs font-semibold whitespace-nowrap text-muted-foreground hover:text-primary ml-auto flex-shrink-0 flex items-center gap-1">
+                 <FileText className="w-3.5 h-3.5" /> Discharge
+               </button>
              </div>
              <div className="p-5 space-y-4">
                <ClinicalQuickNav activeTab={activeTab} onTabChange={setActiveTab} />
@@ -915,6 +928,21 @@ export default function Clinical() {
                         ))}
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* Discharge Summary Modal */}
+                {showDischargeSummary && selectedVisit && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/40" onClick={() => setShowDischargeSummary(false)} />
+                    <div className="relative z-10 w-full max-w-2xl mx-4">
+                      <DischargeSummaryTemplate
+                        patientId={selectedVisit.patient_id}
+                        visitId={selectedVisit.id}
+                        patientName={getPatientName(selectedVisit.patient_id)}
+                        onClose={() => setShowDischargeSummary(false)}
+                      />
+                    </div>
                   </div>
                 )}
 
