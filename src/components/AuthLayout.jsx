@@ -11,7 +11,7 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
             className="w-16 h-16 rounded-2xl mb-4 mx-auto object-cover"
           />
           <div className="flex items-center justify-center gap-2 mb-1">
-            <span className="text-sm font-semibold text-primary tracking-wide uppercase">Zomba City Private Clinic</span>
+            <span className="text-lg font-semibold text-primary tracking-wide uppercase">Zomba City Private Clinic</span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
           {subtitle && <p className="text-muted-foreground mt-2">{subtitle}</p>}
