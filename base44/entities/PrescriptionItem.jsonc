@@ -48,15 +48,21 @@
     "create": {
       "$or": [
         {
-          "data.prescription_id": {
-            "$in": [
-              "{{user.id}}"
-            ]
-          }
+          "created_by_id": "{{user.id}}"
         },
         {
           "user_condition": {
             "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "doctor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "clinician"
           }
         }
       ]
@@ -64,15 +70,31 @@
     "read": {
       "$or": [
         {
-          "data.prescription_id": {
-            "$in": [
-              "{{user.id}}"
-            ]
-          }
+          "created_by_id": "{{user.id}}"
         },
         {
           "user_condition": {
             "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "doctor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "clinician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "pharmacist"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "nurse"
           }
         }
       ]
@@ -80,15 +102,16 @@
     "update": {
       "$or": [
         {
-          "data.prescription_id": {
-            "$in": [
-              "{{user.id}}"
-            ]
-          }
+          "created_by_id": "{{user.id}}"
         },
         {
           "user_condition": {
             "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "pharmacist"
           }
         }
       ]
