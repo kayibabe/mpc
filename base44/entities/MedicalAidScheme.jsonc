@@ -6,7 +6,8 @@
       "type": "string"
     },
     "code": {
-      "type": "string"
+      "type": "string",
+      "description": "Unique scheme code"
     },
     "contact_phone": {
       "type": "string"
@@ -25,5 +26,52 @@
   "required": [
     "name",
     "code"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "cashier"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "receptionist"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "_indexes": [
+    {
+      "fields": {
+        "code": 1
+      },
+      "unique": true
+    }
   ]
 }
