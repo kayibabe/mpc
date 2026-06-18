@@ -47,7 +47,8 @@ const ALL_NAV_GROUPS = [
   { label: "Discharge Checklist", path: "/discharge-checklist", icon: CheckCircle, roles: ["admin", "user", "nurse", "doctor", "clinician"] },
   { label: "Theatre Calendar", path: "/surgery-calendar", icon: Scissors, roles: ["admin", "user", "surgical_lead", "doctor"] },
   { label: "Supply Requisitions", path: "/surgical-requisitions", icon: Scissors, roles: ["admin", "user", "surgical_lead", "doctor", "nurse"] },
-  { label: "Supply Dispensing", path: "/surgical-dispensing", icon: Scissors, roles: ["admin", "user", "store_manager", "pharmacist"] }]
+  { label: "Supply Dispensing", path: "/surgical-dispensing", icon: Scissors, roles: ["admin", "user", "store_manager", "pharmacist"] },
+  { label: "Supply Tracker", path: "/surgical-supply-tracker", icon: Scissors, roles: ["admin", "user", "surgical_lead", "store_manager"] }]
 
 },
 {

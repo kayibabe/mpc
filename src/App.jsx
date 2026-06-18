@@ -41,6 +41,7 @@ import RadiologyReportLibrary from '@/pages/RadiologyReportLibrary';
 import SurgicalSupplyInventory from '@/pages/SurgicalSupplyInventory';
 import SurgicalRequisitions from '@/pages/SurgicalRequisitions';
 import SurgicalDispensing from '@/pages/SurgicalDispensing';
+import SurgicalSupplyTracker from '@/pages/SurgicalSupplyTracker';
 import DischargeChecklistFlow from '@/pages/DischargeChecklistFlow';
 import PatientIntake from '@/pages/PatientIntake';
 import TreatmentAdherence from '@/pages/TreatmentAdherence';
@@ -118,6 +119,7 @@ const AuthenticatedApp = () => {
         <Route path="/surgical-supplies" element={<SurgicalSupplyInventory />} />
         <Route path="/surgical-requisitions" element={<SurgicalRequisitions />} />
         <Route path="/surgical-dispensing" element={<SurgicalDispensing />} />
+        <Route path="/surgical-supply-tracker" element={<SurgicalSupplyTracker />} />
         <Route path="/discharge-checklist" element={<DischargeChecklistFlow />} />
         <Route path="/patient-intake" element={<PatientIntake />} />
         <Route path="/treatment-adherence" element={<TreatmentAdherence />} />
