@@ -8,6 +8,7 @@ import DepartmentDashboard from "@/components/DepartmentDashboard";
 import SignaturePad from "@/components/SignaturePad";
 import SignatureStatus from "@/components/SignatureStatus";
 import PharmacyRequisitionDashboard from "@/components/PharmacyRequisitionDashboard";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default function Pharmacy() {
   const [drugs, setDrugs] = useState([]);
@@ -195,15 +196,11 @@ export default function Pharmacy() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title">Pharmacy</h2>
-          <p className="text-sm text-muted-foreground mt-1">Drug inventory, dispensing, and stock management</p>
-        </div>
+      <PageHeader title="Pharmacy" subtitle="Drug inventory, dispensing, and stock management" icon={Pill} className="mb-6">
         <button onClick={() => { setShowAddDrug(true); setActiveTab("inventory"); }} className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 shadow-sm">
           <Plus className="w-4 h-4" /> Add Drug
         </button>
-      </div>
+      </PageHeader>
 
       <DepartmentDashboard department="pharmacy" />
 

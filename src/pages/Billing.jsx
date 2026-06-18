@@ -5,6 +5,7 @@ import ShiftManagement from "@/components/ShiftManagement";
 import RevenueReport from "@/components/RevenueReport";
 import ReconciliationPanel from "@/components/ReconciliationPanel";
 import LiveAuditMonitor from "@/components/LiveAuditMonitor";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default function Billing() {
   const [invoices, setInvoices] = useState([]);
@@ -254,13 +255,10 @@ export default function Billing() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div><h2 className="section-title">Billing</h2><p className="text-sm text-muted-foreground mt-1">Invoices, payments, split billing & claims</p></div>
-        <div className="flex gap-2">
-          <button onClick={() => setShowDischargeSummary(true)} className="inline-flex items-center gap-2 px-4 py-2.5 bg-chart-1/10 text-chart-1 rounded-lg text-sm font-medium hover:bg-chart-1/20 border border-chart-1/20"><FileText className="w-4 h-4" /> Discharge Summary</button>
-          <button onClick={() => setShowCreateInvoice(!showCreateInvoice)} className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 shadow-sm"><Plus className="w-4 h-4" /> New Invoice</button>
-        </div>
-      </div>
+      <PageHeader title="Billing" subtitle="Invoices, payments, split billing & claims" icon={Receipt} className="mb-6">
+        <button onClick={() => setShowDischargeSummary(true)} className="inline-flex items-center gap-2 px-4 py-2.5 bg-chart-1/10 text-chart-1 rounded-lg text-sm font-medium hover:bg-chart-1/20 border border-chart-1/20"><FileText className="w-4 h-4" /> Discharge Summary</button>
+        <button onClick={() => setShowCreateInvoice(!showCreateInvoice)} className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 shadow-sm"><Plus className="w-4 h-4" /> New Invoice</button>
+      </PageHeader>
 
       {/* Patient Search */}
       <div className="mb-6 relative">

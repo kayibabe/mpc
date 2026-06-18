@@ -6,6 +6,7 @@ import IncidentReportForm from "@/components/IncidentReportForm";
 import DepartmentDashboard from "@/components/DepartmentDashboard";
 import InpatientDashboard from "@/components/InpatientDashboard";
 import WardBedDashboard from "@/components/WardBedDashboard";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default function Inpatient() {
   const [wards, setWards] = useState([]);
@@ -152,17 +153,11 @@ export default function Inpatient() {
 
   return (
     <div className="page-container space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Inpatient Management</h1>
-          <p className="text-sm text-muted-foreground mt-1">Ward, bed, and admission management</p>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={() => { setShowWardForm(true); setActiveTab("beds"); }} className="inline-flex items-center gap-2 px-3 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted"><Building className="w-4 h-4" /> Add Ward</button>
-          <button onClick={() => { setShowBedForm(true); setActiveTab("beds"); }} className="inline-flex items-center gap-2 px-3 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted"><DoorOpen className="w-4 h-4" /> Add Bed</button>
-          <button onClick={() => setShowAdmit(!showAdmit)} className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 shadow-sm"><Plus className="w-4 h-4" /> Admit Patient</button>
-        </div>
-      </div>
+      <PageHeader title="Inpatient Management" subtitle="Ward, bed, and admission management" icon={BedDouble}>
+        <button onClick={() => { setShowWardForm(true); setActiveTab("beds"); }} className="inline-flex items-center gap-2 px-3 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted"><Building className="w-4 h-4" /> Add Ward</button>
+        <button onClick={() => { setShowBedForm(true); setActiveTab("beds"); }} className="inline-flex items-center gap-2 px-3 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted"><DoorOpen className="w-4 h-4" /> Add Bed</button>
+        <button onClick={() => setShowAdmit(!showAdmit)} className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 shadow-sm"><Plus className="w-4 h-4" /> Admit Patient</button>
+      </PageHeader>
 
       {showAdmit && (
         <div className="bg-white rounded-lg border border-border p-6">

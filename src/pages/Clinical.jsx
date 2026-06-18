@@ -11,6 +11,7 @@ import SignaturePad from "@/components/SignaturePad";
 import SignatureStatus from "@/components/SignatureStatus";
 import ClinicalQuickNav from "@/components/ClinicalQuickNav";
 import DischargeSummaryTemplate from "@/components/DischargeSummaryTemplate";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default function Clinical() {
   const navigate = useNavigate();
@@ -384,7 +385,7 @@ export default function Clinical() {
 
   return (
     <div className="page-container space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">Clinical</h1>
+      <PageHeader title="Clinical" subtitle="Consultations, vitals, prescriptions & decision support" icon={Stethoscope} />
       <div className="mb-6">
         <DepartmentDashboard department="clinical" />
       </div>

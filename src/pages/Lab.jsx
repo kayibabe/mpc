@@ -5,6 +5,7 @@ import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
 import DepartmentDashboard from "@/components/DepartmentDashboard";
 import ExpiryAlerts from "@/components/ExpiryAlerts";
 import PatientLabTrendChart from "@/components/PatientLabTrendChart";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default function Lab() {
   const [orders, setOrders] = useState([]);
@@ -134,15 +135,11 @@ export default function Lab() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title">Laboratory</h2>
-          <p className="text-sm text-muted-foreground mt-1">Lab orders, specimen tracking, and results entry</p>
-        </div>
+      <PageHeader title="Laboratory" subtitle="Lab orders, specimen tracking, and results entry" icon={FlaskConical} className="mb-6">
         <button onClick={() => setShowForm(!showForm)} className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 shadow-sm">
           <Plus className="w-4 h-4" /> New Lab Order
         </button>
-      </div>
+      </PageHeader>
 
       <DepartmentDashboard department="lab" />
       <ExpiryAlerts department="laboratory" />

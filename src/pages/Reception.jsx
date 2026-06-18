@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Search, UserPlus, ChevronDown, Check, Clock, Phone, MapPin, Users, RefreshCw, DoorOpen } from "lucide-react";
+import PageHeader from "@/components/ui/PageHeader";
+import SectionTitle from "@/components/ui/SectionTitle";
 import InsuranceVerifier from "@/components/InsuranceVerifier";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
 import DepartmentDashboard from "@/components/DepartmentDashboard";
@@ -100,15 +102,11 @@ export default function Reception() {
 
   return (
     <div className="page-container space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Reception</h1>
-          <p className="text-sm text-muted-foreground mt-1">Patient registration, check-in, and queue management</p>
-        </div>
+      <PageHeader title="Reception" subtitle="Patient registration, check-in, and queue management" icon={Users}>
         <button onClick={() => setShowForm(!showForm)} className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm">
           <UserPlus className="w-4 h-4" /> Register Patient
         </button>
-      </div>
+      </PageHeader>
 
       {showForm && (
         <div className="bg-white rounded-lg border border-border p-6 mb-6">
@@ -225,7 +223,7 @@ export default function Reception() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg border border-border">
           <div className="p-4 border-b border-border">
-            <h3 className="font-heading text-sm font-semibold flex items-center gap-2"><Users className="w-4 h-4 text-primary" /> Patients ({filteredPatients.length})</h3>
+            <SectionTitle icon={Users} as="h3">Patients ({filteredPatients.length})</SectionTitle>
           </div>
           <div className="divide-y divide-border max-h-[500px] overflow-y-auto">
             {filteredPatients.map(p => (
@@ -257,7 +255,7 @@ export default function Reception() {
 
         <div className="bg-white rounded-lg border border-border">
           <div className="p-4 border-b border-border flex items-center justify-between">
-            <h3 className="font-heading text-sm font-semibold flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> Today's Queue ({visits.length})</h3>
+            <SectionTitle icon={Clock} as="h3">Today's Queue ({visits.length})</SectionTitle>
             {roomVacancyNotifs.length > 0 && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-chart-3/10 text-chart-3 rounded-full text-xs font-medium">
                 <DoorOpen className="w-3 h-3" /> {roomVacancyNotifs.length} room{roomVacancyNotifs.length > 1 ? "s" : ""} free
