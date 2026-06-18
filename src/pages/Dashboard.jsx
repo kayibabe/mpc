@@ -362,12 +362,12 @@ export default function Dashboard() {
       {/* Role-Specific KPI Cards */}
        <div>
          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Key Performance Indicators</h2>
-        <div className={`grid gap-4 ${isAdmin ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-6" : isDoctor || isPharmacist || isCashier ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : "grid-cols-2 md:grid-cols-3"}`}>
+        <div className={`grid gap-4 ${isAdmin ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-6" : isDoctor || isPharmacist || isCashier ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : isStoreManager ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2 md:grid-cols-3"}`}>
           {(isAdmin || isReceptionist) && <StatCard label="Registered Patients" value={stats.patients} to="/reception" metaKey="patients" />}
           {(isAdmin || isReceptionist || isDoctor) && <StatCard label="Today's Appointments" value={report?.total_appointments_today ?? stats.appointments} sub={report ? `${report.appointments_completed} completed` : null} to="/appointments" metaKey="appointments" />}
           {(isAdmin || isLabTech || isDoctor) && <StatCard label="Pending Lab Orders" value={report?.pending_lab_orders ?? stats.labOrders} to="/lab" metaKey="labOrders" />}
           {(isAdmin || isNurse || isDoctor) && <StatCard label="Occupied Beds" value={report?.active_inpatients ?? stats.occupiedBeds} to="/inpatient" metaKey="beds" />}
-          {(isAdmin || isPharmacist) && <StatCard label="Low Stock Drugs" value={report?.drugs_low_stock ?? stats.drugs} color={report?.drugs_low_stock > 0 ? 'warning' : 'success'} to="/pharmacy" metaKey="drugs" />}
+          {(isAdmin || isPharmacist || isStoreManager) && <StatCard label="Low Stock Drugs" value={report?.drugs_low_stock ?? stats.drugs} color={report?.drugs_low_stock > 0 ? 'warning' : 'success'} to="/pharmacy" metaKey="drugs" />}
           {(isAdmin || isCashier) && <StatCard label="Revenue (MWK)" value={(report?.total_revenue_mwk ?? stats.revenue).toLocaleString()} to="/billing" metaKey="revenue" />}
           </div>
           </div>
