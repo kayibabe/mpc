@@ -27,7 +27,9 @@ export default function Login() {
       
       // Check if user has TOTP enabled
       const user = await base44.auth.me();
-      const userSecurity = await base44.entities.UserSecurity.filter(
+      
+      // Search for UserSecurity by email as fallback if user_id lookup fails
+      let userSecurity = await base44.entities.UserSecurity.filter(
         { user_id: user.id },
         '-created_date',
         1
