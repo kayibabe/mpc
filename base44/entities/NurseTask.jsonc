@@ -13,6 +13,14 @@
     "visit_id": {
       "type": "string"
     },
+    "admission_id": {
+      "type": "string",
+      "description": "Reference to Admission if inpatient task"
+    },
+    "ward_id": {
+      "type": "string",
+      "description": "Ward assignment for the task"
+    },
     "category": {
       "type": "string",
       "enum": [

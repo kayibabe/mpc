@@ -3,7 +3,12 @@
   "type": "object",
   "properties": {
     "maternal_visit_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Reference to MaternalVisit"
+    },
+    "admission_id": {
+      "type": "string",
+      "description": "Reference to newborn's Admission record if admitted"
     },
     "mother_id": {
       "type": "string"

@@ -8,6 +8,10 @@
     "patient_id": {
       "type": "string"
     },
+    "consultation_id": {
+      "type": "string",
+      "description": "Reference to Consultation that ordered tests"
+    },
     "ordered_by": {
       "type": "string"
     },
