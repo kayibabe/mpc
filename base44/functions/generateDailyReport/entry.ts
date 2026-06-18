@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.Admission.filter({ status: 'active' }, '', 100),
       base44.asServiceRole.entities.Drug.filter({}, '', 500),
       base44.asServiceRole.entities.LabOrder.filter({ status: { $in: ['ordered', 'in_progress'] } }, '', 200),
-      base44.asServiceRole.entities.Invoice.filter({ created_date: { $gte: todayStart } }, '', 500),
+      base44.asServiceRole.entities.Invoice.filter({ created_date: { $gte: todayStart }, status: { $in: ['paid', 'partial'] } }, '', 500),
     ]);
 
     const lowStock = lowStockDrugs.filter(d => d.quantity_in_stock <= d.reorder_level);
