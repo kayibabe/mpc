@@ -30,17 +30,24 @@ export default function VitalSignsChart({ patientId, visitId }) {
     }));
 
   const vitalsTrend = vitalsData
-    .filter(v => v.heart_rate || v.temperature || v.spo2)
+    .filter(v => v.heart_rate || v.spo2)
     .map(v => ({
       date: new Date(v.created_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
       HR: v.heart_rate || null,
-      Temp: v.temperature || null,
       SpO2: v.spo2 || null,
+    }));
+
+  const tempData = vitalsData
+    .filter(v => v.temperature)
+    .map(v => ({
+      date: new Date(v.created_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+      Temp: v.temperature || null,
     }));
 
   const charts = [
     { key: "bp", label: "Blood Pressure", data: bpData, lines: ["Systolic", "Diastolic"], colors: ["#ef4444", "#f97316"] },
-    { key: "trend", label: "Vitals Trend", data: vitalsTrend, lines: ["HR", "Temp", "SpO2"], colors: ["#0891b2", "#eab308", "#22c55e"] },
+    { key: "temp", label: "Temperature", data: tempData, lines: ["Temp"], colors: ["#eab308"] },
+    { key: "trend", label: "HR & SpO₂", data: vitalsTrend, lines: ["HR", "SpO2"], colors: ["#0891b2", "#22c55e"] },
   ];
 
   const active = charts.find(c => c.key === chart);
