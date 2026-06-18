@@ -51,7 +51,7 @@ function StatCard({ label, value, sub, color, to, metaKey }) {
     `${meta.accent} hover:border-opacity-80`;
 
   const content = (
-    <div className={`relative overflow-hidden bg-white rounded-xl border ${borderColor} p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group`}>
+    <div className={`relative overflow-hidden bg-white rounded-xl border ${borderColor} p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group h-full`}>
       {/* Gradient background */}
       <div className={`absolute inset-0 bg-gradient-to-br ${meta.gradient} opacity-60`} />
       <div className="relative">
@@ -67,7 +67,7 @@ function StatCard({ label, value, sub, color, to, metaKey }) {
       </div>
     </div>
   );
-  if (to) return <Link to={to}>{content}</Link>;
+  if (to) return <Link to={to} className="block h-full">{content}</Link>;
   return content;
 }
 
@@ -362,7 +362,7 @@ export default function Dashboard() {
       {/* Role-Specific KPI Cards */}
        <div>
          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Key Performance Indicators</h2>
-        <div className={`grid gap-4 ${isAdmin ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-6" : isDoctor || isPharmacist || isCashier ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : isStoreManager ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2 md:grid-cols-3"}`}>
+        <div className={`grid gap-4 items-stretch ${isAdmin ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-6" : isDoctor || isPharmacist || isCashier ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : isStoreManager ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2 md:grid-cols-3"}`}>
           {(isAdmin || isReceptionist) && <StatCard label="Registered Patients" value={report?.total_patients ?? stats.patients} to="/reception" metaKey="patients" />}
           {(isAdmin || isReceptionist || isDoctor) && <StatCard label="Today's Appointments" value={report?.total_appointments_today ?? stats.appointments} sub={report ? `${report.appointments_completed} completed` : null} to="/appointments" metaKey="appointments" />}
           {(isAdmin || isLabTech || isDoctor) && <StatCard label="Pending Lab Orders" value={report?.pending_lab_orders ?? stats.labOrders} to="/lab" metaKey="labOrders" />}
