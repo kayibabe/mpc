@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { ChevronLeft, ChevronRight, Plus, Clock, MapPin, User, AlertCircle, X, Search, CheckCircle, Calendar, ClipboardCheck, Activity } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Clock, MapPin, User, AlertCircle, X, Search, CheckCircle, Calendar, ClipboardCheck, Activity, Package } from "lucide-react";
 import moment from "moment";
 import SurgicalChecklist from "@/components/SurgicalChecklist";
 import AnesthesiaLog from "@/components/AnesthesiaLog";
+import SurgicalRequisitionModal from "@/components/SurgicalRequisitionModal";
+import BookingRequisitionStatus from "@/components/BookingRequisitionStatus";
 
 const THEATER_LABELS = {
   theatre_1: "Theatre 1",
@@ -52,8 +54,9 @@ export default function SurgeryCalendar() {
   });
   const [saving, setSaving] = useState(false);
   const [patientSearch, setPatientSearch] = useState("");
-  const [activeModal, setActiveModal] = useState(null); // "checklist" | "anesthesia"
+  const [activeModal, setActiveModal] = useState(null); // "checklist" | "anesthesia" | "requisition"
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     loadData();
@@ -238,6 +241,7 @@ export default function SurgeryCalendar() {
                           </div>
                         )}
                         <div className="flex items-center gap-1.5 flex-wrap">
+                          <BookingRequisitionStatus bookingId={b.id} onRequestClick={() => { setSelectedBooking(b); setActiveModal("requisition"); }} key={refreshTrigger} />
                           <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium border ${STATUS_COLORS[b.status] || ""}`}>
                             {b.status?.replace(/_/g, " ")}
                           </span>
@@ -247,6 +251,9 @@ export default function SurgeryCalendar() {
                             </span>
                           )}
                           <div className="ml-auto flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => { setSelectedBooking(b); setActiveModal("requisition"); }} className="px-1.5 py-0.5 bg-primary/10 text-primary rounded text-[10px] font-medium" title="Request Supplies">
+                              <Package className="w-3 h-3" />
+                            </button>
                             <button onClick={() => { setSelectedBooking(b); setActiveModal("checklist"); }} className="px-1.5 py-0.5 bg-chart-4/10 text-chart-4 rounded text-[10px] font-medium" title="WHO Checklist">
                               <ClipboardCheck className="w-3 h-3" />
                             </button>
@@ -278,6 +285,15 @@ export default function SurgeryCalendar() {
             );
           })}
         </div>
+      )}
+
+      {/* Requisition Modal */}
+      {activeModal === "requisition" && selectedBooking && (
+        <SurgicalRequisitionModal
+          booking={selectedBooking}
+          onClose={() => { setActiveModal(null); setSelectedBooking(null); }}
+          onSuccess={() => { setRefreshTrigger(prev => prev + 1); }}
+        />
       )}
 
       {/* Checklist Modal */}
