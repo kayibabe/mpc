@@ -8,23 +8,28 @@ Deno.serve(async (req) => {
     const todayStart = today + 'T00:00:00';
 
     const [
+      allPatients,
       todayVisits,
       todayAppointments,
       activeAdmissions,
-      lowStockDrugs,
+      allDrugs,
       pendingLabOrders,
       todayInvoices,
+      allInvoices,
     ] = await Promise.all([
+      base44.asServiceRole.entities.Patient.list('', 5000),
       base44.asServiceRole.entities.Visit.filter({ created_date: { $gte: todayStart } }, '', 500),
       base44.asServiceRole.entities.Appointment.filter({ appointment_date: today }, '', 200),
       base44.asServiceRole.entities.Admission.filter({ status: 'active' }, '', 100),
-      base44.asServiceRole.entities.Drug.filter({}, '', 500),
+      base44.asServiceRole.entities.Drug.list('', 500),
       base44.asServiceRole.entities.LabOrder.filter({ status: { $in: ['ordered', 'in_progress'] } }, '', 200),
       base44.asServiceRole.entities.Invoice.filter({ created_date: { $gte: todayStart }, status: { $in: ['paid', 'partial'] } }, '', 500),
+      base44.asServiceRole.entities.Invoice.filter({ status: { $in: ['paid', 'partial'] } }, '', 5000),
     ]);
 
-    const lowStock = lowStockDrugs.filter(d => d.quantity_in_stock <= d.reorder_level);
-    const totalRevenue = todayInvoices.reduce((sum, inv) => sum + (inv.net_amount || inv.total_amount || 0), 0);
+    const lowStock = allDrugs.filter(d => d.quantity_in_stock <= d.reorder_level);
+    const todayRevenue = todayInvoices.reduce((sum, inv) => sum + (inv.net_amount || inv.total_amount || 0), 0);
+    const allTimeRevenue = allInvoices.reduce((sum, inv) => sum + (inv.net_amount || inv.total_amount || 0), 0);
 
     const visitBreakdown = {};
     todayVisits.forEach(v => {
@@ -45,6 +50,7 @@ Deno.serve(async (req) => {
       date: today,
       generated_at: new Date().toISOString(),
       summary: {
+        total_patients: allPatients.length,
         total_visits_today: todayVisits.length,
         total_appointments_today: todayAppointments.length,
         appointments_completed: completedAppts.length,
@@ -52,7 +58,8 @@ Deno.serve(async (req) => {
         active_inpatients: activeAdmissions.length,
         pending_lab_orders: pendingLabOrders.length,
         drugs_low_stock: lowStock.length,
-        total_revenue_mwk: totalRevenue,
+        total_revenue_mwk: todayRevenue,
+        all_time_revenue_mwk: allTimeRevenue,
       },
       visit_breakdown: visitBreakdown,
       payment_breakdown: paymentBreakdown,
