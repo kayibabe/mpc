@@ -52,6 +52,16 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "user_condition": {
+            "role": "pharmacist"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "store_manager"
+          }
         }
       ]
     },
@@ -64,6 +74,21 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "user_condition": {
+            "role": "pharmacist"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "store_manager"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "cashier"
+          }
         }
       ]
     },
@@ -75,6 +100,16 @@
         {
           "user_condition": {
             "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "pharmacist"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "store_manager"
           }
         }
       ]
