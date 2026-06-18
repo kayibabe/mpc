@@ -430,7 +430,80 @@ export default function Clinical() {
                  <FileText className="w-3.5 h-3.5" /> Discharge
                </button>
              </div>
-             <div className="p-5 space-y-4">
+             {/* Two-column layout: context panel left, main workspace right */}
+             <div className="flex gap-0 divide-x divide-border min-h-[600px]">
+             {/* Left context panel — vitals snapshot + recent labs always visible */}
+             <div className="w-56 flex-shrink-0 p-3 space-y-3 bg-muted/20 overflow-y-auto max-h-[700px]">
+               {/* Vitals snapshot */}
+               <div>
+                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Latest Vitals</p>
+                 {vitals ? (
+                   <div className="space-y-1.5">
+                     {[
+                       { label: "BP", value: vitals.bp_systolic && vitals.bp_diastolic ? `${vitals.bp_systolic}/${vitals.bp_diastolic}` : null, unit: "mmHg", warn: vitals.bp_systolic > 140 },
+                       { label: "HR", value: vitals.heart_rate, unit: "bpm", warn: vitals.heart_rate > 100 || vitals.heart_rate < 60 },
+                       { label: "Temp", value: vitals.temperature, unit: "°C", warn: vitals.temperature > 38 },
+                       { label: "SpO₂", value: vitals.spo2, unit: "%", warn: vitals.spo2 < 95 },
+                       { label: "RR", value: vitals.respiratory_rate, unit: "/min", warn: vitals.respiratory_rate > 20 },
+                       { label: "Weight", value: vitals.weight, unit: "kg", warn: false },
+                       { label: "Glucose", value: vitals.glucose, unit: "mmol/L", warn: vitals.glucose > 11 },
+                       { label: "Pain", value: vitals.pain_score, unit: "/10", warn: vitals.pain_score >= 7 },
+                     ].filter(v => v.value != null && v.value !== 0).map(v => (
+                       <div key={v.label} className={`flex items-center justify-between px-2 py-1 rounded text-xs ${v.warn ? "bg-triage-urgent/10 border border-triage-urgent/20" : "bg-background border border-border/40"}`}>
+                         <span className="text-muted-foreground font-medium">{v.label}</span>
+                         <span className={`font-bold font-mono ${v.warn ? "text-triage-urgent" : "text-foreground"}`}>{v.value}<span className="text-[9px] text-muted-foreground ml-0.5">{v.unit}</span></span>
+                       </div>
+                     ))}
+                     <p className="text-[9px] text-muted-foreground text-right">{new Date(vitals.created_date).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</p>
+                   </div>
+                 ) : (
+                   <p className="text-[11px] text-muted-foreground italic">No vitals recorded</p>
+                 )}
+               </div>
+
+               {/* Active diagnoses */}
+               {diagnoses.length > 0 && (
+                 <div>
+                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Diagnoses</p>
+                   <div className="space-y-1">
+                     {diagnoses.map(d => (
+                       <div key={d.id} className="px-2 py-1 rounded bg-chart-3/10 border border-chart-3/20 text-xs">
+                         <p className="font-medium text-chart-3 leading-tight">{d.diagnosis_name}</p>
+                         {d.icd10_code && <p className="text-[9px] text-muted-foreground">{d.icd10_code}</p>}
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+               )}
+
+               {/* Recent lab orders */}
+               {labOrders.length > 0 && (
+                 <div>
+                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Recent Labs</p>
+                   <div className="space-y-1">
+                     {labOrders.slice(0, 5).map(lo => (
+                       <div key={lo.id} className="px-2 py-1 rounded bg-background border border-border/40 text-xs">
+                         <p className="font-medium leading-tight truncate">{(lo.tests || "").replace(/[\[\]"]/g, "").split(",")[0]}</p>
+                         <span className={`text-[9px] font-medium ${lo.status === "completed" || lo.status === "verified" ? "text-chart-3" : lo.status === "in_progress" ? "text-primary" : "text-muted-foreground"}`}>{lo.status}</span>
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+               )}
+
+               {/* Journey stage */}
+               {journey && (
+                 <div>
+                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Stage</p>
+                   <div className="px-2 py-1.5 rounded bg-primary/10 border border-primary/20 text-xs text-center font-semibold text-primary">
+                     {journey.current_stage?.replace(/_/g, " ")}
+                   </div>
+                 </div>
+               )}
+             </div>
+
+             {/* Right main workspace */}
+             <div className="flex-1 p-4 space-y-4 overflow-y-auto max-h-[700px]">
                <ClinicalQuickNav activeTab={activeTab} onTabChange={setActiveTab} />
                 {/* Patient Journey Timeline */}
                 {journey && (
@@ -960,7 +1033,8 @@ export default function Clinical() {
                     </div>
                   </div>
                 )}
-              </div>
+              </div>{/* end right main workspace */}
+             </div>{/* end two-column flex */}
             </div>
           )}
         </div>
