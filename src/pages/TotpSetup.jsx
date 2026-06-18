@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Loader2, Copy, Check, AlertCircle } from 'lucide-react';
+import { Loader2, Copy, Check, AlertCircle, Download, Eye, EyeOff } from 'lucide-react';
 
 export default function TotpSetup() {
-  const [step, setStep] = useState('generate'); // generate, confirm, complete
+  const [step, setStep] = useState('generate'); // generate, confirm, backup, complete
   const [secret, setSecret] = useState(null);
   const [qrCodeUrl, setQrCodeUrl] = useState(null);
+  const [backupCodes, setBackupCodes] = useState([]);
   const [confirmCode, setConfirmCode] = useState('');
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [showBackupCodes, setShowBackupCodes] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const generateSecret = async () => {
@@ -19,6 +21,11 @@ export default function TotpSetup() {
       const response = await base44.functions.invoke('generateTotpSecret', {});
       setSecret(response.data.secret);
       setQrCodeUrl(response.data.qrCodeUrl);
+      
+      // Generate backup codes
+      const backupResponse = await base44.functions.invoke('generateBackupCodes', {});
+      setBackupCodes(backupResponse.data.backupCodes);
+      
       setStep('confirm');
     } catch (err) {
       setError('Failed to generate TOTP secret: ' + err.message);
@@ -42,7 +49,7 @@ export default function TotpSetup() {
       });
 
       if (response.data.verified) {
-        // Save the secret to UserSecurity
+        // Save the secret and backup codes to UserSecurity
         try {
           const currentUser = await base44.auth.me();
           const existing = await base44.entities.UserSecurity.filter(
@@ -55,6 +62,7 @@ export default function TotpSetup() {
             await base44.entities.UserSecurity.update(existing[0].id, {
               totp_secret: secret,
               is_totp_enabled: true,
+              backup_codes: JSON.stringify(backupCodes),
               totp_enabled_date: new Date().toISOString(),
             });
           } else {
@@ -62,6 +70,7 @@ export default function TotpSetup() {
               user_id: currentUser.id,
               totp_secret: secret,
               is_totp_enabled: true,
+              backup_codes: JSON.stringify(backupCodes),
               totp_enabled_date: new Date().toISOString(),
             });
           }
@@ -71,7 +80,7 @@ export default function TotpSetup() {
           return;
         }
 
-        setStep('complete');
+        setStep('backup');
       } else {
         setError('Invalid code. Please try again.');
       }
@@ -82,10 +91,21 @@ export default function TotpSetup() {
     }
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(secret);
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const downloadBackupCodes = () => {
+    const content = `TOTP Backup Codes - Zomba City HIMS\nGenerated: ${new Date().toLocaleString('en-GB')}\n\n${backupCodes.join('\n')}\n\nStore these codes in a secure location. Each code can only be used once.`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'backup-codes.txt';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -127,7 +147,7 @@ export default function TotpSetup() {
               <div className="flex items-center gap-2">
                 <code className="font-mono text-sm font-semibold flex-1 break-all">{secret}</code>
                 <button
-                  onClick={copyToClipboard}
+                  onClick={() => copyToClipboard(secret)}
                   className="p-1.5 hover:bg-muted rounded text-muted-foreground"
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -164,9 +184,55 @@ export default function TotpSetup() {
                 className="w-full px-4 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                {verifying ? 'Verifying...' : 'Verify & Enable'}
+                {verifying ? 'Verifying...' : 'Verify & Continue'}
               </button>
             </form>
+          </div>
+        )}
+
+        {step === 'backup' && (
+          <div className="space-y-4">
+            <div className="p-3 bg-destructive/10 rounded-lg">
+              <p className="text-sm text-destructive font-medium">⚠️ Save your backup codes now</p>
+              <p className="text-xs text-destructive/80 mt-1">
+                You won't see these again. If you lose access to your authenticator app, use a backup code to regain access to your account.
+              </p>
+            </div>
+
+            <div className="p-4 bg-muted/30 rounded-lg space-y-2">
+              <button
+                onClick={() => setShowBackupCodes(!showBackupCodes)}
+                className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+              >
+                {showBackupCodes ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showBackupCodes ? 'Hide' : 'Show'} Backup Codes
+              </button>
+
+              {showBackupCodes && (
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {backupCodes.map((code, idx) => (
+                    <div key={idx} className="px-2 py-1 bg-background rounded text-xs font-mono border border-border/50">
+                      {code}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={downloadBackupCodes}
+              className="w-full px-4 py-2.5 border border-border rounded-lg font-medium hover:bg-muted flex items-center justify-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Download Codes
+            </button>
+
+            <button
+              onClick={() => setStep('complete')}
+              className="w-full px-4 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90"
+            >
+              I've Saved My Codes
+            </button>
           </div>
         )}
 

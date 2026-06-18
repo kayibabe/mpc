@@ -34,6 +34,11 @@
     "is_active": {
       "type": "boolean",
       "default": true
+    },
+    "totp_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if login completed 2FA verification"
     }
   },
   "required": [
@@ -43,12 +48,21 @@
   "description": "User login session audit trail \u2014 tracks authentication events per user",
   "rls": {
     "create": {
-      "user_id": "{{user.id}}"
+      "$or": [
+        {
+          "user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "read": {
       "$or": [
         {
-          "user_id": "{{user.id}}"
+          "data.user_id": "{{user.id}}"
         },
         {
           "user_condition": {
