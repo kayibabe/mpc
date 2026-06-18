@@ -15,21 +15,45 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 const CHART_COLORS = ["hsl(194, 65%, 42%)", "hsl(38, 92%, 50%)", "hsl(160, 60%, 40%)", "hsl(280, 50%, 50%)", "hsl(340, 65%, 50%)", "hsl(0, 72%, 51%)"];
 
-function StatCard({ label, value, sub, color, to }) {
+const STAT_META = {
+  patients:     { icon: Users,        gradient: "from-blue-500/10 to-blue-600/5",   iconBg: "bg-blue-100",        iconColor: "text-blue-600",   accent: "border-blue-200" },
+  appointments: { icon: Calendar,     gradient: "from-violet-500/10 to-violet-600/5", iconBg: "bg-violet-100",   iconColor: "text-violet-600", accent: "border-violet-200" },
+  labOrders:    { icon: FlaskConical, gradient: "from-cyan-500/10 to-cyan-600/5",   iconBg: "bg-cyan-100",        iconColor: "text-cyan-600",   accent: "border-cyan-200" },
+  beds:         { icon: BedDouble,    gradient: "from-indigo-500/10 to-indigo-600/5", iconBg: "bg-indigo-100",   iconColor: "text-indigo-600", accent: "border-indigo-200" },
+  drugs:        { icon: Pill,         gradient: "from-amber-500/10 to-amber-600/5", iconBg: "bg-amber-100",       iconColor: "text-amber-600",  accent: "border-amber-200" },
+  revenue:      { icon: Receipt,      gradient: "from-emerald-500/10 to-emerald-600/5", iconBg: "bg-emerald-100", iconColor: "text-emerald-600", accent: "border-emerald-200" },
+};
+
+function StatCard({ label, value, sub, color, to, metaKey }) {
+  const meta = STAT_META[metaKey] || STAT_META.patients;
+  const Icon = meta.icon;
+
+  const valueColor =
+    color === 'critical' ? 'text-clinical-critical' :
+    color === 'warning'  ? 'text-amber-600' :
+    color === 'success'  ? 'text-emerald-600' :
+    'text-foreground';
+
+  const borderColor =
+    color === 'critical' ? 'border-red-200 hover:border-red-300' :
+    color === 'warning'  ? 'border-amber-200 hover:border-amber-300' :
+    `${meta.accent} hover:border-opacity-80`;
+
   const content = (
-    <div className={`stat-card flex flex-col gap-2 bg-white border transition-all duration-200 group cursor-pointer ${
-      color === 'critical' ? 'border-clinical-critical/20 hover:border-clinical-critical/40 hover:shadow-md hover:shadow-clinical-critical/10' :
-      color === 'warning' ? 'border-triage-urgent/20 hover:border-triage-urgent/40 hover:shadow-md hover:shadow-triage-urgent/10' :
-      'border-border hover:border-primary/30 hover:shadow-md hover:shadow-primary/5'
-    }`}>
-      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">{label}</p>
-      <p className={`text-3xl font-bold tracking-tight font-mono tabular-nums ${
-        color === 'critical' ? 'text-clinical-critical' :
-        color === 'warning' ? 'text-triage-urgent' :
-        color === 'success' ? 'text-clinical-normal' :
-        'text-foreground'
-      }`}>{value}</p>
-      {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
+    <div className={`relative overflow-hidden bg-white rounded-xl border ${borderColor} p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group`}>
+      {/* Gradient background */}
+      <div className={`absolute inset-0 bg-gradient-to-br ${meta.gradient} opacity-60`} />
+      <div className="relative">
+        <div className="flex items-start justify-between mb-3">
+          <div className={`w-9 h-9 rounded-lg ${meta.iconBg} flex items-center justify-center flex-shrink-0`}>
+            <Icon className={`w-4.5 h-4.5 ${meta.iconColor}`} style={{ width: '18px', height: '18px' }} />
+          </div>
+          <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all" />
+        </div>
+        <p className={`text-3xl font-bold tracking-tight font-mono tabular-nums leading-none mb-1.5 ${valueColor}`}>{value}</p>
+        <p className="text-xs font-semibold text-muted-foreground leading-tight">{label}</p>
+        {sub && <p className="text-[11px] text-muted-foreground/70 mt-1">{sub}</p>}
+      </div>
     </div>
   );
   if (to) return <Link to={to}>{content}</Link>;
@@ -299,14 +323,14 @@ export default function Dashboard() {
       {/* KPI Cards */}
       <div>
         <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Key Performance Indicators</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-         <StatCard label="Registered Patients" value={stats.patients} to="/reception" />
-         <StatCard label="Today's Appointments" value={report?.total_appointments_today ?? stats.appointments} sub={report ? `${report.appointments_completed} completed` : null} to="/appointments" />
-         <StatCard label="Pending Lab Orders" value={report?.pending_lab_orders ?? stats.labOrders} to="/lab" />
-         <StatCard label="Occupied Beds" value={report?.active_inpatients ?? stats.occupiedBeds} to="/inpatient" />
-         <StatCard label="Low Stock Drugs" value={report?.drugs_low_stock ?? stats.drugs} color={report?.drugs_low_stock > 0 ? 'warning' : 'success'} to="/pharmacy" />
-         <StatCard label="Revenue (MWK)" value={(report?.total_revenue_mwk ?? stats.revenue).toLocaleString()} to="/billing" />
-       </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <StatCard label="Registered Patients" value={stats.patients} to="/reception" metaKey="patients" />
+          <StatCard label="Today's Appointments" value={report?.total_appointments_today ?? stats.appointments} sub={report ? `${report.appointments_completed} completed` : null} to="/appointments" metaKey="appointments" />
+          <StatCard label="Pending Lab Orders" value={report?.pending_lab_orders ?? stats.labOrders} to="/lab" metaKey="labOrders" />
+          <StatCard label="Occupied Beds" value={report?.active_inpatients ?? stats.occupiedBeds} to="/inpatient" metaKey="beds" />
+          <StatCard label="Low Stock Drugs" value={report?.drugs_low_stock ?? stats.drugs} color={report?.drugs_low_stock > 0 ? 'warning' : 'success'} to="/pharmacy" metaKey="drugs" />
+          <StatCard label="Revenue (MWK)" value={(report?.total_revenue_mwk ?? stats.revenue).toLocaleString()} to="/billing" metaKey="revenue" />
+        </div>
       </div>
 
       {report && (
