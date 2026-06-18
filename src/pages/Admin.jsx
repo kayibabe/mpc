@@ -39,6 +39,7 @@ export default function Admin() {
   const [schemeForm, setSchemeForm] = useState({ name: "", code: "", contact_phone: "", contact_email: "", coverage_details: "" });
   const [exporting, setExporting] = useState(false);
   const [toast, setToast] = useState(null); // { type: 'success'|'error', title, message }
+  const [userSearch, setUserSearch] = useState("");
 
   const showToast = (type, title, message) => {
     setToast({ type, title, message });
@@ -172,8 +173,18 @@ export default function Admin() {
           {activeTab === "users" && (
             <div>
               <div className="flex justify-between items-center mb-4">
-                <p className="text-sm text-muted-foreground">{users.length} registered users</p>
+                <p className="text-sm text-muted-foreground">{users.filter(u => !userSearch || u.display_name?.toLowerCase().includes(userSearch.toLowerCase()) || u.full_name?.toLowerCase().includes(userSearch.toLowerCase()) || u.email?.toLowerCase().includes(userSearch.toLowerCase()) || u.role?.toLowerCase().includes(userSearch.toLowerCase())).length} of {users.length} users</p>
                 <button onClick={() => setShowInvite(!showInvite)} className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium"><UserPlus className="w-4 h-4" /> Invite User</button>
+              </div>
+
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Search by name, email, or role..."
+                  className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                />
               </div>
 
               {showInvite && (
@@ -185,7 +196,7 @@ export default function Admin() {
               )}
 
               <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-border"><th className="text-left py-2 px-3 font-medium text-muted-foreground">Name</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Email</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Role</th><th className="text-left py-2 px-3 font-medium text-muted-foreground">Joined</th></tr></thead><tbody>
-                {users.map(u => (
+                {users.filter(u => !userSearch || u.display_name?.toLowerCase().includes(userSearch.toLowerCase()) || u.full_name?.toLowerCase().includes(userSearch.toLowerCase()) || u.email?.toLowerCase().includes(userSearch.toLowerCase()) || u.role?.toLowerCase().includes(userSearch.toLowerCase())).map(u => (
                   <tr key={u.id} className="border-b border-border/40">
                     <td className="py-2.5 px-3 font-medium">
                       {editingUser === u.id ? (
