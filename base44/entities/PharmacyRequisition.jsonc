@@ -1,0 +1,108 @@
+{
+  "name": "PharmacyRequisition",
+  "type": "object",
+  "properties": {
+    "drug_id": {
+      "type": "string"
+    },
+    "drug_name": {
+      "type": "string"
+    },
+    "current_stock": {
+      "type": "number"
+    },
+    "minimum_level": {
+      "type": "number"
+    },
+    "reorder_quantity": {
+      "type": "number"
+    },
+    "unit_cost": {
+      "type": "number"
+    },
+    "total_cost": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "approved",
+        "rejected",
+        "ordered"
+      ],
+      "default": "draft"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "approved_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "drug_id",
+    "drug_name",
+    "current_stock",
+    "minimum_level",
+    "reorder_quantity"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "pharmacist"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "pharmacist"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "store_manager"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "pharmacist"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

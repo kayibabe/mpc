@@ -7,6 +7,7 @@ import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
 import DepartmentDashboard from "@/components/DepartmentDashboard";
 import SignaturePad from "@/components/SignaturePad";
 import SignatureStatus from "@/components/SignatureStatus";
+import PharmacyRequisitionDashboard from "@/components/PharmacyRequisitionDashboard";
 
 export default function Pharmacy() {
   const [drugs, setDrugs] = useState([]);
@@ -214,6 +215,8 @@ export default function Pharmacy() {
         <div className="stat-card"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center"><AlertTriangle className="w-5 h-5 text-destructive" /></div><div><p className="text-sm text-muted-foreground">Low Stock</p><p className="text-xl font-bold">{lowStockDrugs.length}</p></div></div></div>
         <div className="stat-card"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-chart-4/10 flex items-center justify-center"><Clock className="w-5 h-5 text-chart-4" /></div><div><p className="text-sm text-muted-foreground">Expiring ≤90 Days</p><p className="text-xl font-bold">{expiringDrugs.length}</p></div></div></div>
       </div>
+
+      <PharmacyRequisitionDashboard />
 
       <div className="bg-card rounded-xl border border-border/60 shadow-sm">
         <div className="border-b border-border flex">
