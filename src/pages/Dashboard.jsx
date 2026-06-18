@@ -726,6 +726,10 @@ export default function Dashboard() {
                                     </div>
                                     )}
                                     </div>
+                                    </div>
+                                    )}
+
+                                    <RoleBasedReportDownload userRole={userRole} />
 
           {/* Admin Quick Actions + Patient Reminders — side by side */}
           {isAdmin && (
