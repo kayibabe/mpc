@@ -56,8 +56,8 @@ function StatCard({ label, value, sub, color, to, metaKey }) {
       <div className={`absolute inset-0 bg-gradient-to-br ${meta.gradient} opacity-60`} />
       <div className="relative">
         <div className="flex items-start justify-between mb-3">
-          <div className={`w-9 h-9 rounded-lg ${meta.iconBg} flex items-center justify-center flex-shrink-0`}>
-            <Icon className={`w-4.5 h-4.5 ${meta.iconColor}`} style={{ width: '18px', height: '18px' }} />
+          <div className={`w-10 h-10 rounded-xl ${meta.iconBg} ring-1 ring-inset ring-black/[0.03] flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform duration-200`}>
+            <Icon className={meta.iconColor} style={{ width: '19px', height: '19px' }} strokeWidth={2.25} />
           </div>
           <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all" />
         </div>
@@ -361,7 +361,9 @@ export default function Dashboard() {
 
       {/* Role-Specific KPI Cards */}
        <div>
-         <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Key Performance Indicators</h2>
+         <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+           <span className="w-1 h-3.5 rounded-full bg-primary" /> Key Performance Indicators
+         </h2>
         <div className={`grid gap-4 items-stretch ${isAdmin ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-6" : isDoctor || isPharmacist || isCashier ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : isStoreManager ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2 md:grid-cols-3"}`}>
           {(isAdmin || isReceptionist) && <StatCard label="Registered Patients" value={report?.total_patients ?? stats.patients} to="/reception" metaKey="patients" />}
           {(isAdmin || isReceptionist || isDoctor) && <StatCard label="Today's Appointments" value={report?.total_appointments_today ?? stats.appointments} sub={report ? `${report.appointments_completed} completed` : null} to="/appointments" metaKey="appointments" />}
@@ -376,7 +378,9 @@ export default function Dashboard() {
       {isAdmin && (
         <>
           <div>
-            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Daily Operations</h2>
+            <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+              <span className="w-1 h-3.5 rounded-full bg-primary" /> Daily Operations
+            </h2>
             <DailyIntakeSummary />
           </div>
 
@@ -403,7 +407,9 @@ export default function Dashboard() {
 
       {report && isAdmin && (
         <div>
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Operational Summary</h2>
+          <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            <span className="w-1 h-3.5 rounded-full bg-primary" /> Operational Summary
+          </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {report.total_visits_today !== undefined && (
               <div className="bg-white rounded-lg border border-border p-4 text-center">
@@ -595,7 +601,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           <div className="lg:col-span-2 bg-white rounded-lg border border-border p-5">
             <h3 className="font-heading text-sm font-semibold mb-4 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-primary" /> Recent Visits
+              <span className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center"><Activity className="w-4 h-4 text-primary" /></span> Recent Visits
             </h3>
             {recentVisits.length === 0 ? (
               <p className="text-xs text-muted-foreground py-8 text-center">No visits recorded yet.</p>
@@ -648,7 +654,7 @@ export default function Dashboard() {
             {/* Active Patient Journeys — Grouped by Stage */}
             <div className="mt-6">
               <h3 className="font-heading text-sm font-semibold mb-3 flex items-center gap-2">
-                <GitBranch className="w-4 h-4 text-primary" /> Active Journeys ({activeJourneys.length})
+                <span className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center"><GitBranch className="w-4 h-4 text-primary" /></span> Active Journeys ({activeJourneys.length})
               </h3>
               {activeJourneys.length === 0 ? (
                 <p className="text-xs text-muted-foreground py-4 bg-white rounded-lg border border-border px-4">No active patient journeys.</p>
@@ -736,7 +742,7 @@ export default function Dashboard() {
               <div className="space-y-5">
                 <div className="bg-white rounded-lg border border-border p-5">
                   <h3 className="font-heading text-sm font-semibold mb-3 flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-primary" /> Quick Actions
+                    <span className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center"><TrendingUp className="w-4 h-4 text-primary" /></span> Quick Actions
                   </h3>
                   <div className="space-y-2">
                     {[
@@ -756,7 +762,7 @@ export default function Dashboard() {
 
                 <div className="bg-white rounded-lg border border-border p-5">
                   <h3 className="font-heading text-sm font-semibold mb-3 flex items-center gap-2">
-                    <Bell className="w-4 h-4 text-chart-2" /> Patient Reminders
+                    <span className="w-7 h-7 rounded-lg bg-chart-2/10 flex items-center justify-center"><Bell className="w-4 h-4 text-chart-2" /></span> Patient Reminders
                   </h3>
                   <p className="text-xs text-muted-foreground mb-3">
                     Send appointment reminders for tomorrow's scheduled patients. Runs daily at 6am.
@@ -789,7 +795,7 @@ export default function Dashboard() {
                 {notifications.length > 0 && (
                   <div className="bg-white rounded-lg border border-border p-5">
                     <h3 className="font-heading text-sm font-semibold mb-3 flex items-center gap-2">
-                      <Megaphone className="w-4 h-4 text-chart-2" /> Notifications ({notifications.length})
+                      <span className="w-7 h-7 rounded-lg bg-chart-2/10 flex items-center justify-center"><Megaphone className="w-4 h-4 text-chart-2" /></span> Notifications ({notifications.length})
                     </h3>
                     <div className="space-y-2 max-h-[300px] overflow-y-auto">
                       {notifications.map(n => (
