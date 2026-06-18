@@ -360,7 +360,7 @@ export default function Dashboard() {
       {(isAdmin || isNurse) && <BedOccupancyAlert threshold={80} />}
 
       {/* Role-Specific KPI Cards */}
-       {!isStoreManager && <div>
+       <div>
          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Key Performance Indicators</h2>
         <div className={`grid gap-4 ${isAdmin ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-6" : isDoctor || isPharmacist || isCashier ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : "grid-cols-2 md:grid-cols-3"}`}>
           {(isAdmin || isReceptionist) && <StatCard label="Registered Patients" value={stats.patients} to="/reception" metaKey="patients" />}
@@ -370,7 +370,7 @@ export default function Dashboard() {
           {(isAdmin || isPharmacist) && <StatCard label="Low Stock Drugs" value={report?.drugs_low_stock ?? stats.drugs} color={report?.drugs_low_stock > 0 ? 'warning' : 'success'} to="/pharmacy" metaKey="drugs" />}
           {(isAdmin || isCashier) && <StatCard label="Revenue (MWK)" value={(report?.total_revenue_mwk ?? stats.revenue).toLocaleString()} to="/billing" metaKey="revenue" />}
           </div>
-          </div>}
+          </div>
 
       {/* Admin Dashboard Widgets */}
       {isAdmin && (
