@@ -13,7 +13,7 @@ const DEPT_CONFIGS = {
     label: "Clinical",
     color: "bg-chart-1",
     metrics: ["consultations", "diagnoses", "prescriptions", "avgConsultTime"],
-    pullStage: "CONSULTATION",
+    pullStage: null,
   },
   lab: {
     label: "Laboratory",
