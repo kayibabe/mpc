@@ -76,8 +76,13 @@ Deno.serve(async (req) => {
     let verified = false;
 
     // Verify TOTP token if provided
-    if (token && token.length === 6) {
-      verified = await verifyTOTP(userSecurity.totp_secret, token);
+    if (token && token.length === 6 && userSecurity.totp_secret) {
+      try {
+        verified = await verifyTOTP(userSecurity.totp_secret, token);
+      } catch (e) {
+        // Invalid secret format, treat as failed verification
+        verified = false;
+      }
     }
 
     // Verify backup code if TOTP failed and backup code provided
