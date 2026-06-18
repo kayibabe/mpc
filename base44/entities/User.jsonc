@@ -1,17 +1,28 @@
 {
+  "name": "User",
+  "type": "object",
   "properties": {
     "role": {
       "type": "string",
       "description": "The role of the user in the app",
       "enum": [
         "admin",
-        "user"
+        "user",
+        "doctor",
+        "clinician",
+        "nurse",
+        "midwife",
+        "pharmacist",
+        "lab_technician",
+        "radiographer",
+        "cashier",
+        "receptionist",
+        "surgical_lead",
+        "store_manager"
       ]
     }
   },
   "required": [
     "role"
-  ],
-  "name": "User",
-  "type": "object"
+  ]
 }
