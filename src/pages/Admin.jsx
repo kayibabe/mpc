@@ -20,6 +20,8 @@ export default function Admin() {
   const [updatingRole, setUpdatingRole] = useState(null);
   const [editingUser, setEditingUser] = useState(null); // { id, full_name }
   const [editingName, setEditingName] = useState("");
+  const [editingScheme, setEditingScheme] = useState(null);
+  const [schemeEditForm, setSchemeEditForm] = useState({});
 
   const STAFF_ROLES = [
     { value: "user", label: "User (Default)" },
@@ -117,6 +119,22 @@ export default function Admin() {
     setSchemes(s);
     setShowSchemeForm(false);
     setSchemeForm({ name: "", code: "", contact_phone: "", contact_email: "", coverage_details: "" });
+  };
+
+  const startEditScheme = (scheme) => {
+    setEditingScheme(scheme.id);
+    setSchemeEditForm(scheme);
+  };
+
+  const saveEditScheme = async () => {
+    try {
+      await base44.entities.MedicalAidScheme.update(editingScheme, schemeEditForm);
+      const s = await base44.entities.MedicalAidScheme.list("", 50);
+      setSchemes(s);
+      setEditingScheme(null);
+    } catch (err) {
+      showToast("error", "Update Failed", err.message);
+    }
   };
 
   const refreshAuditLogs = async () => {
@@ -265,12 +283,12 @@ export default function Admin() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {schemes.map(s => (
-                  <div key={s.id} className="p-4 border border-border rounded-xl hover:border-primary/30 transition-colors">
+                  <button key={s.id} onClick={() => startEditScheme(s)} className="p-4 border border-border rounded-xl hover:border-primary/30 hover:shadow-md transition-all text-left cursor-pointer">
                     <p className="font-semibold text-sm">{s.name}</p>
                     <p className="text-xs text-muted-foreground font-mono">{s.code}</p>
                     {s.contact_phone && <p className="text-xs text-muted-foreground mt-1">{s.contact_phone}</p>}
                     {s.contact_email && <p className="text-xs text-muted-foreground">{s.contact_email}</p>}
-                  </div>
+                  </button>
                 ))}
                 {schemes.length === 0 && <p className="col-span-3 py-8 text-center text-sm text-muted-foreground">No schemes configured.</p>}
               </div>
@@ -377,6 +395,45 @@ export default function Admin() {
           )}
         </div>
       </div>
+
+      {/* Edit Scheme Modal */}
+      {editingScheme && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setEditingScheme(null)} />
+          <div className="relative z-10 w-full max-w-md mx-4 bg-card rounded-xl border border-border shadow-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-heading text-lg font-semibold">Edit Scheme</h3>
+              <button onClick={() => setEditingScheme(null)} className="text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs text-muted-foreground mb-1">Name</label>
+                <input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={schemeEditForm.name || ""} onChange={e => setSchemeEditForm({...schemeEditForm, name: e.target.value})} />
+              </div>
+              <div>
+                <label className="block text-xs text-muted-foreground mb-1">Code</label>
+                <input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={schemeEditForm.code || ""} onChange={e => setSchemeEditForm({...schemeEditForm, code: e.target.value})} />
+              </div>
+              <div>
+                <label className="block text-xs text-muted-foreground mb-1">Phone</label>
+                <input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={schemeEditForm.contact_phone || ""} onChange={e => setSchemeEditForm({...schemeEditForm, contact_phone: e.target.value})} />
+              </div>
+              <div>
+                <label className="block text-xs text-muted-foreground mb-1">Email</label>
+                <input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={schemeEditForm.contact_email || ""} onChange={e => setSchemeEditForm({...schemeEditForm, contact_email: e.target.value})} />
+              </div>
+              <div>
+                <label className="block text-xs text-muted-foreground mb-1">Coverage Details</label>
+                <input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" value={schemeEditForm.coverage_details || ""} onChange={e => setSchemeEditForm({...schemeEditForm, coverage_details: e.target.value})} />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-4">
+              <button onClick={saveEditScheme} className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium">Save Changes</button>
+              <button onClick={() => setEditingScheme(null)} className="px-4 py-2 border border-border rounded-lg text-sm">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast Notification */}
       {toast && (
