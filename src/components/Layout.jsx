@@ -16,16 +16,16 @@ const ALL_NAV_GROUPS = [
 {
   label: "Main",
   items: [
-  { label: "Dashboard", path: "/", icon: LayoutDashboard, roles: ["admin", "user"] }]
+  { label: "Dashboard", path: "/", icon: LayoutDashboard, roles: ["admin", "user", "receptionist"] }]
 
 },
 {
   label: "Patient Access",
   items: [
-  { label: "Reception", path: "/reception", icon: Users, roles: ["admin", "user"] },
-  { label: "Patient Intake", path: "/patient-intake", icon: Users, roles: ["admin", "user"] },
-  { label: "Appointments", path: "/appointments", icon: CalendarDays, roles: ["admin", "user"] },
-  { label: "Triage", path: "/triage", icon: ClipboardCheck, roles: ["admin", "user"] }]
+  { label: "Reception", path: "/reception", icon: Users, roles: ["admin", "user", "receptionist"] },
+  { label: "Patient Intake", path: "/patient-intake", icon: Users, roles: ["admin", "user", "receptionist"] },
+  { label: "Appointments", path: "/appointments", icon: CalendarDays, roles: ["admin", "user", "receptionist"] },
+  { label: "Triage", path: "/triage", icon: ClipboardCheck, roles: ["admin", "user", "receptionist"] }]
 
 },
 {
