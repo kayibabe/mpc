@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { AlertTriangle, Package, RefreshCw, Save, Loader2, Search } from "lucide-react";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default function InventoryAudit() {
   const [drugs, setDrugs] = useState([]);
@@ -104,15 +105,11 @@ export default function InventoryAudit() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title">Inventory Audit</h2>
-          <p className="text-sm text-muted-foreground mt-1">Physical stock verification and discrepancy tracking</p>
-        </div>
+      <PageHeader title="Inventory Audit" subtitle="Physical stock verification and discrepancy tracking" icon={Package} className="mb-6">
         <button onClick={loadData} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium hover:bg-muted">
           <RefreshCw className="w-3.5 h-3.5" /> Refresh
         </button>
-      </div>
+      </PageHeader>
 
       {/* Alerts */}
       {(lowStockDrugs.length > 0 || expiredReagents.length > 0) && (

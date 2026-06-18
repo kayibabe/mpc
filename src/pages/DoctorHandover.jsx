@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { ArrowRightLeft, Plus, Check, Clock, User, Stethoscope, AlertTriangle, Users, Search, X, Save, Loader2, ClipboardList, ShieldCheck, ClipboardPen, FileDown, RefreshCw, Bookmark, Copy } from "lucide-react";
 import StaffComplianceDashboard from "@/components/StaffComplianceDashboard";
+import PageHeader from "@/components/ui/PageHeader";
 
 const SHIFT_TYPES = [
   { value: "morning", label: "Morning (06:00–14:00)", color: "bg-sky-500/10 text-sky-600 border-sky-500/20" },
@@ -191,11 +192,7 @@ export default function DoctorHandover() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title">Doctor Shift Handover</h2>
-          <p className="text-sm text-muted-foreground mt-1">Clinical shift handover with patient handoff & compliance tracking</p>
-        </div>
+      <PageHeader title="Doctor Shift Handover" subtitle="Clinical shift handover with patient handoff & compliance tracking" icon={ArrowRightLeft} className="mb-6">
         <div className="flex items-center gap-2">
           <button
             onClick={syncShiftReports}
@@ -231,7 +228,7 @@ export default function DoctorHandover() {
             {syncResult.error}
           </div>
         )}
-      </div>
+      </PageHeader>
 
       <div className="mb-4 border-b border-border flex gap-1">
         {[

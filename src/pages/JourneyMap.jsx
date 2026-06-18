@@ -1,10 +1,11 @@
 import JourneyMap from "@/components/JourneyMap";
+import PageHeader from "@/components/ui/PageHeader";
+import { GitBranch } from "lucide-react";
 
 export default function JourneyMapPage() {
   return (
     <div className="page-container">
-      <h2 className="section-title mb-6">Patient Journey Map</h2>
-      <p className="text-sm text-muted-foreground mb-6">Kanban-style view of all active patient journeys across the hospital workflow.</p>
+      <PageHeader title="Patient Journey Map" subtitle="Kanban-style view of all active patient journeys across the hospital workflow." icon={GitBranch} className="mb-6" />
       <JourneyMap />
     </div>
   );

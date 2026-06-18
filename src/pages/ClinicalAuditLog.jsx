@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { FileText, Search, RefreshCw, Filter, BarChart3 } from "lucide-react";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default function ClinicalAuditLog() {
   const [auditLogs, setAuditLogs] = useState([]);
@@ -52,15 +53,11 @@ export default function ClinicalAuditLog() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title">Clinical Audit Log</h2>
-          <p className="text-sm text-muted-foreground mt-1">Track all clinical data changes and user actions</p>
-        </div>
+      <PageHeader title="Clinical Audit Log" subtitle="Track all clinical data changes and user actions" icon={FileText} className="mb-6">
         <button onClick={loadData} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium hover:bg-muted">
           <RefreshCw className="w-3.5 h-3.5" /> Refresh
         </button>
-      </div>
+      </PageHeader>
 
       {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

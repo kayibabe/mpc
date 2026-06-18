@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Package, Check, Clock, AlertCircle, Loader2, X } from "lucide-react";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default function SurgicalDispensing() {
   const [requisitions, setRequisitions] = useState([]);
@@ -109,10 +110,7 @@ export default function SurgicalDispensing() {
 
   return (
     <div className="page-container">
-      <div>
-        <h2 className="section-title">Surgical Supply Dispensing</h2>
-        <p className="text-sm text-muted-foreground mt-1">Issue & track surgical supplies to theater</p>
-      </div>
+      <PageHeader title="Surgical Supply Dispensing" subtitle="Issue & track surgical supplies to theater" icon={Package} />
 
       <div className="space-y-4 mt-6">
         {requisitions.length === 0 ? (

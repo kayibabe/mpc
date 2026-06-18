@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Users, Save, Loader2, X, Plus, AlertCircle } from "lucide-react";
+import PageHeader from "@/components/ui/PageHeader";
 
 const INTAKE_SECTIONS = ["demographics", "medical_history", "allergies", "medications", "review"];
 
@@ -144,10 +145,7 @@ export default function PatientIntake() {
 
   return (
     <div className="page-container">
-      <div className="mb-6">
-        <h2 className="section-title">Patient Intake Form</h2>
-        <p className="text-sm text-muted-foreground mt-1">Complete registration and health history</p>
-      </div>
+      <PageHeader title="Patient Intake Form" subtitle="Complete registration and health history" icon={Users} className="mb-6" />
 
       {/* Progress Bar */}
       <div className="mb-6 flex gap-2">

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Pill, CheckCircle, AlertTriangle, TrendingUp, Calendar, RefreshCw } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default function TreatmentAdherence() {
   const [patients, setPatients] = useState([]);
@@ -94,15 +95,11 @@ export default function TreatmentAdherence() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title">Treatment Adherence Tracking</h2>
-          <p className="text-sm text-muted-foreground mt-1">Monitor patient compliance and appointment attendance</p>
-        </div>
+      <PageHeader title="Treatment Adherence Tracking" subtitle="Monitor patient compliance and appointment attendance" icon={Pill} className="mb-6">
         <button onClick={loadData} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium hover:bg-muted">
           <RefreshCw className="w-3.5 h-3.5" /> Refresh
         </button>
-      </div>
+      </PageHeader>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

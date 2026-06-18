@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Package, Plus, Search, AlertTriangle, RefreshCw, Save, Loader2, Edit2, X } from "lucide-react";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default function SurgicalSupplyInventory() {
   const [supplies, setSupplies] = useState([]);
@@ -103,11 +104,7 @@ export default function SurgicalSupplyInventory() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title">Surgical Supply Inventory</h2>
-          <p className="text-sm text-muted-foreground mt-1">Instruments, implants, and supplies management</p>
-        </div>
+      <PageHeader title="Surgical Supply Inventory" subtitle="Instruments, implants, and supplies management" icon={Package} className="mb-6">
         <button
           onClick={() => {
             setShowForm(true);
@@ -118,7 +115,7 @@ export default function SurgicalSupplyInventory() {
         >
           <Plus className="w-4 h-4" /> Add Supply
         </button>
-      </div>
+      </PageHeader>
 
       {/* Low Stock Alert */}
       {lowStockSupplies.length > 0 && (

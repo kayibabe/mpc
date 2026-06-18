@@ -5,6 +5,7 @@ import {
   BedDouble, PenTool, Shield, Award, Loader2, Calendar, Clock, BarChart3
 } from "lucide-react";
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, BarChart, Bar } from "recharts";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default function PhysicianPerformance() {
   const [data, setData] = useState(null);
@@ -61,16 +62,7 @@ export default function PhysicianPerformance() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title flex items-center gap-2">
-            <Stethoscope className="w-6 h-6 text-primary" /> Physician Performance
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            30-day clinical performance metrics for all physicians
-          </p>
-        </div>
-      </div>
+      <PageHeader title="Physician Performance" subtitle="30-day clinical performance metrics for all physicians" icon={Stethoscope} className="mb-6" />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">

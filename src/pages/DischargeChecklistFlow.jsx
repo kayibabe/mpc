@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { CheckCircle, Circle, FileText, Plus, Save, Loader2, X } from "lucide-react";
+import PageHeader from "@/components/ui/PageHeader";
 
 const DISCHARGE_ITEMS = [
   "Final diagnosis documented",
@@ -112,12 +113,7 @@ export default function DischargeChecklistFlow() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title">Discharge Checklist Flow</h2>
-          <p className="text-sm text-muted-foreground mt-1">Structured discharge process with safety checklist</p>
-        </div>
-      </div>
+      <PageHeader title="Discharge Checklist Flow" subtitle="Structured discharge process with safety checklist" icon={CheckCircle} className="mb-6" />
 
       {!selectedAdmission ? (
         <div className="bg-card rounded-xl border border-border/60 shadow-sm">

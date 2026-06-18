@@ -5,6 +5,7 @@ import {
   AlertTriangle, ShieldCheck, Loader2, Search, Filter, X
 } from "lucide-react";
 import SignaturePad from "@/components/SignaturePad";
+import PageHeader from "@/components/ui/PageHeader";
 
 const DOC_ICONS = {
   consultation: FileText, prescription: Pill, lab_order: FlaskConical,
@@ -114,16 +115,7 @@ export default function MySignatures() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title flex items-center gap-2">
-            <PenTool className="w-6 h-6 text-primary" /> My Signatures
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Sign clinical documents and track your signature compliance
-          </p>
-        </div>
-      </div>
+      <PageHeader title="My Signatures" subtitle="Sign clinical documents and track your signature compliance" icon={PenTool} className="mb-6" />
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">

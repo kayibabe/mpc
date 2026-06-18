@@ -4,6 +4,7 @@ import {
   Calendar, Clock, Users, AlertTriangle, CheckCircle, Plus, Edit2, X,
   ChevronLeft, ChevronRight, Loader2, Save, Trash2, Zap, Search
 } from "lucide-react";
+import PageHeader from "@/components/ui/PageHeader";
 
 const SHIFT_TIMES = {
   morning: { start: "06:00", end: "14:00", label: "Morning (6am–2pm)" },
@@ -149,18 +150,14 @@ export default function DoctorSchedule() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title">Doctor Schedule</h2>
-          <p className="text-sm text-muted-foreground mt-1">Clinical shifts & ward rotations</p>
-        </div>
+      <PageHeader title="Doctor Schedule" subtitle="Clinical shifts & ward rotations" icon={Calendar} className="mb-6">
         <button
           onClick={() => { setShowForm(true); setEditingId(null); setForm({ doctor_id: "", doctor_name: "", schedule_date: "", shift_type: "morning", department: "clinical", ward_id: "", ward_name: "", specialty: "", notes: "" }); }}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 shadow-sm"
         >
           <Plus className="w-3.5 h-3.5" /> Add Schedule
         </button>
-      </div>
+      </PageHeader>
 
       {/* Controls */}
       <div className="bg-card rounded-xl border border-border/60 p-4 shadow-sm mb-6 flex items-center gap-4 flex-wrap">

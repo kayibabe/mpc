@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Plus, Check, Clock, AlertCircle, Search, Loader2, X, Edit2, Trash2, Package } from "lucide-react";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default function SurgicalRequisitions() {
   const [requisitions, setRequisitions] = useState([]);
@@ -144,18 +145,14 @@ export default function SurgicalRequisitions() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title">Surgical Supply Requisitions</h2>
-          <p className="text-sm text-muted-foreground mt-1">Request & manage surgical supplies for scheduled procedures</p>
-        </div>
+      <PageHeader title="Surgical Supply Requisitions" subtitle="Request & manage surgical supplies for scheduled procedures" icon={Package} className="mb-6">
         <button
           onClick={() => { setShowForm(true); setSelectedReq(null); resetForm(); }}
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90"
         >
           <Plus className="w-4 h-4" /> New Requisition
         </button>
-      </div>
+      </PageHeader>
 
       {/* Status Filter */}
       <div className="flex gap-2 mb-6 flex-wrap">

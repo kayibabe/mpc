@@ -5,6 +5,7 @@ import {
   ResponsiveContainer, ScatterChart, Scatter
 } from "recharts";
 import { TrendingUp, Download, Loader2, RefreshCw, Award, Users, Clock } from "lucide-react";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default function DoctorPerformanceReport() {
   const [doctors, setDoctors] = useState([]);
@@ -98,15 +99,11 @@ export default function DoctorPerformanceReport() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title">Doctor Performance Report</h2>
-          <p className="text-sm text-muted-foreground mt-1">Consultation metrics, satisfaction, and clinical outcomes</p>
-        </div>
+      <PageHeader title="Doctor Performance Report" subtitle="Consultation metrics, satisfaction, and clinical outcomes" icon={TrendingUp} className="mb-6">
         <button onClick={loadDoctors} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium hover:bg-muted">
           <RefreshCw className="w-3.5 h-3.5" /> Refresh
         </button>
-      </div>
+      </PageHeader>
 
       {/* Doctor Selector */}
       <div className="bg-card rounded-xl border border-border/60 p-5 shadow-sm mb-6">

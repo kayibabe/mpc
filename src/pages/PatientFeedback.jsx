@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { MessageSquare, Star, Send, Loader2, BarChart2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default function PatientFeedback() {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -113,18 +114,14 @@ export default function PatientFeedback() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title">Patient Feedback</h2>
-          <p className="text-sm text-muted-foreground mt-1">Patient satisfaction surveys and feedback management</p>
-        </div>
+      <PageHeader title="Patient Feedback" subtitle="Patient satisfaction surveys and feedback management" icon={MessageSquare} className="mb-6">
         <button
           onClick={() => setShowForm(true)}
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90"
         >
           <Send className="w-4 h-4" /> Submit Feedback
         </button>
-      </div>
+      </PageHeader>
 
       {/* Ratings Summary */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

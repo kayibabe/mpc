@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Package, TrendingUp, Clock, CheckCircle, AlertTriangle, Filter, Download } from "lucide-react";
+import PageHeader from "@/components/ui/PageHeader";
 
 const STATUS_FLOW = ["pending", "dispensed", "received", "used", "returned"];
 const STATUS_COLORS = {
@@ -78,18 +79,14 @@ export default function SurgicalSupplyTracker() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title">Surgical Supply Tracker</h2>
-          <p className="text-sm text-muted-foreground mt-1">Track supplies through requisition, dispensing, and usage</p>
-        </div>
+      <PageHeader title="Surgical Supply Tracker" subtitle="Track supplies through requisition, dispensing, and usage" icon={Package} className="mb-6">
         <button
           onClick={exportToSheets}
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90"
         >
           <Download className="w-4 h-4" /> Export CSV
         </button>
-      </div>
+      </PageHeader>
 
       {/* Status Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">

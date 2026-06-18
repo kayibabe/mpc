@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Scan, Search, Download, Plus, X, Save, Loader2, Eye, FileText } from "lucide-react";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default function RadiologyReportLibrary() {
   const [reports, setReports] = useState([]);
@@ -105,11 +106,7 @@ export default function RadiologyReportLibrary() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title">Radiology Report Library</h2>
-          <p className="text-sm text-muted-foreground mt-1">Imaging reports, findings, and radiologist recommendations</p>
-        </div>
+      <PageHeader title="Radiology Report Library" subtitle="Imaging reports, findings, and radiologist recommendations" icon={Scan} className="mb-6">
         <button
           onClick={() => {
             setShowForm(true);
@@ -130,7 +127,7 @@ export default function RadiologyReportLibrary() {
         >
           <Plus className="w-4 h-4" /> New Report
         </button>
-      </div>
+      </PageHeader>
 
       {/* Search */}
       <div className="bg-card rounded-xl border border-border/60 p-4 shadow-sm mb-6 flex items-center gap-3">

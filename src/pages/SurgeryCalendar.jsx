@@ -6,6 +6,7 @@ import SurgicalChecklist from "@/components/SurgicalChecklist";
 import AnesthesiaLog from "@/components/AnesthesiaLog";
 import SurgicalRequisitionModal from "@/components/SurgicalRequisitionModal";
 import BookingRequisitionStatus from "@/components/BookingRequisitionStatus";
+import PageHeader from "@/components/ui/PageHeader";
 
 const THEATER_LABELS = {
   theatre_1: "Theatre 1",
@@ -167,12 +168,7 @@ export default function SurgeryCalendar() {
   return (
     <div className="page-container">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title">Theatre Bookings</h2>
-          <p className="text-sm text-muted-foreground mt-1">Surgical schedule — {date.format("dddd, D MMMM YYYY")}</p>
-        </div>
-        <div className="flex items-center gap-3">
+      <PageHeader title="Theatre Bookings" subtitle={`Surgical schedule — ${date.format("dddd, D MMMM YYYY")}`} icon={Calendar} className="mb-6">
           <button onClick={() => { setDate(moment()); loadData(); }} className="px-3 py-1.5 border border-border rounded-lg text-xs font-medium hover:bg-muted">Today</button>
           <div className="flex items-center gap-1">
             <button onClick={() => setDate(date.clone().subtract(1, "day"))} className="p-1.5 rounded-lg hover:bg-muted"><ChevronLeft className="w-4 h-4" /></button>
@@ -182,8 +178,7 @@ export default function SurgeryCalendar() {
           <button onClick={() => setShowForm(true)} className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 shadow-sm">
             <Plus className="w-4 h-4" /> Book Surgery
           </button>
-        </div>
-      </div>
+      </PageHeader>
 
       {loading ? (
         <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-muted border-t-primary rounded-full animate-spin" /></div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { TrendingUp, Activity, CheckCircle, AlertTriangle, RefreshCw, Search } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default function PatientOutcomeTracker() {
   const [patients, setPatients] = useState([]);
@@ -80,15 +81,11 @@ export default function PatientOutcomeTracker() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title">Patient Outcome Tracker</h2>
-          <p className="text-sm text-muted-foreground mt-1">Monitor recovery status, discharge trends, and patient outcomes</p>
-        </div>
+      <PageHeader title="Patient Outcome Tracker" subtitle="Monitor recovery status, discharge trends, and patient outcomes" icon={TrendingUp} className="mb-6">
         <button onClick={loadData} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium hover:bg-muted">
           <RefreshCw className="w-3.5 h-3.5" /> Refresh
         </button>
-      </div>
+      </PageHeader>
 
       {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

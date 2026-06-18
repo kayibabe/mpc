@@ -4,6 +4,7 @@ import {
   PenTool, Search, Filter, Calendar, FileText, Pill, FlaskConical,
   Scan, ClipboardPen, Clock, User, ChevronDown, Download, X
 } from "lucide-react";
+import PageHeader from "@/components/ui/PageHeader";
 
 const DOC_TYPE_ICONS = {
   consultation: FileText,
@@ -145,17 +146,7 @@ export default function SignatureAudit() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title flex items-center gap-2">
-            <PenTool className="w-6 h-6 text-primary" />
-            Signature Audit
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Track and verify all clinical signatures with full audit trail
-          </p>
-        </div>
-      </div>
+      <PageHeader title="Signature Audit" subtitle="Track and verify all clinical signatures with full audit trail" icon={PenTool} className="mb-6" />
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">

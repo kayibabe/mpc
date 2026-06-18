@@ -14,6 +14,7 @@ import ClaimApprovalWorkflow from "@/components/ClaimApprovalWorkflow";
 import ClaimSummaryDashboard from "@/components/ClaimSummaryDashboard";
 import ClaimPreviewModal from "@/components/ClaimPreviewModal";
 import { validateClaim } from "@/lib/claimValidation";
+import PageHeader from "@/components/ui/PageHeader";
 
 const STATUS_COLORS = {
   pending: "bg-chart-4/10 text-chart-4 border-chart-4/20",
@@ -230,26 +231,20 @@ export default function InsuranceClaimPortal() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title">Insurance Claims Portal</h2>
-          <p className="text-sm text-muted-foreground mt-1">Manage insurance billing and claim submissions</p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setShowDigitalForm(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-chart-1 text-white rounded-lg text-sm font-medium hover:bg-chart-1/90"
-          >
-            <Edit3 className="w-4 h-4" /> Digital Form
-          </button>
-          <button
-            onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90"
-          >
-            <Plus className="w-4 h-4" /> New Claim
-          </button>
-        </div>
-      </div>
+      <PageHeader title="Insurance Claims Portal" subtitle="Manage insurance billing and claim submissions" icon={FileText} className="mb-6">
+        <button
+          onClick={() => setShowDigitalForm(true)}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-chart-1 text-white rounded-lg text-sm font-medium hover:bg-chart-1/90"
+        >
+          <Edit3 className="w-4 h-4" /> Digital Form
+        </button>
+        <button
+          onClick={() => setShowForm(true)}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90"
+        >
+          <Plus className="w-4 h-4" /> New Claim
+        </button>
+      </PageHeader>
 
       {/* Tabs */}
       <div className="mb-6 border-b border-border flex gap-4 overflow-x-auto">

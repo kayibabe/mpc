@@ -5,6 +5,7 @@ import {
   ChevronRight, RefreshCw
 } from "lucide-react";
 import ShiftHandoffNotes from "@/components/ShiftHandoffNotes";
+import PageHeader from "@/components/ui/PageHeader";
 
 const SHIFT_TIMES = {
   morning: { start: "06:00", end: "14:00", label: "Morning" },
@@ -95,15 +96,11 @@ export default function StaffShiftDashboard() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="section-title">Staff Shift Dashboard</h2>
-          <p className="text-sm text-muted-foreground mt-1">Real-time staff coverage & handoff tracking</p>
-        </div>
+      <PageHeader title="Staff Shift Dashboard" subtitle="Real-time staff coverage & handoff tracking" icon={Users} className="mb-6">
         <button onClick={loadData} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium hover:bg-muted">
           <RefreshCw className="w-3.5 h-3.5" /> Refresh
         </button>
-      </div>
+      </PageHeader>
 
       {/* Date & Filters */}
       <div className="bg-card rounded-xl border border-border/60 p-4 shadow-sm mb-6 flex items-center gap-4 flex-wrap">
