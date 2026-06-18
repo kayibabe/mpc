@@ -23,7 +23,7 @@ export default function RevenueBreakdown() {
         const byMethod = {};
         invoices.forEach(inv => {
           const method = inv.payment_type || "unknown";
-          byMethod[method] = (byMethod[method] || 0) + (inv.paid_amount || 0);
+          byMethod[method] = (byMethod[method] || 0) + (inv.net_amount || inv.total_amount || 0);
         });
 
         const chartData = Object.entries(byMethod).map(([method, amount]) => ({

@@ -10,18 +10,14 @@ export default function DailyIntakeSummary() {
     async function fetchIntake() {
       try {
         const today = new Date().toISOString().split('T')[0];
-        const todayStart = `${today}T00:00:00`;
-        const visits = await base44.entities.Visit.filter(
-          { created_date: { $gte: todayStart } },
-          "-created_date",
-          500
-        );
+        const visits = await base44.entities.Visit.list("", 1000);
+        const todayVisits = visits.filter(v => v.created_date?.substring(0, 10) === today);
         
         const stats = {
-          total: visits.length,
-          emergency: visits.filter(v => v.visit_type === "emergency").length,
-          outpatient: visits.filter(v => v.visit_type === "outpatient").length,
-          inpatient: visits.filter(v => v.visit_type === "inpatient").length,
+          total: todayVisits.length,
+          emergency: todayVisits.filter(v => v.visit_type === "emergency").length,
+          outpatient: todayVisits.filter(v => v.visit_type === "outpatient").length,
+          inpatient: todayVisits.filter(v => v.visit_type === "inpatient").length,
         };
         setStats(stats);
       } catch (e) {

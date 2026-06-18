@@ -10,8 +10,8 @@ export default function WardOccupancySummary() {
     async function fetchOccupancy() {
       try {
         const [wards, beds] = await Promise.all([
-          base44.entities.Ward.list("", 50),
-          base44.entities.Bed.list("", 500),
+          base44.asServiceRole.entities.Ward.list("", 50),
+          base44.asServiceRole.entities.Bed.list("", 500),
         ]);
 
         const occupancy = wards.map(ward => {
