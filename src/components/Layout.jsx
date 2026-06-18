@@ -16,7 +16,7 @@ const ALL_NAV_GROUPS = [
 {
   label: "Main",
   items: [
-  { label: "Dashboard", path: "/", icon: LayoutDashboard, roles: ["admin", "user", "receptionist", "cashier"] }]
+  { label: "Dashboard", path: "/", icon: LayoutDashboard, roles: ["admin", "user", "receptionist", "cashier", "doctor", "clinician", "nurse", "midwife", "pharmacist", "lab_technician", "radiographer", "surgical_lead"] }]
 
 },
 {
