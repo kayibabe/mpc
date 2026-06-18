@@ -47,6 +47,16 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "user_condition": {
+            "role": "doctor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "clinician"
+          }
         }
       ]
     },
@@ -65,6 +75,26 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "user_condition": {
+            "role": "doctor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "clinician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "pharmacist"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "nurse"
+          }
         }
       ]
     },
@@ -79,6 +109,21 @@
         {
           "user_condition": {
             "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "doctor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "clinician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "pharmacist"
           }
         }
       ]
