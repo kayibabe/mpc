@@ -22,7 +22,24 @@ export const AuthProvider = ({ children }) => {
     try {
       setIsLoadingPublicSettings(true);
       setAuthError(null);
-      
+
+      // ── CUSTOM BACKEND MODE ─────────────────────────────────────────────────
+      // When running against the self-hosted FastAPI backend there is no Base44
+      // app-id, so skip the Base44 public-settings check entirely and go straight
+      // to verifying the JWT via auth.me().  On the /custom-login page we skip
+      // even that to avoid a redirect loop.
+      if (!appParams.appId) {
+        setIsLoadingPublicSettings(false);
+        if (window.location.pathname.startsWith('/custom-login')) {
+          setIsLoadingAuth(false);
+          setAuthChecked(true);
+          return;
+        }
+        await checkUserAuth();
+        return;
+      }
+      // ── BASE44 MODE (original flow) ─────────────────────────────────────────
+
       // First, check app public settings (with token if available)
       // This will tell us if auth is required, user not registered, etc.
       const appClient = createAxiosClient({
