@@ -1,12 +1,9 @@
-# fly.toml app configuration file generated for zcpc on 2026-06-22T10:04:23Z
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
 app = 'zcpc'
 primary_region = 'jnb'
 
 [build]
+  [build.args]
+    VITE_BACKEND_URL = '/api/v1'
 
 [http_service]
   internal_port = 8080
@@ -17,7 +14,6 @@ primary_region = 'jnb'
   processes = ['app']
 
 [[vm]]
-  memory = '1gb'
+  memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1
-  memory_mb = 2048

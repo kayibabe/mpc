@@ -16,6 +16,9 @@ dist
 dist-ssr
 *.local
 
+# Fly.dev secrets (never commit)
+.fly/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
