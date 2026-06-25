@@ -28,9 +28,9 @@ async def list_encounters(
     doctor_id: str | None = Query(None),
     encounter_type: EncounterType | None = Query(None),
     skip: int = 0,
-    limit: int = 50,
+    limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.receptionist, UserRole.admin)),
 ):
     stmt = select(Encounter)
     if patient_id:
@@ -74,7 +74,7 @@ async def create_encounter(
 async def get_encounter(
     encounter_id: str,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.admin)),
 ):
     result = await db.execute(select(Encounter).where(Encounter.id == encounter_id))
     encounter = result.scalar_one_or_none()
@@ -157,7 +157,7 @@ async def upsert_triage(
 async def list_notes(
     encounter_id: str,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.admin)),
 ):
     result = await db.execute(
         select(ClinicalNote).where(ClinicalNote.encounter_id == encounter_id)
@@ -187,3 +187,6 @@ async def add_note(
     await db.flush()
     await db.refresh(note)
     return note
+
+
+

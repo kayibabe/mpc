@@ -3,9 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_, text
 from datetime import datetime, timezone
 from app.core.database import get_db
-from app.core.auth import get_current_user
+from app.core.auth import get_current_user, require_role
 from app.core.audit import log_action
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.patient import Patient, mrn_seq
 from app.schemas.patient import PatientCreate, PatientUpdate, PatientResponse, PatientListResponse
 import uuid
@@ -21,9 +21,9 @@ def _generate_mrn(seq_val: int) -> str:
 async def list_patients(
     q: str | None = Query(None, max_length=100, description="Search by name, MRN, or phone"),
     skip: int = 0,
-    limit: int = 50,
+    limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.admin, UserRole.receptionist, UserRole.doctor, UserRole.nurse, UserRole.clinician)),
 ):
     stmt = select(Patient).where(Patient.is_deleted == False)
     if q:
@@ -46,7 +46,7 @@ async def create_patient(
     body: PatientCreate,
     request: Request,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role(UserRole.admin, UserRole.receptionist)),
 ):
     seq_result = await db.execute(text("SELECT nextval('mrn_seq')"))
     mrn = _generate_mrn(seq_result.scalar_one())
@@ -73,7 +73,7 @@ async def create_patient(
 async def get_patient(
     patient_id: str,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.admin, UserRole.receptionist, UserRole.doctor, UserRole.nurse, UserRole.clinician, UserRole.pharmacist, UserRole.lab_tech, UserRole.lab_technician)),
 ):
     result = await db.execute(
         select(Patient).where(Patient.id == patient_id, Patient.is_deleted == False)
@@ -89,7 +89,7 @@ async def update_patient(
     patient_id: str,
     body: PatientUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(require_role(UserRole.admin, UserRole.receptionist)),
 ):
     result = await db.execute(
         select(Patient).where(Patient.id == patient_id, Patient.is_deleted == False)
@@ -98,9 +98,16 @@ async def update_patient(
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
 
+    await log_action(db, action="update", entity_type="patient", user_id=current_user.id, entity_id=patient_id, request=None)
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(patient, field, value)
     patient.updated_at = datetime.now(timezone.utc)
     await db.flush()
     await db.refresh(patient)
     return patient
+
+
+
+
+
+

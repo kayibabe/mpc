@@ -18,7 +18,7 @@ router = APIRouter(prefix="/admissions", tags=["admissions"])
 @router.get("/wards", response_model=list[WardResponse])
 async def list_wards(
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.midwife, UserRole.admin)),
 ):
     result = await db.execute(select(Ward).where(Ward.is_active == True).order_by(Ward.name))
     wards = result.scalars().all()
@@ -69,9 +69,9 @@ async def list_admissions(
     ward_id: str | None = Query(None),
     status: AdmissionStatus | None = Query(None),
     skip: int = 0,
-    limit: int = 50,
+    limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.midwife, UserRole.admin)),
 ):
     stmt = select(Admission)
     if patient_id:
@@ -124,7 +124,7 @@ async def admit_patient(
 async def get_admission(
     admission_id: str,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.admin)),
 ):
     result = await db.execute(select(Admission).where(Admission.id == admission_id))
     admission = result.scalar_one_or_none()
@@ -162,3 +162,6 @@ async def discharge_patient(
     await db.flush()
     await db.refresh(admission)
     return admission
+
+
+

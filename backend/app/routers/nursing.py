@@ -38,9 +38,9 @@ async def list_vitals(
     patient_id: str | None = Query(None),
     admission_id: str | None = Query(None),
     skip: int = 0,
-    limit: int = 50,
+    limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.nurse, UserRole.doctor, UserRole.admin)),
 ):
     stmt = select(VitalSigns)
     if patient_id:
@@ -74,9 +74,9 @@ async def list_notes(
     patient_id: str | None = Query(None),
     admission_id: str | None = Query(None),
     skip: int = 0,
-    limit: int = 50,
+    limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.nurse, UserRole.doctor, UserRole.admin)),
 ):
     stmt = select(NursingNote)
     if patient_id:
@@ -110,9 +110,9 @@ async def list_mar(
     patient_id: str | None = Query(None),
     prescription_item_id: str | None = Query(None),
     skip: int = 0,
-    limit: int = 50,
+    limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.nurse, UserRole.doctor, UserRole.pharmacist, UserRole.admin)),
 ):
     stmt = select(MedicationAdministration)
     if patient_id:
@@ -122,3 +122,6 @@ async def list_mar(
     stmt = stmt.order_by(MedicationAdministration.scheduled_time.desc()).offset(skip).limit(limit)
     result = await db.execute(stmt)
     return result.scalars().all()
+
+
+

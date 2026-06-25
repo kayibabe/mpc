@@ -6,6 +6,7 @@ from app.core.database import get_db
 from app.core.auth import get_current_user, require_role
 from app.models.user import User, UserRole
 from app.models.pharmacy import Drug, DrugStock, Prescription, PrescriptionItem, PrescriptionStatus
+from app.models.patient import Patient
 from app.schemas.pharmacy import (
     DrugCreate, DrugStockCreate, PrescriptionCreate, DispenseCreate,
     DrugResponse, DrugStockResponse, PrescriptionListResponse, PrescriptionResponse,
@@ -21,7 +22,7 @@ async def list_drugs(
     q: str | None = Query(None, max_length=100),
     category: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.pharmacist, UserRole.admin)),
 ):
     stmt = select(Drug).where(Drug.is_active == True)
     if q:
@@ -54,7 +55,7 @@ async def create_drug(
 async def get_drug_stock(
     drug_id: str,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.pharmacist, UserRole.doctor, UserRole.admin)),
 ):
     result = await db.execute(
         select(Drug).where(Drug.id == drug_id)
@@ -97,9 +98,9 @@ async def list_prescriptions(
     encounter_id: str | None = Query(None),
     status: PrescriptionStatus | None = Query(None),
     skip: int = 0,
-    limit: int = 50,
+    limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.pharmacist, UserRole.nurse, UserRole.admin)),
 ):
     stmt = select(Prescription)
     if patient_id:
@@ -153,7 +154,7 @@ async def create_prescription(
 async def get_prescription(
     prescription_id: str,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.pharmacist, UserRole.nurse, UserRole.admin)),
 ):
     result = await db.execute(select(Prescription).where(Prescription.id == prescription_id))
     if not result.scalar_one_or_none():
@@ -175,6 +176,7 @@ async def dispense(
     if prescription.status == PrescriptionStatus.cancelled:
         raise HTTPException(status_code=400, detail="Cannot dispense a cancelled prescription")
 
+    # ── C5: Validate stock availability before dispensing ──
     for dispense_item in body.items:
         item_result = await db.execute(
             select(PrescriptionItem).where(
@@ -185,6 +187,19 @@ async def dispense(
         item = item_result.scalar_one_or_none()
         if not item:
             continue
+
+        # Check total available stock
+        stock_result = await db.execute(
+            select(DrugStock)
+            .where(DrugStock.drug_id == item.drug_id, DrugStock.quantity_current > 0)
+            .order_by(DrugStock.expiry_date)
+        )
+        available_stock = sum(s.quantity_current for s in stock_result.scalars().all())
+        if available_stock < dispense_item.quantity_dispensed:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Insufficient stock for drug {item.drug_id}: requested {dispense_item.quantity_dispensed}, available {available_stock}"
+            )
 
         # Deduct from stock (FEFO — first to expire first)
         remaining = dispense_item.quantity_dispensed
@@ -230,3 +245,9 @@ async def _prescription_with_items(prescription_id: str, db: AsyncSession) -> Pr
         **PrescriptionListResponse.model_validate(rx).model_dump(),
         items=[PrescriptionItemResponse.model_validate(i) for i in items],
     )
+
+
+
+
+
+

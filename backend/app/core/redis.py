@@ -27,8 +27,11 @@ async def get_redis() -> aioredis.Redis:
                                   socket_connect_timeout=2)
     try:
         await _pool.ping()
-    except Exception:
-        log.warning("Redis unavailable — refresh-token revocation disabled (dev mode)")
+    except Exception as exc:
+        if settings.ENVIRONMENT == "production":
+            log.error("Redis unavailable in production — refusing to start with NullRedis fallback")
+            raise RuntimeError("Redis is required in production but is unavailable") from exc
+        log.warning("Redis unavailable — refresh-token revocation disabled (dev mode only): %s", exc)
         _unavailable = True
         return _NullRedis()
     return _pool
@@ -40,3 +43,4 @@ async def close_redis() -> None:
         await _pool.aclose()
     _pool = None
     _unavailable = False
+

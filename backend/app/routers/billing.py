@@ -27,9 +27,9 @@ async def list_invoices(
     date_from: date | None = Query(None),
     date_to: date | None = Query(None),
     skip: int = 0,
-    limit: int = 50,
+    limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.billing_clerk, UserRole.cashier, UserRole.admin)),
 ):
     stmt = select(BillingInvoice)
     if patient_id:
@@ -104,7 +104,7 @@ async def create_invoice(
 async def get_invoice(
     invoice_id: str,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.billing_clerk, UserRole.cashier, UserRole.admin)),
 ):
     inv = await _get_invoice_or_404(invoice_id, db)
     return await _invoice_with_relations(inv.id, db)
@@ -223,3 +223,5 @@ async def _invoice_with_relations(invoice_id: str, db: AsyncSession) -> InvoiceR
         line_items=[LineItemResponse.model_validate(i) for i in items],
         payments=[PaymentResponse.model_validate(p) for p in pays],
     )
+
+

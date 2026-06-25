@@ -300,9 +300,13 @@ export default function Clinical() {
         if (!proceed) return;
       }
     }
-  } catch (_) { /* proceed if safety check fails */ }
+  } catch (e) {
+    console.error("Drug safety check failed:", e);
+    const proceed = confirm("⚠️ DRUG SAFETY CHECK UNAVAILABLE\n\nThe drug safety check service is unavailable. Prescribing without safety verification is NOT recommended.\n\nProceed anyway?");
+    if (!proceed) return;
+  }
 
-    if (isPrescribingAct) {
+    { // Always run malaria CDS check for any prescription
       const [diags, labs] = await Promise.all([
         base44.entities.Diagnosis.filter({ visit_id: selectedVisit.id }, "-created_date", 20),
         base44.entities.LabOrder.filter({ patient_id: selectedVisit.patient_id }, "-created_date", 30),
@@ -314,7 +318,10 @@ export default function Clinical() {
           const tests = (l.tests || "").toLowerCase();
           return tests.includes("malaria") || tests.includes("rdt") || tests.includes("microscopy") || tests.includes("mps") || tests.includes("blood slide");
         });
-        const positiveLab = malariaLabOrders.find(l => l.status === "completed" || l.status === "verified");
+        const positiveLab = malariaLabOrders.find(l =>
+          (l.status === "completed" || l.status === "verified") &&
+          (l.result?.toLowerCase()?.includes("positive") || l.result_value?.includes("+") || l.result?.toLowerCase()?.includes("+"))
+        );
         if (!positiveLab) {
           alert("⚠️ MoH Clinical Decision Support\n\nCannot prescribe antimalarials without a positive malaria test (RDT/Microscopy).\n\nPlease order a Malaria test from the Lab module first.\n\nThis follows the Malawi Test-Treat-Track protocol.");
           return;

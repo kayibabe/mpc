@@ -19,7 +19,7 @@ router = APIRouter(prefix="/lab", tags=["lab"])
 async def list_tests(
     category: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.lab_tech, UserRole.lab_technician, UserRole.admin)),
 ):
     stmt = select(LabTest).where(LabTest.is_active == True)
     if category:
@@ -48,9 +48,9 @@ async def create_test(
 @router.get("/results")
 async def list_results(
     patient_id: str | None = Query(None),
-    limit: int = 100,
+    limit: int = Query(100, ge=1, le=500),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.lab_tech, UserRole.lab_technician, UserRole.admin)),
 ):
     """Flattened view of resulted lab order items (one row per result).
     Joins the test catalogue so each row carries a human-readable test name."""
@@ -90,9 +90,9 @@ async def list_orders(
     encounter_id: str | None = Query(None),
     status: LabOrderStatus | None = Query(None),
     skip: int = 0,
-    limit: int = 50,
+    limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.lab_tech, UserRole.lab_technician, UserRole.admin)),
 ):
     stmt = select(LabOrder)
     if patient_id:
@@ -142,7 +142,7 @@ async def create_order(
 async def get_order(
     order_id: str,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.lab_tech, UserRole.lab_technician, UserRole.admin)),
 ):
     result = await db.execute(select(LabOrder).where(LabOrder.id == order_id))
     if not result.scalar_one_or_none():
@@ -205,3 +205,7 @@ async def _order_with_items(order_id: str, db: AsyncSession) -> LabOrderResponse
         updated_at=order.updated_at,
         items=[LabOrderItemResponse.model_validate(i) for i in items],
     )
+
+
+
+

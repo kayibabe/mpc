@@ -15,6 +15,25 @@ export function getToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
 
+/**
+ * Turn an API error (from the custom adapter or the Base44 SDK) into a readable
+ * message. Handles FastAPI's 422 `detail` arrays ([{loc, msg}, ...]),
+ * string `detail`, and plain Error messages.
+ */
+export function formatApiError(err, fallback = 'Something went wrong. Please try again.') {
+  const detail = err?.data?.detail ?? err?.response?.data?.detail;
+  if (Array.isArray(detail)) {
+    return detail
+      .map((d) => {
+        const field = Array.isArray(d.loc) ? d.loc[d.loc.length - 1] : null;
+        return field ? `${field}: ${d.msg}` : d.msg;
+      })
+      .join('; ');
+  }
+  if (typeof detail === 'string') return detail;
+  return err?.message || fallback;
+}
+
 function setTokens(access, refresh) {
   if (access) localStorage.setItem(TOKEN_KEY, access);
   if (refresh) localStorage.setItem(REFRESH_KEY, refresh);
@@ -161,13 +180,6 @@ const ENTITY_DEFS = {
     filterMap: { created_date: 'created_at' },
   },
 
-  LabResult: {
-    endpoint: '/lab/results',
-    fromAPI: (r) => r && ({ ...r, created_date: r.created_at }),
-    toAPI: (d) => d,
-    filterMap: { created_date: 'created_at' },
-  },
-
   Drug: {
     endpoint: '/pharmacy/drugs',
     fromAPI: (d) => d && ({
@@ -263,6 +275,23 @@ const ENTITY_DEFS = {
     filterMap: {},
   },
 
+  AuditLog: {
+    endpoint: '/admin/audit-logs',
+    fromAPI: (a) => a && ({ ...a, created_date: a.timestamp || a.created_at }),
+    toAPI: (d) => d,
+    filterMap: {},
+  },
+
+  // Read-only flattened view of resulted lab order items. Result *entry* still
+  // flows through the normalized /lab/orders/{id}/results/{item_id} endpoint;
+  // creating a LabResult directly from the Base44 page is not wired (see notes).
+  LabResult: {
+    endpoint: '/lab/results',
+    fromAPI: (r) => r && ({ ...r, created_date: r.resulted_at || r.created_at }),
+    toAPI: (d) => d,
+    filterMap: {},
+  },
+
   User: {
     endpoint: '/admin/users',
     fromAPI: (u) => u && ({
@@ -284,7 +313,7 @@ const STUB_ENTITIES = new Set([
   'ImagingResult', 'SurgicalBooking', 'SurgicalChecklist', 'SurgicalRequisition',
   'SurgicalDispensing', 'SurgicalSupplyKit', 'MaternalVisit', 'NewbornRecord',
   'PartographEntry', 'WardTransfer', 'Discharge', 'Diagnosis', 'PatientAllergy',
-  'LabReagent', 'AuditLog', 'AuditFlag', 'IncidentReport', 'DigitalSignature',
+  'LabReagent', 'AuditFlag', 'IncidentReport', 'DigitalSignature',
   'IPCSurveillance', 'WasteLog', 'WasteCategory', 'DeathCertificate',
   'DHIS2Export', 'DoctorSchedule', 'DoctorHandover', 'ShiftHandoverLog',
   'LoginSession', 'StaffCompliance', 'UserSecurity', 'NurseTask',
@@ -332,6 +361,13 @@ function applyClientFilter(arr, filters, def) {
 
 // ─── ENTITY HANDLER ───────────────────────────────────────────────────────────
 
+// No-op real-time subscription. Base44 supports live entity subscriptions;
+// the FastAPI backend does not (yet), so return an unsubscribe function that
+// does nothing. This keeps components that call `.subscribe()` from crashing.
+function noopSubscribe() {
+  return () => {};
+}
+
 function stubHandler() {
   return {
     list: async () => [],
@@ -344,6 +380,7 @@ function stubHandler() {
     }),
     update: async (id, data) => ({ id, ...data }),
     delete: async () => {},
+    subscribe: noopSubscribe,
   };
 }
 
@@ -385,6 +422,8 @@ function liveHandler(def, http) {
     async delete(id) {
       await http.del(`${def.endpoint}/${id}`);
     },
+
+    subscribe: noopSubscribe,
   };
 }
 
@@ -395,10 +434,41 @@ async function invokeFunction(name, params, http) {
     const data = await http.get('/admin/stats');
     return { data };
   }
+
+  if (name === 'checkInventoryAlerts') {
+    try {
+      const raw = await http.get('/pharmacy/drugs', { params: { limit: 500 } });
+      const drugs = Array.isArray(raw) ? raw : (raw?.items || raw?.results || []);
+      const allAlerts = [];
+      let lowStock = 0;
+      for (const d of drugs) {
+        const qty = d.quantity_in_stock ?? (Array.isArray(d.stock) ? d.stock.reduce((s, b) => s + (b.quantity_remaining || 0), 0) : 0);
+        const reorder = d.reorder_level ?? 10;
+        if (qty === 0) {
+          lowStock++;
+          allAlerts.push({ severity: 'critical', message: `${d.name}: Out of stock` });
+        } else if (qty <= reorder) {
+          lowStock++;
+          allAlerts.push({ severity: 'warning', message: `${d.name}: Low stock (${qty} remaining)` });
+        }
+      }
+      return { data: { total_alerts: allAlerts.length, alerts: allAlerts, low_stock_count: lowStock, expiring_count: 0, expired_count: 0 } };
+    } catch {
+      return { data: { total_alerts: 0, alerts: [], low_stock_count: 0, expiring_count: 0, expired_count: 0 } };
+    }
+  }
+
+  if (name === 'runExpiryAlerts') {
+    return { data: { total_notifications: 0, notifications: [] } };
+  }
+
   // All other Base44 serverless functions are stubs.
   // Add cases here as FastAPI equivalents are built.
+  // Return `data: null` (not a truthy placeholder): components consistently
+  // guard with `if (!data) return null` or fall back via `result || emptyData`,
+  // both of which only work when the stub result is falsy.
   console.info(`[zcpc-custom] function stub: ${name}`, params);
-  return { data: { success: true, stub: true, functionName: name } };
+  return { data: null };
 }
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────

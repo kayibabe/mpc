@@ -4,9 +4,14 @@ from typing import AsyncGenerator
 from app.core.config import settings
 
 
-# When DATABASE_URL is set (fly.dev), asyncpg defaults to SSL which the
-# internal *.flycast network doesn't support — disable it explicitly.
-_connect_args = {"ssl": False} if settings.DATABASE_URL else {}
+# When DATABASE_URL points to Fly.io's internal *.flycast network,
+# asyncpg SSL isn't supported — disable it only in that case.
+# For external/managed Postgres, enforce SSL.
+_connect_args = {}
+if settings.DATABASE_URL and "flycast" in settings.DATABASE_URL:
+    _connect_args = {"ssl": False}  # Fly.io internal network
+elif settings.DATABASE_URL:
+    _connect_args = {"ssl": "require"}  # External Postgres — enforce SSL
 
 engine = create_async_engine(
     settings.db_url,
@@ -39,3 +44,4 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             raise
         finally:
             await session.close()
+
