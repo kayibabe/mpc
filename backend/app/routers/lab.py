@@ -33,7 +33,7 @@ async def list_tests(
 async def create_test(
     body: LabTestCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.lab_tech, UserRole.admin)),
+    _: User = Depends(require_role(UserRole.lab_technician, UserRole.admin)),
 ):
     existing = await db.execute(select(LabTest).where(LabTest.code == body.code))
     if existing.scalar_one_or_none():
@@ -155,7 +155,7 @@ async def update_order_status(
     order_id: str,
     body: LabStatusUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.lab_tech, UserRole.admin)),
+    _: User = Depends(require_role(UserRole.lab_technician, UserRole.admin)),
 ):
     result = await db.execute(select(LabOrder).where(LabOrder.id == order_id))
     order = result.scalar_one_or_none()
@@ -173,7 +173,7 @@ async def record_result(
     item_id: str,
     body: LabResultCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.lab_tech, UserRole.admin)),
+    _: User = Depends(require_role(UserRole.lab_technician, UserRole.admin)),
 ):
     result = await db.execute(
         select(LabOrderItem).where(

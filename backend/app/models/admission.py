@@ -97,7 +97,10 @@ class Admission(Base):
     patient: Mapped["Patient"] = relationship(back_populates="admissions")
     encounter: Mapped["Encounter"] = relationship(back_populates="admissions")
     ward: Mapped["Ward"] = relationship(back_populates="admissions")
-    bed: Mapped["Bed"] = relationship(back_populates="current_admission", foreign_keys=[bed_id])
+    # Independent many-to-one via bed_id. NOT a back-reference of
+    # Bed.current_admission — that uses a different FK (beds.current_admission_id)
+    # and is its own many-to-one, so the two cannot back_populate each other.
+    bed: Mapped["Bed"] = relationship(foreign_keys=[bed_id])
     admitting_doctor: Mapped["User"] = relationship(foreign_keys=[admitting_doctor_id])
     vital_signs: Mapped[list["VitalSigns"]] = relationship(back_populates="admission", cascade="all, delete-orphan")
     nursing_notes: Mapped[list["NursingNote"]] = relationship(back_populates="admission", cascade="all, delete-orphan")

@@ -16,7 +16,7 @@ router = APIRouter(prefix="/encounters", tags=["encounters"])
 
 _CLINICAL = (
     UserRole.doctor, UserRole.nurse, UserRole.receptionist,
-    UserRole.lab_tech, UserRole.pharmacist, UserRole.admin,
+    UserRole.lab_technician, UserRole.pharmacist, UserRole.admin,
 )
 
 
