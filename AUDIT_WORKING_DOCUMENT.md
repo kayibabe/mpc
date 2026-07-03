@@ -253,8 +253,10 @@ Discovered and fixed en route: N5 (config `extra="ignore"`), MRN/invoice sequenc
 
 **Low tier** — N11 (advisory CDS panel now uses the positive-result predicate), L5 (ruff `--fix`: 32 unused imports removed; `ruff.toml` added documenting the two SQLAlchemy idioms ruff can't see; frontend `lint:fix` removed 164 unused imports), N12 (CI runs on `audit-fixes` pushes).
 
+**Post-tier CI portability fix** — the app engine passed `pool_size`/`max_overflow` unconditionally; under CI's sqlite `DATABASE_URL` those args hit StaticPool and crash at import (CI's backend job could never have run the tests). Pool args are now Postgres-only ([database.py](backend/app/core/database.py)). Suite re-verified under the exact CI environment (`DATABASE_URL=sqlite+aiosqlite:///:memory:`): 38 passed.
+
 **Final verification (all commands run 3 July 2026):**
-- `pytest` (backend): **38 passed, 0 failed** (was 6F/15P/5E)
+- `pytest` (backend): **38 passed, 0 failed** (was 6F/15P/5E), including a run under CI's exact env
 - `ruff check .` (backend): **All checks passed**
 - `npm run lint`: **passes** (was 164 errors)
 - `npm run test` (vitest): **6 passed**

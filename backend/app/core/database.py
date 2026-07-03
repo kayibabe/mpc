@@ -18,14 +18,18 @@ def _connect_args_for(url: str | None) -> dict:
 
 _connect_args = _connect_args_for(settings.DATABASE_URL)
 
+# Pool sizing args are only valid for real (QueuePool) databases; SQLite's
+# StaticPool (CI/tests) rejects them with a TypeError at import.
+_pool_kwargs = {}
+if settings.db_url.startswith("postgresql"):
+    _pool_kwargs = {"pool_size": 10, "max_overflow": 20, "pool_recycle": 300}
+
 engine = create_async_engine(
     settings.db_url,
     echo=settings.DEBUG,
-    pool_size=10,
-    max_overflow=20,
     pool_pre_ping=True,
-    pool_recycle=300,
     connect_args=_connect_args,
+    **_pool_kwargs,
 )
 
 AsyncSessionLocal = async_sessionmaker(
