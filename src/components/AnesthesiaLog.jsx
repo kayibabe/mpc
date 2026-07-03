@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Activity, Thermometer, Droplets, Clock, Plus, Save, X, AlertCircle } from "lucide-react";
+import { Activity, Droplets, Plus, X, AlertCircle } from "lucide-react";
 
 const VITAL_TEMPLATE = { time: "", hr: "", bp_sys: "", bp_dia: "", spo2: "", etco2: "", temp: "", notes: "" };
 const EVENT_TEMPLATE = { time: "", event_type: "hypotension", description: "", action_taken: "" };

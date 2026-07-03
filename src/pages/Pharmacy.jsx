@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Pill, Plus, Save, AlertTriangle, Package, ShoppingCart, Clock, TrendingDown, Loader2, BarChart3, Calendar, ArrowRight, CheckCircle, GitBranch, PenTool, Trash2 } from "lucide-react";
+import { Pill, Plus, Save, AlertTriangle, Clock, TrendingDown, Loader2, BarChart3, Calendar, ArrowRight, CheckCircle, GitBranch, PenTool, Trash2 } from "lucide-react";
 import InventoryAlerts from "@/components/InventoryAlerts";
 import ExpiryAlerts from "@/components/ExpiryAlerts";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";

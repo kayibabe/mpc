@@ -100,6 +100,9 @@ class PrescriptionCreate(BaseModel):
     patient_id: str
     notes: str | None = None
     items: list[PrescriptionItemCreate]
+    # Explicit clinician override of the allergy/contraindication block.
+    # Overrides are audit-logged with the acting user.
+    override_allergy_block: bool = False
 
     @field_validator("items")
     @classmethod
@@ -123,6 +126,7 @@ class DispenseItemCreate(BaseModel):
 
 class DispenseCreate(BaseModel):
     items: list[DispenseItemCreate]
+    override_allergy_block: bool = False
 
     @field_validator("items")
     @classmethod

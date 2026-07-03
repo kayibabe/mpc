@@ -6,7 +6,7 @@ from decimal import Decimal
 from app.core.database import get_db
 from app.core.auth import require_role
 from app.models.user import User, UserRole
-from app.models.billing import BillingInvoice, BillingLineItem, Payment, InvoiceStatus, inv_seq
+from app.models.billing import BillingInvoice, BillingLineItem, Payment, InvoiceStatus
 from app.schemas.billing import (
     InvoiceCreate, InvoiceUpdate, InvoiceListResponse, InvoiceResponse,
     LineItemResponse, PaymentCreate, PaymentResponse,
@@ -18,6 +18,14 @@ router = APIRouter(prefix="/billing", tags=["billing"])
 
 def _generate_invoice_number(seq_val: int) -> str:
     return f"INV{str(seq_val).zfill(6)}"
+
+
+async def _next_inv_seq(db: AsyncSession) -> int:
+    """Postgres sequence; SQLite (dev/tests) falls back to row count + 1."""
+    if db.get_bind().dialect.name == "postgresql":
+        return (await db.execute(text("SELECT nextval('inv_seq')"))).scalar_one()
+    count = (await db.execute(select(func.count()).select_from(BillingInvoice))).scalar_one()
+    return count + 1
 
 
 @router.get("/invoices", response_model=list[InvoiceListResponse])
@@ -55,11 +63,12 @@ async def create_invoice(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.billing_clerk, UserRole.admin)),
 ):
-    seq_result = await db.execute(text("SELECT nextval('inv_seq')"))
-    invoice_number = _generate_invoice_number(seq_result.scalar_one())
+    invoice_number = _generate_invoice_number(await _next_inv_seq(db))
 
     subtotal = sum(item.quantity * item.unit_price for item in body.line_items)
     discount = Decimal(str(body.discount))
+    if discount > Decimal(str(subtotal)):
+        raise HTTPException(status_code=400, detail="Discount cannot exceed the invoice subtotal")
     total = float(Decimal(str(subtotal)) - discount)
 
     invoice = BillingInvoice(
@@ -137,6 +146,12 @@ async def record_payment(
     invoice = await _get_invoice_or_404(invoice_id, db)
     if invoice.status == InvoiceStatus.void:
         raise HTTPException(status_code=400, detail="Cannot accept payment on a voided invoice")
+    outstanding = float(invoice.balance)
+    if body.amount > outstanding:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Payment {body.amount} exceeds outstanding balance {outstanding}",
+        )
 
     payment = Payment(
         id=str(uuid.uuid4()),

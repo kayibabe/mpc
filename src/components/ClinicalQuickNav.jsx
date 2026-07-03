@@ -1,4 +1,4 @@
-import { Heart, FlaskConical, Pill, FileText, Clock } from "lucide-react";
+import { Heart, Pill, FileText } from "lucide-react";
 
 export default function ClinicalQuickNav({ activeTab, onTabChange, compact = false }) {
   const tabs = [

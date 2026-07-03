@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone
 from app.core.database import get_db
 from app.core.auth import require_role
+from app.core.audit import log_action
 from app.models.user import User, UserRole
+from app.models.patient import Patient
 from app.models.pharmacy import Drug, DrugStock, Prescription, PrescriptionItem, PrescriptionStatus
 from app.schemas.pharmacy import (
     DrugCreate, DrugStockCreate, PrescriptionCreate, DispenseCreate,
@@ -14,6 +16,43 @@ from app.schemas.pharmacy import (
 import uuid
 
 router = APIRouter(prefix="/pharmacy", tags=["pharmacy"])
+
+
+def _split_terms(raw: str | None) -> list[str]:
+    """Split a free-text clinical list ('penicillin, sulfa; aspirin') into terms."""
+    if not raw:
+        return []
+    return [t.strip().lower() for t in raw.replace(";", ",").split(",") if t.strip()]
+
+
+async def _safety_conflicts(db: AsyncSession, patient_id: str, drug_ids: list[str]) -> list[str]:
+    """Server-side allergy/contraindication gate (audit C6).
+
+    Matches the patient's known allergies against each drug's name/generic
+    name, and the patient's chronic conditions against the drug's recorded
+    contraindications. Substring matching on free text — deliberately
+    conservative: a false positive costs one override click, a false negative
+    can cost a life.
+    """
+    result = await db.execute(select(Patient).where(Patient.id == patient_id))
+    patient = result.scalar_one_or_none()
+    if not patient:
+        return []
+    allergies = _split_terms(patient.known_allergies)
+    conditions = _split_terms(patient.chronic_conditions)
+
+    drugs = (await db.execute(select(Drug).where(Drug.id.in_(drug_ids)))).scalars().all()
+    conflicts: list[str] = []
+    for drug in drugs:
+        drug_names = " ".join(filter(None, [drug.name, drug.generic_name])).lower()
+        for allergen in allergies:
+            if allergen in drug_names:
+                conflicts.append(f"ALLERGY: patient is allergic to '{allergen}' — {drug.name}")
+        contra = (drug.contraindications or "").lower()
+        for condition in conditions:
+            if condition and condition in contra:
+                conflicts.append(f"CONTRAINDICATION: {drug.name} is contraindicated for '{condition}'")
+    return conflicts
 
 
 @router.get("/drugs", response_model=list[DrugResponse])
@@ -116,9 +155,24 @@ async def list_prescriptions(
 @router.post("/prescriptions", response_model=PrescriptionResponse, status_code=status.HTTP_201_CREATED)
 async def create_prescription(
     body: PrescriptionCreate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.doctor, UserRole.admin)),
 ):
+    conflicts = await _safety_conflicts(db, body.patient_id, [i.drug_id for i in body.items])
+    if conflicts:
+        if not body.override_allergy_block:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"message": "Drug safety conflict — prescription blocked", "conflicts": conflicts,
+                        "hint": "Set override_allergy_block=true to override; the override is audit-logged."},
+            )
+        await log_action(
+            db, action="allergy_override", entity_type="prescription",
+            user_id=current_user.id, entity_id=body.patient_id,
+            new_value={"conflicts": conflicts}, request=request,
+        )
+
     prescription = Prescription(
         id=str(uuid.uuid4()),
         encounter_id=body.encounter_id,
@@ -165,6 +219,7 @@ async def get_prescription(
 async def dispense(
     prescription_id: str,
     body: DispenseCreate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.pharmacist, UserRole.admin)),
 ):
@@ -174,6 +229,32 @@ async def dispense(
         raise HTTPException(status_code=404, detail="Prescription not found")
     if prescription.status == PrescriptionStatus.cancelled:
         raise HTTPException(status_code=400, detail="Cannot dispense a cancelled prescription")
+
+    # Allergy/contraindication gate at the dispensing counter (audit C6) —
+    # covers prescriptions created before the gate existed or with stale
+    # allergy data at prescribing time.
+    dispense_item_ids = [d.prescription_item_id for d in body.items]
+    items_for_check = (await db.execute(
+        select(PrescriptionItem).where(
+            PrescriptionItem.id.in_(dispense_item_ids),
+            PrescriptionItem.prescription_id == prescription_id,
+        )
+    )).scalars().all()
+    conflicts = await _safety_conflicts(
+        db, prescription.patient_id, [i.drug_id for i in items_for_check]
+    )
+    if conflicts:
+        if not body.override_allergy_block:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"message": "Drug safety conflict — dispense blocked", "conflicts": conflicts,
+                        "hint": "Set override_allergy_block=true to override; the override is audit-logged."},
+            )
+        await log_action(
+            db, action="allergy_override", entity_type="dispense",
+            user_id=current_user.id, entity_id=prescription_id,
+            new_value={"conflicts": conflicts}, request=request,
+        )
 
     for dispense_item in body.items:
         item_result = await db.execute(
@@ -186,13 +267,27 @@ async def dispense(
         if not item:
             continue
 
-        # Check total available stock
+        # Cap at the prescribed amount — dispensing must never exceed what the
+        # clinician ordered (audit N4)
+        remaining_prescribed = item.quantity - item.dispensed_quantity
+        if dispense_item.quantity_dispensed > remaining_prescribed:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot dispense {dispense_item.quantity_dispensed}: only "
+                       f"{remaining_prescribed} of the prescribed {item.quantity} remain undispensed",
+            )
+
+        # Lock stock rows for the duration of the transaction so two concurrent
+        # dispenses can't both pass the availability check (audit M1).
+        # with_for_update() row-locks on Postgres; no-op on SQLite tests.
         stock_result = await db.execute(
             select(DrugStock)
             .where(DrugStock.drug_id == item.drug_id, DrugStock.quantity_current > 0)
             .order_by(DrugStock.expiry_date)
+            .with_for_update()
         )
-        available_stock = sum(s.quantity_current for s in stock_result.scalars().all())
+        batches = stock_result.scalars().all()
+        available_stock = sum(s.quantity_current for s in batches)
         if available_stock < dispense_item.quantity_dispensed:
             raise HTTPException(
                 status_code=400,
@@ -201,12 +296,7 @@ async def dispense(
 
         # Deduct from stock (FEFO — first to expire first)
         remaining = dispense_item.quantity_dispensed
-        stocks = await db.execute(
-            select(DrugStock)
-            .where(DrugStock.drug_id == item.drug_id, DrugStock.quantity_current > 0)
-            .order_by(DrugStock.expiry_date)
-        )
-        for batch in stocks.scalars().all():
+        for batch in batches:
             if remaining <= 0:
                 break
             deduct = min(remaining, batch.quantity_current)

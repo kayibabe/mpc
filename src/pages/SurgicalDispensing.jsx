@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Package, Check, Clock, AlertCircle, Loader2, X } from "lucide-react";
+import { Package, Check, Clock } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 
 export default function SurgicalDispensing() {

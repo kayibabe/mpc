@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Shield, FileSignature, AlertTriangle, CheckCircle, Clock, TrendingUp, XCircle } from "lucide-react";
+import { Shield, FileSignature, AlertTriangle, CheckCircle, TrendingUp } from "lucide-react";
 
 const DEPARTMENTS = [
   "nursing", "clinical", "lab", "imaging", "pharmacy", "inpatient", "maternal", "theatre"

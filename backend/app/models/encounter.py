@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 import enum
 from datetime import datetime, timezone
-from sqlalchemy import String, DateTime, Enum as SAEnum, Text, ForeignKey, Numeric, JSON
+from sqlalchemy import DateTime, Enum as SAEnum, Text, ForeignKey, Numeric, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.core.database import Base

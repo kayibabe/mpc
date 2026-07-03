@@ -1,28 +1,33 @@
 import asyncio
 import pytest
-from datetime import datetime, timezone
 from typing import AsyncGenerator
 
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from sqlalchemy import text
+from sqlalchemy import select
+from sqlalchemy.pool import StaticPool
 
 from app.main import app
 from app.core.database import get_db, Base
-from app.core.security import hash_password, create_access_token
+from app.routers.auth import limiter as auth_limiter
+from app.core.security import hash_password
 from app.models.user import User, UserRole
-from app.models.patient import Patient, Gender, BloodGroup
-from app.models.pharmacy import Drug, DrugStock, Prescription, PrescriptionItem, PrescriptionStatus, DrugForm
-from app.models.encounter import Encounter, EncounterType, EncounterStatus
 
 # Use in-memory SQLite for tests (async)
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
+# StaticPool: a single shared connection so every session sees the same
+# in-memory database (otherwise each pooled connection gets its own empty DB).
 test_engine = create_async_engine(
     TEST_DATABASE_URL,
     echo=False,
     connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
 )
+
+# Rate limits are per-IP; under ASGITransport every test shares one client IP,
+# so the 10/min login limit trips across tests. Disable for the suite.
+auth_limiter.enabled = False
 
 TestSessionLocal = async_sessionmaker(
     test_engine,
@@ -91,6 +96,12 @@ async def create_test_user(db: AsyncSession):
         password: str = "Test@Pass123!",
         is_active: bool = True,
     ) -> User:
+        # Idempotent: tests share one database, so reuse an existing user
+        # instead of violating the unique employee_id/email constraints.
+        existing = await db.execute(select(User).where(User.employee_id == employee_id))
+        found = existing.scalar_one_or_none()
+        if found:
+            return found
         user = User(
             id=str(__import__("uuid").uuid4()),
             employee_id=employee_id,

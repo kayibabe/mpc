@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Stethoscope, Heart, FileText, Pill, Activity, Plus, Save, Search, AlertTriangle, ShieldAlert, FlaskConical, ArrowRight, CheckCircle, GitBranch, PenTool, ArrowRightLeft, Clock, Users, FileBadge, FileWarning, Zap, Scissors, Beaker } from "lucide-react";
+import { Stethoscope, Heart, FileText, Pill, Plus, Save, AlertTriangle, ShieldAlert, FlaskConical, ArrowRight, CheckCircle, GitBranch, PenTool, ArrowRightLeft, Clock, FileBadge, FileWarning, Zap, Scissors, Beaker } from "lucide-react";
 import TemplateSelector from "@/components/TemplateSelector";
 import VitalSignsChart from "@/components/VitalSignsChart";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
@@ -230,7 +230,12 @@ export default function Clinical() {
         const tests = (l.tests || "").toLowerCase();
         return tests.includes("malaria") || tests.includes("rdt") || tests.includes("microscopy") || tests.includes("mps") || tests.includes("blood slide");
       });
-      const positiveLab = malariaLabOrders.find(l => l.status === "completed" || l.status === "verified");
+      // Same positive-result predicate as the save-time gate below (audit N11):
+      // a completed-but-negative test must NOT satisfy the malaria protocol.
+      const positiveLab = malariaLabOrders.find(l =>
+        (l.status === "completed" || l.status === "verified") &&
+        (l.result?.toLowerCase()?.includes("positive") || l.result_value?.includes("+") || l.result?.toLowerCase()?.includes("+"))
+      );
 
       if (!positiveLab) {
         warnings.push({
@@ -266,9 +271,6 @@ export default function Clinical() {
   // CDS-aware prescription save
   const savePrescription = async () => {
   if (!selectedVisit) return;
-  const prescribedDrugs = prescForm.items.map(i => i.drug_name?.toLowerCase() || "");
-  const actDrugs = ["artemether", "lumefantrine", "artesunate", "coartem", "al", "quinine", "artemether-lumefantrine"];
-  const isPrescribingAct = prescribedDrugs.some(d => actDrugs.some(act => d.includes(act)));
 
   // ── Drug Safety Check (Check allergies first) ──
   try {

@@ -10,7 +10,6 @@ import {
 import DepartmentDashboard from "@/components/DepartmentDashboard";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
 import RealTimeVitals from "@/components/RealTimeVitals";
-import BedsideNotifications from "@/components/BedsideNotifications";
 import NurseTasklist from "@/components/NurseTasklist";
 import PageHeader from "@/components/ui/PageHeader";
 

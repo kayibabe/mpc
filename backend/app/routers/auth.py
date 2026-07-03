@@ -2,8 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 from datetime import datetime, timezone
-from slowapi import Limiter
-from slowapi.util import get_remote_address
+from app.core.ratelimit import limiter
 from app.core.database import get_db
 from app.core.security import verify_password, create_access_token, create_refresh_token, decode_token
 from app.core.auth import get_current_user
@@ -14,7 +13,6 @@ from app.schemas.auth import LoginRequest, TokenResponse, RefreshRequest, Curren
 from jose import JWTError
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -68,8 +66,10 @@ async def refresh(body: RefreshRequest, db: AsyncSession = Depends(get_db)):
     # Verify the token is still in Redis (catches revoked/deactivated users)
     redis = await get_redis()
     redis_key = f"refresh:{user_id}:{body.refresh_token[-16:]}"
+    # decode_responses=True → get() returns str (calling .decode() here crashed
+    # every refresh against a real Redis; audit M12/N2)
     stored = await redis.get(redis_key)
-    if not stored or stored.decode() != body.refresh_token:
+    if not stored or stored != body.refresh_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token revoked")
 
     result = await db.execute(select(User).where(User.id == user_id, User.is_active == True))

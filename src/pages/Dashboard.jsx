@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Users, Calendar, FlaskConical, BedDouble, Pill, Receipt, TrendingUp, Clock, Activity, RefreshCw, Bell, Send, Loader2, GitBranch, Megaphone, ArrowRight, AlertTriangle, FileDown, CheckSquare, Square, X, FileText, ChevronDown, ChevronUp, RefreshCcw, Download } from "lucide-react";
-import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
+import { Users, Calendar, FlaskConical, BedDouble, Pill, Receipt, TrendingUp, Clock, Activity, RefreshCw, Bell, Send, Loader2, GitBranch, Megaphone, ArrowRight, AlertTriangle, FileDown, CheckSquare, Square, X, ChevronDown, ChevronUp, RefreshCcw, Download } from "lucide-react";
 import InventoryAlerts from "@/components/InventoryAlerts";
 import LivePulse from "@/components/LivePulse";
 import DoctorDashboard from "@/components/DoctorDashboard";

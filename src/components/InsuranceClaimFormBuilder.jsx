@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileText, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import LibertyClaimForm from "./ClaimForms/LibertyclaimForm";
 import MraClaimForm from "./ClaimForms/MraclaimForm";
 import WemasClaimForm from "./ClaimForms/WemasclaimForm";

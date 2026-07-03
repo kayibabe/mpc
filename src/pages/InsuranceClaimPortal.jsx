@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import InsuranceClaimFormBuilder from "@/components/InsuranceClaimFormBuilder";
 import { base44 } from "@/api/base44Client";
 import {
-  FileText, Plus, Search, Download, Clock, CheckCircle,
-  AlertTriangle, X, Save, Loader2, RefreshCw, Filter, Edit3, CheckSquare, Square
+  FileText, Plus, Search, Download, Clock, X, Save, Loader2, RefreshCw, Edit3
 } from "lucide-react";
 import DigitalClaimFormBuilder from "@/components/DigitalClaimFormBuilder";
 import ClaimStatusTracker from "@/components/ClaimStatusTracker";

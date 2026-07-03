@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Shield, Plus, Save, Users, UserPlus, Upload, FileBarChart, Settings, Building2, Loader2, ClipboardList, Filter, X, Clock, TrendingUp, Trash2, DollarSign, CheckCircle2, AlertCircle, Mail } from "lucide-react";
+import { Shield, Plus, Save, Users, UserPlus, Upload, FileBarChart, Building2, Loader2, ClipboardList, X, Clock, TrendingUp, Trash2, DollarSign, CheckCircle2, AlertCircle, Mail } from "lucide-react";
 import WasteManagement from "@/components/WasteManagement";
 import ShiftManagement from "@/components/ShiftManagement";
 import StaffPerformance from "@/components/StaffPerformance";

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Baby, Plus, Save, Heart, Calendar } from "lucide-react";
+import { Baby, Plus, Save, Heart } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 
 export default function Maternal() {

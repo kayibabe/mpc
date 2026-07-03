@@ -11,6 +11,14 @@ primary_region = 'jnb'
   min_machines_running = 1
   processes = ['app']
 
+  # Audit M8: platform health check (Fly ignores Docker HEALTHCHECK)
+  [[http_service.checks]]
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '30s'
+    method = 'GET'
+    path = '/health'
+
 [[vm]]
   memory = '512mb'
   cpu_kind = 'shared'

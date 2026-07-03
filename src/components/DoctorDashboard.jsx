@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Users, Clock, FlaskConical, AlertTriangle, Stethoscope, CheckCircle2 } from "lucide-react";
+import { FlaskConical, AlertTriangle, Stethoscope, CheckCircle2 } from "lucide-react";
 
 export default function DoctorDashboard() {
   const [stats, setStats] = useState({ todayConsultations: 0, pendingLabs: 0, prescriptions: 0, alerts: 0 });

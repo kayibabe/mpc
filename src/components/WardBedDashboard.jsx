@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { BedDouble, User, CalendarDays, Stethoscope, ChevronDown, ChevronUp, Building, AlertCircle, CheckCircle, Clock, Wrench, Shield } from "lucide-react";
+import { BedDouble, User, CalendarDays, Stethoscope, ChevronDown, ChevronUp, Building, AlertCircle, CheckCircle, Wrench, Shield } from "lucide-react";
 
 const STATUS_CONFIG = {
   occupied: {

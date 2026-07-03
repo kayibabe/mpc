@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle, Circle, Clock, AlertTriangle, FileText, User, X } from "lucide-react";
+import { CheckCircle, Circle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const WHO_SIGN_IN_ITEMS = [

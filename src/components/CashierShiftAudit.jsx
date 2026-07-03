@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { DollarSign, Clock, User, AlertTriangle, CheckCircle, TrendingUp, Wallet, CreditCard, Smartphone, Building2, Search, ChevronDown, ChevronUp, X } from "lucide-react";
+import { DollarSign, Clock, User, TrendingUp, Wallet, CreditCard, Smartphone, Building2 } from "lucide-react";
 
 const PAYMENT_METHODS = ["cash", "card", "airtel_money", "tnm_mpamba", "bank_transfer"];
 

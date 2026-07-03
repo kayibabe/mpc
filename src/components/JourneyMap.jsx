@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { GitBranch, AlertTriangle, Clock, User, Hash, ArrowRight, Users, ShieldAlert } from "lucide-react";
+import { GitBranch, AlertTriangle, Clock, Hash, ShieldAlert } from "lucide-react";
 
 const ALL_STAGES = [
   "RECEPTION", "TRIAGE", "CONSULTATION",

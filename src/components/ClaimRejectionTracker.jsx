@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { AlertTriangle, MessageSquare, RefreshCw, Clock, Loader2 } from "lucide-react";
+import { AlertTriangle, MessageSquare, Clock, Loader2 } from "lucide-react";
 
 export default function ClaimRejectionTracker() {
   const [rejections, setRejections] = useState([]);

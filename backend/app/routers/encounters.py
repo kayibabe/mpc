@@ -42,7 +42,7 @@ async def list_encounters(
     if encounter_type:
         stmt = stmt.where(Encounter.encounter_type == encounter_type)
     if encounter_date:
-        from sqlalchemy import func, cast
+        from sqlalchemy import cast
         from sqlalchemy.dialects.postgresql import DATE
         stmt = stmt.where(cast(Encounter.encounter_date, DATE) == encounter_date)
     stmt = stmt.order_by(Encounter.encounter_date.desc()).offset(skip).limit(limit)

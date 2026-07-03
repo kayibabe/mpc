@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { BedDouble, Users, AlertCircle, TrendingUp, RefreshCw } from "lucide-react";
+import { BedDouble, AlertCircle, RefreshCw } from "lucide-react";
 
 export default function WardSummary() {
   const [wards, setWards] = useState([]);

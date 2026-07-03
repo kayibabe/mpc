@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44, isBase44Env } from "@/api/base44Client";
 import { getToken } from "@/api/customClient";
-import { AlertTriangle, X, Bell, Clock } from "lucide-react";
+import { AlertTriangle, X, Clock } from "lucide-react";
 
 export default function EmergencyAlertSystem() {
   const [alerts, setAlerts] = useState([]);

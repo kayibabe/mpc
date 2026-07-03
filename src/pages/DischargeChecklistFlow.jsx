@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { CheckCircle, Circle, FileText, Plus, Save, Loader2, X } from "lucide-react";
+import { CheckCircle, Circle, FileText, Loader2 } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 
 const DISCHARGE_ITEMS = [

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Package, TrendingUp, Clock, CheckCircle, AlertTriangle, Filter, Download } from "lucide-react";
+import { Package, Filter, Download } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 
 const STATUS_FLOW = ["pending", "dispensed", "received", "used", "returned"];

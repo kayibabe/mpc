@@ -37,5 +37,38 @@
   "required": [
     "bed_number",
     "ward_id"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "nurse" } },
+        { "user_condition": { "role": "receptionist" } }
+      ]
+    },
+    "read": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "doctor" } },
+        { "user_condition": { "role": "clinician" } },
+        { "user_condition": { "role": "nurse" } },
+        { "user_condition": { "role": "midwife" } },
+        { "user_condition": { "role": "receptionist" } },
+        { "user_condition": { "role": "surgical_lead" } },
+        { "user_condition": { "role": "cashier" } }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "nurse" } },
+        { "user_condition": { "role": "receptionist" } }
+      ]
+    },
+    "delete": {
+      "$or": [
+        { "user_condition": { "role": "admin" } }
+      ]
+    }
+  }
 }

@@ -10,8 +10,6 @@ Phase 3 — Data Integrity Fixes:
 - H11: Add indexes on all foreign key columns and frequently queried fields
 """
 from alembic import op
-import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = "001_indexes_relationships"

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from app.models.billing import InvoiceStatus, PaymentMode, LineItemType
 
@@ -6,8 +6,8 @@ from app.models.billing import InvoiceStatus, PaymentMode, LineItemType
 class LineItemCreate(BaseModel):
     item_type: LineItemType = LineItemType.other
     description: str
-    quantity: float = 1.0
-    unit_price: float
+    quantity: float = Field(1.0, gt=0)
+    unit_price: float = Field(..., ge=0)
     reference_id: str | None = None
 
 
@@ -16,20 +16,22 @@ class InvoiceCreate(BaseModel):
     encounter_id: str
     payment_mode: PaymentMode = PaymentMode.cash
     insurance_claim_number: str | None = None
-    discount: float = 0.0
+    discount: float = Field(0.0, ge=0)
     notes: str | None = None
     line_items: list[LineItemCreate]
 
 
 class InvoiceUpdate(BaseModel):
     status: InvoiceStatus | None = None
-    discount: float | None = None
+    discount: float | None = Field(None, ge=0)
     notes: str | None = None
     payment_mode: PaymentMode | None = None
 
 
 class PaymentCreate(BaseModel):
-    amount: float
+    # gt=0: a zero or negative "payment" would silently reduce amount_paid /
+    # manipulate balances (audit N3)
+    amount: float = Field(..., gt=0)
     payment_mode: PaymentMode
     reference: str | None = None
     notes: str | None = None

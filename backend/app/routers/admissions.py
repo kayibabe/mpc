@@ -93,12 +93,21 @@ async def admit_patient(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.admin)),
 ):
-    bed_result = await db.execute(select(Bed).where(Bed.id == body.bed_id))
+    # Row-lock the bed so two concurrent admissions can't both see it as
+    # available (audit M1). No-op on SQLite tests, FOR UPDATE on Postgres.
+    bed_result = await db.execute(
+        select(Bed).where(Bed.id == body.bed_id).with_for_update()
+    )
     bed = bed_result.scalar_one_or_none()
     if not bed:
         raise HTTPException(status_code=404, detail="Bed not found")
     if bed.status != BedStatus.available:
         raise HTTPException(status_code=409, detail="Bed is not available")
+    if bed.ward_id != body.ward_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Bed does not belong to the specified ward",  # audit N6
+        )
 
     admission = Admission(
         id=str(uuid.uuid4()),
@@ -153,7 +162,9 @@ async def discharge_patient(
     admission.discharge_summary = body.discharge_summary
     admission.updated_at = datetime.now(timezone.utc)
 
-    bed_result = await db.execute(select(Bed).where(Bed.id == admission.bed_id))
+    bed_result = await db.execute(
+        select(Bed).where(Bed.id == admission.bed_id).with_for_update()
+    )
     bed = bed_result.scalar_one_or_none()
     if bed:
         bed.status = BedStatus.available

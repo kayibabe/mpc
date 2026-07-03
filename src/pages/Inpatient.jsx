@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { BedDouble, Plus, Save, Building, DoorOpen, FileText, Loader2, LayoutDashboard, ArrowRightLeft, AlertCircle } from "lucide-react";
+import { BedDouble, Plus, Save, Building, DoorOpen, FileText, Loader2, ArrowRightLeft, AlertCircle } from "lucide-react";
 import WardTransferModal from "@/components/WardTransferModal";
 import IncidentReportForm from "@/components/IncidentReportForm";
 import DepartmentDashboard from "@/components/DepartmentDashboard";

@@ -7,13 +7,24 @@ from datetime import date
 
 
 def test_vital_signs_validation_bp_systolic_out_of_range():
-    # Test expected validation for bp_systolic (assume reasonable range 40-250)
+    # Triage enforces the same physiological ranges as ward vitals (40-300 mmHg)
     with pytest.raises(ValidationError):
         TriageCreate(
             triage_category="urgent",
-            bp_systolic=300,  # out of range
+            bp_systolic=350,  # out of range
             bp_diastolic=80
         )
+
+
+def test_triage_pain_score_range():
+    with pytest.raises(ValidationError):
+        TriageCreate(triage_category="urgent", pain_score=11)
+
+
+def test_triage_valid_vitals_accepted():
+    t = TriageCreate(triage_category="urgent", bp_systolic=120, bp_diastolic=80,
+                     pulse=72, temperature=36.6, spo2=98, pain_score=3)
+    assert t.bp_systolic == 120
 
 
 def test_prescription_quantity_validation():

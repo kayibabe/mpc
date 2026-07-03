@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { ClipboardCheck, AlertTriangle, Clock, ChevronRight, Heart, Thermometer, Activity } from "lucide-react";
+import { ClipboardCheck, Clock, ChevronRight, Heart, Thermometer, Activity } from "lucide-react";
 
 const PRIORITY_COLORS = {
   emergency: "border-l-triage-emergency bg-triage-emergency/5",

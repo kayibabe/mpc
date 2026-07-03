@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Shield, CheckCircle, AlertTriangle, XCircle, TrendingUp, Users, ClipboardCheck, PenTool, Loader2, ArrowUpRight } from "lucide-react";
+import { Shield, AlertTriangle, XCircle, TrendingUp, ClipboardCheck, PenTool, Loader2 } from "lucide-react";
 
 const STATUS_COLORS = {
   compliant: "bg-clinical-normal/10 text-clinical-normal border-clinical-normal/30",

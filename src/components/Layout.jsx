@@ -8,7 +8,7 @@ import SurgeAlertBanner from "@/components/SurgeAlertBanner";
 import {
   LayoutDashboard, Users, CalendarDays, Stethoscope, FlaskConical,
   Scan, Pill, BedDouble, Baby, Receipt, Shield, UserCircle,
-  ChevronLeft, ChevronRight, LogOut, Menu, X, Activity,
+  ChevronLeft, ChevronRight, LogOut, Menu, Activity,
   Bell, Search, ClipboardPen, Monitor, FileBarChart, Trash2, PenTool,
   ArrowRightLeft, ShieldCheck, ClipboardCheck, Scissors, GitBranch, Clock, Zap,
   TrendingUp, Package, MessageSquare, FileText, CheckCircle, ChevronDown, Siren } from

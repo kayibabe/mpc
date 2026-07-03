@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Check, Clock, AlertCircle, Search, Loader2, X, Edit2, Trash2, Package } from "lucide-react";
+import { Plus, Check, Loader2, X, Edit2, Package } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 
 export default function SurgicalRequisitions() {

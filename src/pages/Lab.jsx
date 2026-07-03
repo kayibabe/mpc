@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { FlaskConical, Plus, Save, AlertTriangle, ClipboardCheck, Square, CheckSquare, Play, ArrowRight, CheckCircle, GitBranch } from "lucide-react";
+import { FlaskConical, Plus, Save, ClipboardCheck, Square, CheckSquare, Play, ArrowRight, CheckCircle, GitBranch } from "lucide-react";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
 import DepartmentDashboard from "@/components/DepartmentDashboard";
 import ExpiryAlerts from "@/components/ExpiryAlerts";

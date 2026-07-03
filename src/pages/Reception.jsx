@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { formatApiError } from "@/api/customClient";
-import { Search, UserPlus, ChevronDown, Check, Clock, Phone, MapPin, Users, RefreshCw, DoorOpen } from "lucide-react";
+import { Search, UserPlus, Clock, MapPin, Users, RefreshCw, DoorOpen } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 import SectionTitle from "@/components/ui/SectionTitle";
 import InsuranceVerifier from "@/components/InsuranceVerifier";

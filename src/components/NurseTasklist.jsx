@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import {
-  ClipboardList, Plus, CheckCircle, Circle, Clock, AlertTriangle,
-  Trash2, Search, Filter, X, ChevronDown, User, Heart, Syringe,
+  ClipboardList, Plus, CheckCircle, Circle, Clock,
+  Trash2, Search, X, User, Heart, Syringe,
   Droplets, Footprints, Bandage, Utensils, Monitor, BookOpen, FileText, MoreHorizontal
 } from "lucide-react";
 

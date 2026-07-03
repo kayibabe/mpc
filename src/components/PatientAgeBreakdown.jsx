@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Users, Baby } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 const COLORS = ["hsl(var(--triage-emergency))", "hsl(var(--triage-urgent))", "hsl(var(--triage-semi))", "hsl(var(--primary))", "hsl(var(--chart-2))", "hsl(var(--chart-3))"];
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from pydantic import BaseModel, field_validator
@@ -10,7 +10,7 @@ from app.models.user import User, UserRole
 from app.models.patient import Patient
 from app.models.audit import AuditLog
 import uuid
-from datetime import date, datetime
+from datetime import datetime
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -128,7 +128,7 @@ async def update_user(
 async def list_audit_logs(
     action: str | None = None,
     entity_type: str | None = None,
-    limit: int = 100,
+    limit: int = Query(100, ge=1, le=500),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_role(UserRole.admin)),
 ):

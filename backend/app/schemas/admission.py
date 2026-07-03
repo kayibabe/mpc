@@ -32,18 +32,18 @@ class BedCreate(BaseModel):
     bed_type: str = "general"
 
 
+# NOTE (audit N6): fields the model doesn't store (notes, follow_up_date) were
+# removed — accepting them silently discarded clinician input.
 class AdmissionCreate(BaseModel):
     patient_id: str
     encounter_id: str
     ward_id: str
     bed_id: str
-    notes: str | None = None
 
 
 class DischargeCreate(BaseModel):
     discharge_type: DischargeType
     discharge_summary: str | None = None
-    follow_up_date: str | None = None
 
 
 class BedResponse(BaseModel):

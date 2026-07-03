@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   ClipboardCheck, AlertTriangle, Clock, Heart, Thermometer, Activity,
-  Users, Filter, RefreshCw, CheckCircle, Printer, Download, BarChart2,
-  BedDouble, Calendar, TrendingUp, X
+  Users, Filter, RefreshCw, CheckCircle, Printer, BarChart2, TrendingUp, X
 } from "lucide-react";
 import BedOccupancyAlert from "@/components/BedOccupancyAlert";
 import PageHeader from "@/components/ui/PageHeader";

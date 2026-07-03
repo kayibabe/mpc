@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import { Pen, Eraser, RotateCcw, Check, X, Loader2 } from "lucide-react";
+import { Pen, Eraser, Check, X, Loader2 } from "lucide-react";
 
 export default function SignaturePad({
   onSave,

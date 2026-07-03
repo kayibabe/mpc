@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, ScatterChart, Scatter
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer
 } from "recharts";
 import { TrendingUp, Download, Loader2, RefreshCw, Award, Users, Clock } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";

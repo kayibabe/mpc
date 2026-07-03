@@ -122,7 +122,7 @@ function makeHttp(baseURL) {
 // For each Base44 entity name: endpoint path, field transforms (both directions),
 // and a filterMap for renaming filter keys before sending to FastAPI.
 
-const ENTITY_DEFS = {
+export const ENTITY_DEFS = {
   Patient: {
     endpoint: '/patients',
     fromAPI: (p) => p && ({
@@ -228,7 +228,8 @@ const ENTITY_DEFS = {
     fromAPI: (a) => a && ({
       ...a,
       created_date: a.created_at,
-      admission_date: a.admitted_at,
+      // backend field is admission_date (already in the spread) — the old
+      // a.admitted_at override clobbered it with undefined
     }),
     toAPI: (d) => d,
     filterMap: { created_date: 'created_at' },
@@ -238,12 +239,13 @@ const ENTITY_DEFS = {
     endpoint: '/billing/invoices',
     fromAPI: (i) => i && ({
       ...i,
+      total_amount: i.total ?? i.total_amount ?? 0,
       paid_amount: i.amount_paid ?? i.paid_amount ?? 0,
-      net_amount: i.total_amount - (i.balance ?? 0),
+      net_amount: (i.total ?? i.total_amount ?? 0) - (i.balance ?? 0),
       created_date: i.created_at,
     }),
     toAPI: (d) => d,
-    filterMap: { paid_amount: 'amount_paid', created_date: 'created_at' },
+    filterMap: { paid_amount: 'amount_paid', created_date: 'created_at', total_amount: 'total' },
   },
 
   Payment: {

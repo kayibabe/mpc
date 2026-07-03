@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main, 'security-fixes-phase1' ]
+    branches: [ main, 'audit-fixes', 'security-fixes-phase1' ]
   pull_request:
     branches: [ main ]
 

@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import {
-  Calendar, Clock, Users, AlertTriangle, CheckCircle, Plus, Edit2, X,
-  ChevronLeft, ChevronRight, Loader2, Save, Trash2, Zap, Search
+  Calendar, Plus, Edit2, X,
+  ChevronLeft, ChevronRight, Save, Trash2
 } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 

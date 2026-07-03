@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { TrendingUp, DollarSign, AlertTriangle, CheckCircle, Loader2, Download } from "lucide-react";
+import { TrendingUp, DollarSign, CheckCircle, Loader2, Download } from "lucide-react";
 
 export default function ClaimSummaryDashboard() {
   const [claims, setClaims] = useState([]);

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { AlertTriangle, Package, RefreshCw, Save, Loader2, Search } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 

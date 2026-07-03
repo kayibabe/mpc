@@ -6,7 +6,7 @@ from app.core.database import get_db
 from app.core.auth import require_role
 from app.core.audit import log_action
 from app.models.user import User, UserRole
-from app.models.patient import Patient, mrn_seq
+from app.models.patient import Patient
 from app.schemas.patient import PatientCreate, PatientUpdate, PatientResponse, PatientListResponse
 import uuid
 
@@ -15,6 +15,16 @@ router = APIRouter(prefix="/patients", tags=["patients"])
 
 def _generate_mrn(seq_val: int) -> str:
     return f"ZCPC{str(seq_val).zfill(6)}"
+
+
+async def _next_mrn_seq(db: AsyncSession) -> int:
+    """Postgres uses the mrn_seq sequence (atomic, gap-free). SQLite (dev/tests)
+    has no sequences — fall back to row count + 1 (patients are append-only)."""
+    if db.get_bind().dialect.name == "postgresql":
+        return (await db.execute(text("SELECT nextval('mrn_seq')"))).scalar_one()
+    from sqlalchemy import func
+    count = (await db.execute(select(func.count()).select_from(Patient))).scalar_one()
+    return count + 1
 
 
 @router.get("", response_model=list[PatientListResponse])
@@ -48,8 +58,7 @@ async def create_patient(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.admin, UserRole.receptionist)),
 ):
-    seq_result = await db.execute(text("SELECT nextval('mrn_seq')"))
-    mrn = _generate_mrn(seq_result.scalar_one())
+    mrn = _generate_mrn(await _next_mrn_seq(db))
 
     patient = Patient(
         id=str(uuid.uuid4()),

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Receipt, Plus, Save, CreditCard, DollarSign, FileText, Search, Download, ArrowRight, CheckCircle, GitBranch, ClipboardList, Shield, UserCircle, ChevronDown, ChevronUp, Users, Trash2 } from "lucide-react";
+import { Receipt, Plus, Save, CreditCard, DollarSign, FileText, Search, Download, CheckCircle, GitBranch, Shield, UserCircle, ChevronDown, ChevronUp, Users, Trash2 } from "lucide-react";
 import ShiftManagement from "@/components/ShiftManagement";
 import RevenueReport from "@/components/RevenueReport";
 import ReconciliationPanel from "@/components/ReconciliationPanel";

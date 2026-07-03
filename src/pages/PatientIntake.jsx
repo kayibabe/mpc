@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Users, Save, Loader2, X, Plus, AlertCircle } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";

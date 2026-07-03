@@ -1,7 +1,6 @@
 import pytest
 from httpx import AsyncClient
 from app.models.user import UserRole
-from datetime import date, datetime, timezone
 import uuid
 
 
@@ -66,8 +65,8 @@ async def test_dispense_insufficient_stock_should_400(client: AsyncClient, auth_
 
 
 @pytest.mark.asyncio
-async def test_dispense_sufficient_stock(client: AsyncClient, auth_token, pharmacist_user):
-    # Similar setup, expect success (200 or 201)
+async def test_dispense_empty_items_rejected(client: AsyncClient, auth_token, pharmacist_user):
+    # DispenseCreate requires at least one item
     pha_token, _ = await auth_token(role=UserRole.pharmacist)
     dispense_data = {"items": []}
     response = await client.post(
@@ -75,14 +74,14 @@ async def test_dispense_sufficient_stock(client: AsyncClient, auth_token, pharma
         json=dispense_data,
         headers={"Authorization": f"Bearer {pha_token}"}
     )
-    assert response.status_code in (200, 404)
+    assert response.status_code == 422
 
 
 @pytest.mark.asyncio
 async def test_role_check_non_pharmacist_cant_dispense(client: AsyncClient, auth_token):
     # Receptionist can't dispense
     rec_token, _ = await auth_token(role=UserRole.receptionist, employee_id="REC007")
-    dispense_data = {"items": []}
+    dispense_data = {"items": [{"prescription_item_id": str(uuid.uuid4()), "quantity_dispensed": 1}]}
     response = await client.post(
         f"/api/v1/pharmacy/prescriptions/{str(uuid.uuid4())}/dispense",
         json=dispense_data,

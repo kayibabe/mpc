@@ -4,9 +4,19 @@ from typing import AsyncGenerator
 from app.core.config import settings
 
 
-# When DATABASE_URL is set (fly.dev), asyncpg defaults to SSL which the
-# internal *.flycast network doesn't support — disable it explicitly.
-_connect_args = {"ssl": False} if settings.DATABASE_URL else {}
+# asyncpg defaults to SSL. Fly's private network (*.flycast / *.internal)
+# doesn't support it — disable there. Any other remote host (external
+# managed Postgres) must use SSL so patient data is never sent in clear.
+def _connect_args_for(url: str | None) -> dict:
+    if not url or not url.startswith(("postgres://", "postgresql://", "postgresql+asyncpg://")):
+        return {}
+    host = url.split("@")[-1].split("/")[0].split(":")[0]
+    if host.endswith(".flycast") or host.endswith(".internal") or host in ("localhost", "127.0.0.1"):
+        return {"ssl": False}
+    return {"ssl": "require"}
+
+
+_connect_args = _connect_args_for(settings.DATABASE_URL)
 
 engine = create_async_engine(
     settings.db_url,
