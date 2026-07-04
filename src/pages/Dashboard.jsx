@@ -19,6 +19,7 @@ import WardOccupancyChart from "@/components/WardOccupancyChart";
 import DepartmentHeatmap from "@/components/DepartmentHeatmap";
 import BedOccupancyAlert from "@/components/BedOccupancyAlert";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { queueLabel, visitLabel, priorityLabel } from "@/lib/labels";
 import DailyIntakeSummary from "@/components/AdminDashboardWidgets/DailyIntakeSummary";
 import RevenueBreakdown from "@/components/AdminDashboardWidgets/RevenueBreakdown";
 import WardOccupancySummary from "@/components/AdminDashboardWidgets/WardOccupancySummary";
@@ -257,7 +258,6 @@ export default function Dashboard() {
     setNotifications(notifications.filter(n => n.id !== id));
   };
 
-  const visitTypeLabel = (t) => ({ outpatient: "OPD", inpatient: "IPD", emergency: "ER", anc: "ANC", postnatal: "PNC", procedure: "PROC" }[t] || t);
 
   const STAGE_LABELS = {
     RECEPTION: "Reception", TRIAGE: "Triage", CONSULTATION: "Doctor",
@@ -630,7 +630,7 @@ export default function Dashboard() {
                         <td className="py-2 px-3 text-muted-foreground">{new Date(v.created_date).toLocaleDateString("en-GB")}</td>
                         <td className="py-2 px-3 text-foreground">{patientMap[v.patient_id] || <span className="font-mono text-[10px]">{v.patient_id?.slice(0, 8)}</span>}</td>
                         <td className="py-2 px-3">
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary">{visitTypeLabel(v.visit_type)}</span>
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary">{visitLabel(v.visit_type)}</span>
                         </td>
                         <td className="py-2 px-3">
                           {v.priority === "emergency" ? (
@@ -638,7 +638,7 @@ export default function Dashboard() {
                           ) : v.priority === "urgent" ? (
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-triage-urgent/10 text-triage-urgent border border-triage-urgent/20">! Urgent</span>
                           ) : (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium text-muted-foreground">Routine</span>
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium text-muted-foreground">{priorityLabel(v.priority)}</span>
                           )}
                         </td>
                         <td className="py-2 px-3 capitalize text-muted-foreground">{v.payment_type}</td>
@@ -648,7 +648,7 @@ export default function Dashboard() {
                             v.queue_status === "waiting" ? "bg-triage-urgent/10 text-triage-urgent" :
                             v.queue_status === "in_consultation" ? "bg-primary/10 text-primary" :
                             "bg-muted text-muted-foreground"
-                          }`}>{v.queue_status.replace(/_/g, " ")}</span>
+                          }`}>{queueLabel(v.queue_status)}</span>
                         </td>
                       </tr>
                     ))}

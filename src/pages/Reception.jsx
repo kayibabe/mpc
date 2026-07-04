@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { formatApiError } from "@/api/customClient";
 import { Search, UserPlus, Clock, MapPin, Users, RefreshCw, DoorOpen } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { queueLabel } from "@/lib/labels";
 import PageHeader from "@/components/ui/PageHeader";
 import SectionTitle from "@/components/ui/SectionTitle";
 import InsuranceVerifier from "@/components/InsuranceVerifier";
@@ -304,7 +305,7 @@ export default function Reception() {
                       v.queue_status === "in_consultation" ? "bg-chart-1/10 text-chart-1" :
                       v.queue_status === "waiting" ? "bg-chart-4/10 text-chart-4" :
                       "bg-muted text-muted-foreground"
-                    }`}>{v.queue_status}</span>
+                    }`}>{queueLabel(v.queue_status)}</span>
                   </div>
                   {journey && <PatientJourneyTimeline journeyId={journey.id} compact />}
                 </div>
