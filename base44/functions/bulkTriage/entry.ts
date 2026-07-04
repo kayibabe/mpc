@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
         }
 
         // Transition the journey to CONSULTATION
-        await base44.asServiceRole.functions.invoke('handleWorkflowStageChange', {
+        await base44.functions.invoke('handleWorkflowStageChange', {
           journey_id: journey.id,
           next_stage: 'CONSULTATION',
           notes: notes || `Bulk triaged as ${priority} by ${user.full_name || 'nursing staff'}`,

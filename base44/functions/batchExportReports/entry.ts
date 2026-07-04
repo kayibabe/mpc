@@ -71,6 +71,10 @@ Deno.serve(async (req) => {
             break;
           }
           case 'patients': {
+            if (user.role !== 'admin') {
+              results[name] = { status: 'error', summary: 'Admin role required for patient list export (MDA 2024)' };
+              break;
+            }
             const patients = await base44.asServiceRole.entities.Patient.list('-created_date', 1000);
             const data = patients.map(p => ({
               mrn: p.mrn || '',

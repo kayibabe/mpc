@@ -35,29 +35,21 @@
   "rls": {
     "create": {
       "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "doctor" } },
+        { "user_condition": { "role": "nurse" } },
+        { "user_condition": { "role": "pharmacist" } }
       ]
     },
     "read": {
       "$or": [
-        {
-          "data.patient_id": "{{user.id}}"
-        },
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "doctor" } },
+        { "user_condition": { "role": "nurse" } },
+        { "user_condition": { "role": "pharmacist" } },
+        { "user_condition": { "role": "lab_technician" } },
+        { "user_condition": { "role": "radiographer" } },
+        { "created_by_id": "{{user.id}}" }
       ]
     },
     "update": {
