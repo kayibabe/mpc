@@ -24,6 +24,8 @@ class PatientCreate(BaseModel):
     insurance_number: str | None = None
     known_allergies: str | None = None
     chronic_conditions: str | None = None
+    consent_given: bool = False
+    consent_date: datetime | None = None
 
     @field_validator("first_name", "last_name")
     @classmethod
@@ -87,6 +89,8 @@ class PatientResponse(BaseModel):
     insurance_number: str | None
     known_allergies: str | None
     chronic_conditions: str | None
+    consent_given: bool
+    consent_date: datetime | None
     created_at: datetime
     updated_at: datetime
 

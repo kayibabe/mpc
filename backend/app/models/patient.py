@@ -54,6 +54,9 @@ class Patient(Base):
     insurance_number: Mapped[str | None] = mapped_column(String(100), nullable=True)
     known_allergies: Mapped[str | None] = mapped_column(Text, nullable=True)
     chronic_conditions: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # MDA 2024: data-processing consent captured at registration
+    consent_given: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    consent_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True

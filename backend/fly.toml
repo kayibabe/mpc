@@ -1,6 +1,9 @@
 app = 'zcpc-api'
 primary_region = 'jnb'
 
+[deploy]
+  release_command = "python scripts/db_migrate.py"
+
 [build]
 
 [http_service]
