@@ -109,7 +109,7 @@
     @apply bg-card rounded-xl border border-border/50 p-5 shadow-sm hover:shadow-md transition-shadow duration-300;
   }
   .page-container {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6;
   }
   .section-title {
     @apply font-heading text-2xl font-semibold tracking-tight text-foreground;
@@ -129,6 +129,14 @@
   }
   .clinical-section h4 {
     @apply text-sm font-semibold text-foreground;
+  }
+  /* Form field labels */
+  .field-label {
+    @apply block text-xs font-semibold text-foreground/80 mb-1.5;
+  }
+  .field-label-required::after {
+    content: ' *';
+    color: hsl(var(--clinical-critical));
   }
   /* Emergency color-coding */
   .triage-emergency { @apply border-l-[4px]; border-left-color: hsl(var(--triage-emergency)); }

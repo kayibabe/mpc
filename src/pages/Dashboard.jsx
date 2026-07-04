@@ -73,6 +73,7 @@ function StatCard({ label, value, sub, color, to, metaKey }) {
 export default function Dashboard() {
   const [currentUser, setCurrentUser] = useState(null);
   const [stats, setStats] = useState({ patients: 0, appointments: 0, labOrders: 0, occupiedBeds: 0, drugs: 0, revenue: 0 });
+  const [patientMap, setPatientMap] = useState({});
   const [recentVisits, setRecentVisits] = useState([]);
   const [dailyReport, setDailyReport] = useState(null);
   const [reportLoading, setReportLoading] = useState(false);
@@ -216,6 +217,9 @@ export default function Dashboard() {
           drugs: drugs.filter(d => d.quantity_in_stock <= d.reorder_level).length,
           revenue: rev,
         });
+        const pm = {};
+        patients.forEach(p => { pm[p.id] = `${p.first_name} ${p.last_name}`; });
+        setPatientMap(pm);
         setRecentVisits(visits);
       } catch (e) {
         console.error(e);
@@ -577,7 +581,7 @@ export default function Dashboard() {
                       {waiting.slice(0, 3).map((v, i) => (
                         <div key={v.id} className="flex items-center gap-2 text-[10px] text-muted-foreground py-0.5">
                           <span className="w-4 h-4 rounded-full bg-muted/60 flex items-center justify-center text-[9px] font-bold text-muted-foreground flex-shrink-0">{i + 1}</span>
-                          <span className="truncate">{v.patient_id?.slice(0, 8)}</span>
+                          <span className="truncate">{patientMap[v.patient_id] || v.patient_id?.slice(0, 8) || "Unknown"}</span>
                         </div>
                       ))}
                     </div>
@@ -624,7 +628,7 @@ export default function Dashboard() {
                     {recentVisits.map((v) => (
                       <tr key={v.id} className="hover:bg-muted/20 transition-colors">
                         <td className="py-2 px-3 text-muted-foreground">{new Date(v.created_date).toLocaleDateString("en-GB")}</td>
-                        <td className="py-2 px-3 font-mono text-[10px] text-foreground">{v.patient_id?.slice(0, 8)}</td>
+                        <td className="py-2 px-3 text-foreground">{patientMap[v.patient_id] || <span className="font-mono text-[10px]">{v.patient_id?.slice(0, 8)}</span>}</td>
                         <td className="py-2 px-3">
                           <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary">{visitTypeLabel(v.visit_type)}</span>
                         </td>
@@ -755,9 +759,9 @@ export default function Dashboard() {
                       { label: "Pharmacy Inventory", path: "/pharmacy" },
                       { label: "Process Payment", path: "/billing" },
                     ].map(action => (
-                      <a key={action.label} href={action.path} className="block px-3 py-2 rounded border border-border hover:bg-muted/50 hover:border-primary/30 transition-all text-xs font-medium">
+                      <Link key={action.label} to={action.path} className="block px-3 py-2 rounded border border-border hover:bg-muted/50 hover:border-primary/30 transition-all text-xs font-medium">
                         {action.label}
-                      </a>
+                      </Link>
                     ))}
                   </div>
                 </div>

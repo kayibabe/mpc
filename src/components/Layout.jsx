@@ -155,6 +155,20 @@ export default function Layout() {
     });
   };
 
+  // Auto-expand the group containing the active route
+  useEffect(() => {
+    for (const group of ALL_NAV_GROUPS) {
+      if (group.label === "Main") continue;
+      const hasActive = group.items.some(
+        item => item.path === location.pathname || (item.path !== "/" && location.pathname.startsWith(item.path))
+      );
+      if (hasActive) {
+        setCollapsedGroups({ [group.label]: false });
+        break;
+      }
+    }
+  }, [location.pathname]);
+
   useEffect(() => {
     const fetchUser = () => {
       base44.auth.me().then((u) => {
@@ -206,13 +220,7 @@ export default function Layout() {
               {/* Group header */}
               {!isMainGroup ? (
                 <button
-                  onClick={() => {
-                    if (visibleItems.length > 0) {
-                      navigate(visibleItems[0].path);
-                      setMobileOpen(false);
-                    }
-                    toggleGroupCollapse(group.label);
-                  }}
+                  onClick={() => toggleGroupCollapse(group.label)}
                   className="flex items-center justify-between w-full px-2 py-1.5 rounded-md transition-colors hover:bg-black/5"
                   title={collapsed ? group.label : (isGroupCollapsed ? "Expand" : "Collapse")}
                 >
@@ -400,7 +408,6 @@ export default function Layout() {
               aria-label="Notifications"
             >
               <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-clinical-critical" />
             </button>
             <div className="relative">
               <button
