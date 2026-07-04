@@ -12,13 +12,15 @@ import {
   Bell, Search, ClipboardPen, Monitor, FileBarChart, Trash2, PenTool,
   ArrowRightLeft, ShieldCheck, ClipboardCheck, Scissors, Map, CalendarClock, CalendarRange,
   TrendingUp, Package2, PackageCheck, MessageSquare, ScrollText, CheckCircle, ChevronDown, Siren,
-  ClipboardList, Users2, ShoppingCart, Truck, BarChart3, HeartPulse, Award, BarChart2, Banknote
+  ClipboardList, Users2, ShoppingCart, Truck, BarChart3, HeartPulse, Award, BarChart2, Banknote,
+  UserCheck, CreditCard, Calendar, Lock, Warehouse, LineChart, Home
 } from "lucide-react";
 
 const ALL_NAV_GROUPS = [
   {
     label: "Main",
     color: "#2B7CBF",
+    icon: Home,
     items: [
       { label: "Dashboard", path: "/", icon: LayoutDashboard, roles: ["admin", "user", "receptionist", "cashier", "doctor", "clinician", "nurse", "midwife", "pharmacist", "lab_technician", "radiographer", "surgical_lead", "store_manager"] },
     ],
@@ -26,6 +28,7 @@ const ALL_NAV_GROUPS = [
   {
     label: "Patient Access",
     color: "#0891B2",
+    icon: UserCheck,
     items: [
       { label: "Reception", path: "/reception", icon: Users, roles: ["admin", "user", "receptionist"] },
       { label: "Patient Intake", path: "/patient-intake", icon: ClipboardList, roles: ["admin", "user", "receptionist"] },
@@ -37,6 +40,7 @@ const ALL_NAV_GROUPS = [
   {
     label: "Clinical",
     color: "#059669",
+    icon: Stethoscope,
     items: [
       { label: "Consultations", path: "/clinical", icon: Stethoscope, roles: ["admin", "user", "doctor", "clinician"] },
       { label: "Nursing", path: "/nursing", icon: ClipboardPen, roles: ["admin", "user", "nurse", "midwife"] },
@@ -49,6 +53,7 @@ const ALL_NAV_GROUPS = [
   {
     label: "Inpatient & Theatre",
     color: "#7C3AED",
+    icon: BedDouble,
     items: [
       { label: "Inpatient", path: "/inpatient", icon: BedDouble, roles: ["admin", "user", "nurse", "midwife", "doctor", "clinician"] },
       { label: "Maternal", path: "/maternal", icon: Baby, roles: ["admin", "user", "nurse", "midwife", "doctor", "clinician"] },
@@ -63,6 +68,7 @@ const ALL_NAV_GROUPS = [
   {
     label: "Billing & Insurance",
     color: "#D97706",
+    icon: CreditCard,
     items: [
       { label: "Billing", path: "/billing", icon: Receipt, roles: ["admin", "user", "cashier", "receptionist"] },
       { label: "Insurance Claims", path: "/insurance-claims", icon: Banknote, roles: ["admin", "user", "cashier"] },
@@ -71,6 +77,7 @@ const ALL_NAV_GROUPS = [
   {
     label: "Operations & Scheduling",
     color: "#4F46E5",
+    icon: Calendar,
     items: [
       { label: "Calendar", path: "/calendar", icon: CalendarRange, roles: ["admin", "user", "receptionist"] },
       { label: "Doctor Schedule", path: "/doctor-schedule", icon: CalendarClock, roles: ["admin", "user", "receptionist"] },
@@ -82,6 +89,7 @@ const ALL_NAV_GROUPS = [
   {
     label: "Tracking & Outcomes",
     color: "#DB2777",
+    icon: LineChart,
     items: [
       { label: "Journey Map", path: "/journey-map", icon: Map, roles: ["admin", "user"] },
       { label: "Treatment Adherence", path: "/treatment-adherence", icon: TrendingUp, roles: ["admin"] },
@@ -92,6 +100,7 @@ const ALL_NAV_GROUPS = [
   {
     label: "Reports & Analytics",
     color: "#1E40AF",
+    icon: BarChart3,
     items: [
       { label: "Physician Performance", path: "/physician-performance", icon: Award, roles: ["admin"] },
       { label: "Doctor Performance", path: "/doctor-performance", icon: BarChart2, roles: ["admin"] },
@@ -102,6 +111,7 @@ const ALL_NAV_GROUPS = [
   {
     label: "Inventory & Facilities",
     color: "#EA580C",
+    icon: Warehouse,
     items: [
       { label: "Inventory Audit", path: "/inventory-audit", icon: PackageCheck, roles: ["admin"] },
       { label: "Surgical Supplies", path: "/surgical-supplies", icon: Package2, roles: ["admin"] },
@@ -111,6 +121,7 @@ const ALL_NAV_GROUPS = [
   {
     label: "Security & Documents",
     color: "#64748B",
+    icon: Lock,
     items: [
       { label: "My Signatures", path: "/my-signatures", icon: PenTool, roles: ["admin", "user"] },
       { label: "Signature Audit", path: "/signature-audit", icon: ShieldCheck, roles: ["admin"] },
@@ -120,6 +131,7 @@ const ALL_NAV_GROUPS = [
   {
     label: "Administration",
     color: "#DC2626",
+    icon: Shield,
     items: [
       { label: "Admin", path: "/admin", icon: Shield, roles: ["admin"] },
     ],
@@ -187,6 +199,8 @@ export default function Layout() {
           const isGroupCollapsed = isMainGroup ? false : collapsedGroups[group.label] !== false;
           const { color } = group;
 
+          const GroupIcon = group.icon;
+
           return (
             <div key={group.label}>
               {/* Group header */}
@@ -200,19 +214,21 @@ export default function Layout() {
                     toggleGroupCollapse(group.label);
                   }}
                   className="flex items-center justify-between w-full px-2 py-1.5 rounded-md transition-colors hover:bg-black/5"
-                  title={isGroupCollapsed ? "Expand" : "Collapse"}
+                  title={collapsed ? group.label : (isGroupCollapsed ? "Expand" : "Collapse")}
                 >
-                  {!collapsed && (
-                    <div className="flex items-center gap-1.5 flex-1 text-left overflow-hidden">
-                      <div
-                        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                        style={{ background: color }}
-                      />
+                  <div className="flex items-center gap-2 flex-1 text-left overflow-hidden">
+                    <span
+                      className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0"
+                      style={{ background: `${color}20` }}
+                    >
+                      <GroupIcon className="w-3 h-3 flex-shrink-0" style={{ color }} strokeWidth={2} />
+                    </span>
+                    {!collapsed && (
                       <p className="text-[10.5px] font-semibold uppercase tracking-wider text-sidebar-foreground/60 truncate">
                         {group.label}
                       </p>
-                    </div>
-                  )}
+                    )}
+                  </div>
                   {!collapsed && (
                     <ChevronDown
                       className={`w-3.5 h-3.5 text-sidebar-foreground/40 transition-transform duration-200 flex-shrink-0 ${isGroupCollapsed ? "-rotate-90" : ""}`}
@@ -220,14 +236,17 @@ export default function Layout() {
                   )}
                 </button>
               ) : (
-                <div className="flex items-center gap-1.5 px-2 mb-1">
+                <div className="flex items-center gap-2 px-2 mb-1">
+                  <span
+                    className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0"
+                    style={{ background: `${color}20` }}
+                  >
+                    <GroupIcon className="w-3 h-3 flex-shrink-0" style={{ color }} strokeWidth={2} />
+                  </span>
                   {!collapsed && (
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />
-                      <p className="text-[10.5px] font-semibold uppercase tracking-wider text-sidebar-foreground/60">
-                        {group.label}
-                      </p>
-                    </div>
+                    <p className="text-[10.5px] font-semibold uppercase tracking-wider text-sidebar-foreground/60">
+                      {group.label}
+                    </p>
                   )}
                 </div>
               )}
