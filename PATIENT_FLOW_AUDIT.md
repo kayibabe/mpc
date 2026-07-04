@@ -8,9 +8,9 @@
 
 ## Executive Summary
 
-**Initial audit (2026-07-04): 13/19 passed. All 5 defects fixed same day. Final state: 18/19 passed (1 gap — no appointment module).**
+**Initial audit (2026-07-04): 13/19 passed. All 6 defects/gaps fixed same day. Final state: 19/19 passed — zero failures, zero gaps.**
 
-Five defects were identified and remediated in the same session. Two were operational blockers: the `cashier` role could not record payments (403 on all billing endpoints), and there was no duplicate patient detection — two receptionists could create two MRNs for the same patient with no server-side warning. Three compliance gaps were also closed: under-18 MDA 2024 consent is now enforced server-side (422 if `consent_given=False` or no guardian contact), a dedicated `Referral` entity now captures destination, urgency, letter text, and receiving-facility feedback, and the `clinician` role now has consistent clinical access across encounters, notes, lab orders, and prescriptions. The only remaining gap (S03) is the absence of an appointment booking module — a feature not yet in scope.
+Six issues were identified and remediated in the same session. Two were operational blockers: the `cashier` role could not record payments (403 on all billing endpoints), and there was no duplicate patient detection — two receptionists could create two MRNs for the same patient with no server-side warning. Three compliance gaps were also closed: under-18 MDA 2024 consent is now enforced server-side (422 if `consent_given=False` or no guardian contact), a dedicated `Referral` entity now captures destination, urgency, letter text, and receiving-facility feedback, and the `clinician` role now has consistent clinical access across encounters, notes, lab orders, and prescriptions. The final gap (S03) — no appointment booking module — was fully implemented: `POST /appointments` with double-booking prevention, `PATCH` for reschedule/cancel/status transitions, `POST /checkin` that auto-creates an encounter, and `GET /availability` for provider slot views.
 
 ---
 
@@ -60,7 +60,7 @@ Register patient   Create encounter   Lab order           Create invoice
 |----|----------|--------|-------------|
 | S01 | Happy Path — New Patient OPD | **PASS** | Full 11-step journey completed end-to-end |
 | S02 | Returning Patient | **PASS** | MRN search works; second encounter allowed |
-| S03 | Walk-in vs Appointment | **GAP** | No appointment module exists |
+| S03 | Walk-in vs Appointment | **PASS** *(fixed)* | Full appointment lifecycle with double-booking, check-in, availability |
 | S04 | Emergency Arrival | **PASS** | `encounter_type=emergency` + `triage_category=immediate` works |
 | S05 | Insurance Payer | **PASS** | Insurance fields on patient and invoice captured; claim number stored |
 | S06 | Partial Payment + Outstanding Balance | **PASS** | Multi-payment, balance tracking, overpay guard all correct |
@@ -107,11 +107,24 @@ Patient looked up by MRN via `GET /api/v1/patients?q=ZCPC000002`. Found immediat
 
 ---
 
-### S03 �� Walk-in vs Appointment — GAP
+### S03 — Walk-in vs Appointment — ~~GAP~~ **PASS (fixed)**
 
-No appointment table, no booking route, and no scheduled-arrival concept exist anywhere in the backend or data model. Walk-in is the only supported arrival mode. The encounter is always created on the spot by a receptionist or clinician.
+**What was missing:** No appointment table, no booking route, no scheduled-arrival concept.
 
-**What would be needed:** A future `appointments` table would require `patient_id`, `provider_id`, `scheduled_datetime`, `visit_reason`, and `status` (scheduled / confirmed / arrived / cancelled / no-show), with a link to the encounter when the patient checks in.
+**Fix applied:** New `Appointment` model, schema, router (`/api/v1/appointments`), and Alembic migration `004_appointments`.
+
+**Verified full lifecycle:**
+1. `POST /appointments` → 201, status=scheduled; `appointment_type` supports opd / follow_up / procedure / antenatal / immunization / other
+2. Double-booking prevention → 409 with `conflict_id` when same provider has an overlapping slot
+3. Overlapping (starting 15 min into a 30-min block) also blocked
+4. Back-to-back (no gap, no overlap) allowed
+5. Cancelled slot immediately reusable
+6. `PATCH /appointments/{id}` status machine: `scheduled → confirmed → arrived → in_progress → completed`; invalid transitions rejected 422
+7. Cancellation requires `cancellation_reason`; terminal states (cancelled / no_show / completed) are immutable
+8. `POST /appointments/{id}/checkin` → status=arrived, encounter auto-created with `attending_doctor_id=provider_id`
+9. `GET /appointments/availability?provider_id=&check_date=` → active slots for that provider/day
+10. `GET /appointments/today` → today's schedule, auto-filtered to current user if doctor/nurse/clinician
+11. Walk-in encounters (`POST /encounters` without any appointment) continue to work unobstructed
 
 ---
 
@@ -287,7 +300,7 @@ All 5 actionable defects were fixed in the same session. Remaining items are fea
 | 6 | S07 | **LOW** | No stale-encounter detection or auto-close | Open gap | Abandoned encounters accumulate; worklist becomes polluted over time |
 | 7 | S08 | **LOW** | No patient-level outstanding balance or overdue flag | Open gap | Difficult to identify patients with unpaid balances across multiple visits |
 | 8 | S10 | **LOW** | No dedicated imaging/radiology module | Open gap | Radiography workflow (request → accept → image → report) cannot be tracked |
-| 9 | S03 | **INFO** | No appointment/scheduling module | Open gap | Clinic cannot pre-book patients; walk-in only |
+| 9 | S03 | **INFO** | No appointment/scheduling module | **FIXED** | New Appointment model, router `/api/v1/appointments`, migration `004_appointments` |
 | 10 | S04 | **INFO** | Emergency triage bypass is label only, not enforced | Observation | Frontend must enforce priority routing; backend is passive |
 
 ---
