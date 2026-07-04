@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { formatApiError } from "@/api/customClient";
 import { Search, UserPlus, Clock, MapPin, Users, RefreshCw, DoorOpen } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 import PageHeader from "@/components/ui/PageHeader";
 import SectionTitle from "@/components/ui/SectionTitle";
 import InsuranceVerifier from "@/components/InsuranceVerifier";
@@ -54,8 +55,14 @@ export default function Reception() {
   const syncPatient = async (patientId) => {
     try {
       const { data } = await base44.functions.invoke('syncPatientRecords', { patient_id: patientId });
-      alert(`Synced: ${data.updates_applied?.visits || 0} visits, ${data.updates_applied?.invoices || 0} invoices updated.`);
-    } catch (e) { console.error(e); }
+      toast({
+        title: "Patient records synced",
+        description: `${data.updates_applied?.visits || 0} visits, ${data.updates_applied?.invoices || 0} invoices updated.`,
+      });
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Sync failed", description: "Could not sync patient records.", variant: "destructive" });
+    }
   };
 
   const schemes = ["MASM", "Liberty Health", "MRA", "PSMAS", "Madison", "Resolution Health", "Britam", "Old Mutual", "CHAM"];

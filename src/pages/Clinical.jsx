@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Stethoscope, Heart, FileText, Pill, Plus, Save, AlertTriangle, ShieldAlert, FlaskConical, ArrowRight, CheckCircle, GitBranch, PenTool, ArrowRightLeft, Clock, FileBadge, FileWarning, Zap, Scissors, Beaker } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import TemplateSelector from "@/components/TemplateSelector";
 import VitalSignsChart from "@/components/VitalSignsChart";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
@@ -49,6 +50,9 @@ export default function Clinical() {
   const [signingDoc, setSigningDoc] = useState(null); // { document_type, document_id }
   const [savingSignature, setSavingSignature] = useState(false);
   const [lastSavedDocId, setLastSavedDocId] = useState(null);
+
+  // Consultation overwrite confirmation
+  const [consultConfirmOpen, setConsultConfirmOpen] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -132,13 +136,18 @@ export default function Clinical() {
 
   const saveConsultation = async () => {
     if (!selectedVisit) return;
-    
+
     // Enforce single active consultation per visit
     const existingDrafts = consultations.filter(c => c.is_draft === true || c.status === "in_progress");
     if (existingDrafts.length > 0) {
-      const proceed = confirm(`⚠️ There is already an active consultation for this visit.\n\nCreating a new consultation will leave the previous one incomplete.\n\nProceed?`);
-      if (!proceed) return;
+      setConsultConfirmOpen(true);
+      return;
     }
+    await doSaveConsultation();
+  };
+
+  const doSaveConsultation = async () => {
+    if (!selectedVisit) return;
 
     const consultation = await base44.entities.Consultation.create({
       visit_id: selectedVisit.id, patient_id: selectedVisit.patient_id,
@@ -1051,6 +1060,30 @@ export default function Clinical() {
           )}
         </div>
       </div>
+
+      {/* Consultation overwrite confirmation */}
+      <AlertDialog open={consultConfirmOpen} onOpenChange={setConsultConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+              Active Consultation Exists
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              There is already an active consultation for this visit. Creating a new one will mark the previous as complete. Do you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => { setConsultConfirmOpen(false); doSaveConsultation(); }}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

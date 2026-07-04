@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Pill, Plus, Save, AlertTriangle, Clock, TrendingDown, Loader2, BarChart3, Calendar, ArrowRight, CheckCircle, GitBranch, PenTool, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { toast } from "@/components/ui/use-toast";
 import InventoryAlerts from "@/components/InventoryAlerts";
 import ExpiryAlerts from "@/components/ExpiryAlerts";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
@@ -67,6 +69,7 @@ export default function Pharmacy() {
   // ── Proper Dispensing Modal State ──
   const [dispenseModal, setDispenseModal] = useState(null); // { drug, prescriptionItem }
   const [dispenseQty, setDispenseQty] = useState("");
+  const [wasteConfirm, setWasteConfirm] = useState(null); // drug pending disposal
 
   const openDispenseModal = (drug, prescriptionItem = null) => {
     setDispenseModal({ drug, prescriptionItem, counselingNotes: "" });
@@ -112,8 +115,14 @@ export default function Pharmacy() {
     setDispenseQty("");
   };
 
-  const disposeAsWaste = async (drug) => {
-    if (!confirm(`Mark "${drug.name}" (${drug.quantity_in_stock} units) for pharmaceutical waste disposal?`)) return;
+  const disposeAsWaste = (drug) => {
+    setWasteConfirm(drug);
+  };
+
+  const doDisposeAsWaste = async () => {
+    const drug = wasteConfirm;
+    setWasteConfirm(null);
+    if (!drug) return;
     try {
       const cats = await base44.entities.WasteCategory.filter({ code: "PHM" }, "", 1);
       const catId = cats.length > 0 ? cats[0].id : null;
@@ -135,8 +144,9 @@ export default function Pharmacy() {
       await base44.entities.Drug.update(drug.id, { status: "discontinued", quantity_in_stock: 0 });
       const d = await base44.entities.Drug.list("-created_date", 200);
       setDrugs(d);
+      toast({ title: "Waste disposal logged", description: `${drug.name} marked for incineration.` });
     } catch (e) {
-      alert("Waste disposal failed: " + (e.message || "Unknown error"));
+      toast({ title: "Waste disposal failed", description: e.message || "Unknown error", variant: "destructive" });
     }
   };
 
@@ -581,6 +591,27 @@ export default function Pharmacy() {
           </div>
         </div>
       )}
+
+      {/* Waste disposal confirmation */}
+      <AlertDialog open={!!wasteConfirm} onOpenChange={(open) => { if (!open) setWasteConfirm(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+              Confirm Waste Disposal
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Mark <strong>{wasteConfirm?.name}</strong> ({wasteConfirm?.quantity_in_stock} units) for pharmaceutical waste disposal via incineration? This action will zero the stock and cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={doDisposeAsWaste} className="bg-destructive hover:bg-destructive/90 text-white">
+              Dispose
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
