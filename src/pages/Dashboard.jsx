@@ -358,6 +358,9 @@ export default function Dashboard() {
       {(isAdmin || isNurse || isPharmacist) && <InventoryAlerts />}
       {(isAdmin || isNurse) && <BedOccupancyAlert threshold={80} />}
 
+      {/* Live HIMS — prominent banner, top of dashboard */}
+      {(isAdmin || isDoctor || isNurse || isCashier) && <LivePulse prominent />}
+
       {/* Role-Specific KPI Cards */}
        <div>
          <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
@@ -787,8 +790,6 @@ export default function Dashboard() {
 
                 <RoleBasedReportDownload userRole={userRole} />
 
-                {/* Live HIMS Pulse — Admin, Doctors, Nurses, Cashiers only */}
-                {(isAdmin || isDoctor || isNurse || isCashier) && <LivePulse />}
 
                 {/* Notifications Panel */}
                 {notifications.length > 0 && (
