@@ -71,6 +71,8 @@ class NursingNote(Base):
     patient_id: Mapped[str] = mapped_column(ForeignKey("patients.id"), nullable=False, index=True)
     nurse_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     shift: Mapped[str] = mapped_column(String(20), nullable=False)
+    # "routine" progress note or end-of-shift "handover" note
+    note_type: Mapped[str] = mapped_column(String(20), default="routine", nullable=False)
     note_text: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False

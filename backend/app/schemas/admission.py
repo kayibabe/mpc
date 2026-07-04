@@ -44,6 +44,9 @@ class AdmissionCreate(BaseModel):
 class DischargeCreate(BaseModel):
     discharge_type: DischargeType
     discharge_summary: str | None = None
+    # Explicit acknowledgement that the patient is leaving with an unpaid
+    # balance (death, AMA, absconded, or management approval).
+    billing_override: bool = False
 
 
 class BedResponse(BaseModel):

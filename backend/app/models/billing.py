@@ -35,6 +35,7 @@ class LineItemType(str, enum.Enum):
 
 
 inv_seq = Sequence("inv_seq", metadata=Base.metadata, start=1)
+rct_seq = Sequence("rct_seq", metadata=Base.metadata, start=1)
 
 
 class BillingInvoice(Base):
@@ -101,6 +102,8 @@ class Payment(Base):
 
     id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
     invoice_id: Mapped[str] = mapped_column(ForeignKey("billing_invoices.id"), nullable=False, index=True)
+    # Nullable for payments recorded before receipts existed; always set on new payments.
+    receipt_number: Mapped[str | None] = mapped_column(String(30), unique=True, nullable=True)
     amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     payment_mode: Mapped[PaymentMode] = mapped_column(SAEnum(PaymentMode), nullable=False)
     reference: Mapped[str | None] = mapped_column(String(100), nullable=True)

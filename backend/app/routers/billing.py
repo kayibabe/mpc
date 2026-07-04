@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, text
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone, date, timedelta
 from decimal import Decimal
 from app.core.database import get_db
 from app.core.auth import require_role
@@ -20,11 +20,23 @@ def _generate_invoice_number(seq_val: int) -> str:
     return f"INV{str(seq_val).zfill(6)}"
 
 
+def _generate_receipt_number(seq_val: int) -> str:
+    return f"RCT{str(seq_val).zfill(6)}"
+
+
 async def _next_inv_seq(db: AsyncSession) -> int:
     """Postgres sequence; SQLite (dev/tests) falls back to row count + 1."""
     if db.get_bind().dialect.name == "postgresql":
         return (await db.execute(text("SELECT nextval('inv_seq')"))).scalar_one()
     count = (await db.execute(select(func.count()).select_from(BillingInvoice))).scalar_one()
+    return count + 1
+
+
+async def _next_rct_seq(db: AsyncSession) -> int:
+    """Postgres sequence; SQLite (dev/tests) falls back to row count + 1."""
+    if db.get_bind().dialect.name == "postgresql":
+        return (await db.execute(text("SELECT nextval('rct_seq')"))).scalar_one()
+    count = (await db.execute(select(func.count()).select_from(Payment))).scalar_one()
     return count + 1
 
 
@@ -156,6 +168,7 @@ async def record_payment(
     payment = Payment(
         id=str(uuid.uuid4()),
         invoice_id=invoice_id,
+        receipt_number=_generate_receipt_number(await _next_rct_seq(db)),
         amount=body.amount,
         payment_mode=body.payment_mode,
         reference=body.reference,
@@ -178,6 +191,108 @@ async def record_payment(
     await db.flush()
     await db.refresh(payment)
     return payment
+
+
+@router.get("/payments/{payment_id}/receipt")
+async def get_receipt(
+    payment_id: str,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_role(UserRole.billing_clerk, UserRole.cashier, UserRole.admin)),
+):
+    """Printable receipt payload for a recorded payment."""
+    from app.core.config import settings
+    from app.models.patient import Patient
+
+    result = await db.execute(select(Payment).where(Payment.id == payment_id))
+    payment = result.scalar_one_or_none()
+    if not payment:
+        raise HTTPException(status_code=404, detail="Payment not found")
+
+    invoice = await _get_invoice_or_404(payment.invoice_id, db)
+    patient = (await db.execute(select(Patient).where(Patient.id == invoice.patient_id))).scalar_one()
+    received_by = (await db.execute(select(User).where(User.id == payment.received_by_id))).scalar_one()
+
+    return {
+        "receipt_number": payment.receipt_number,
+        "clinic_name": settings.CLINIC_NAME,
+        "invoice_number": invoice.invoice_number,
+        "patient_name": f"{patient.first_name} {patient.last_name}",
+        "patient_mrn": patient.mrn,
+        "amount": float(payment.amount),
+        "payment_mode": payment.payment_mode.value,
+        "reference": payment.reference,
+        "received_by": received_by.full_name,
+        "received_at": payment.received_at,
+        "invoice_total": float(invoice.total),
+        "invoice_amount_paid": float(invoice.amount_paid),
+        "invoice_balance": float(invoice.balance),
+    }
+
+
+@router.get("/reconciliation")
+async def daily_reconciliation(
+    recon_date: date | None = Query(None, description="Defaults to today (UTC)"),
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_role(UserRole.billing_clerk, UserRole.cashier, UserRole.admin)),
+):
+    """End-of-day cash-up: all payments received on a date, totalled by mode and by receiver."""
+    if recon_date is None:
+        recon_date = datetime.now(timezone.utc).date()
+
+    # Datetime-range filter (not CAST-to-DATE): portable across Postgres and
+    # the SQLite test/dev database, and able to use the received_at index.
+    day_start = datetime(recon_date.year, recon_date.month, recon_date.day, tzinfo=timezone.utc)
+    day_end = day_start + timedelta(days=1)
+    result = await db.execute(
+        select(Payment)
+        .where(Payment.received_at >= day_start, Payment.received_at < day_end)
+        .order_by(Payment.received_at)
+    )
+    payments = result.scalars().all()
+
+    by_mode: dict[str, dict] = {}
+    by_receiver: dict[str, dict] = {}
+    total = 0.0
+    for p in payments:
+        total += float(p.amount)
+        mode = p.payment_mode.value
+        by_mode.setdefault(mode, {"count": 0, "total": 0.0})
+        by_mode[mode]["count"] += 1
+        by_mode[mode]["total"] += float(p.amount)
+        by_receiver.setdefault(p.received_by_id, {"count": 0, "total": 0.0})
+        by_receiver[p.received_by_id]["count"] += 1
+        by_receiver[p.received_by_id]["total"] += float(p.amount)
+
+    # Resolve receiver names for the cash-up sheet
+    receivers = []
+    for user_id, agg in by_receiver.items():
+        user = (await db.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
+        receivers.append({
+            "user_id": user_id,
+            "name": user.full_name if user else "(unknown)",
+            "count": agg["count"],
+            "total": agg["total"],
+        })
+
+    return {
+        "date": recon_date.isoformat(),
+        "payment_count": len(payments),
+        "total_collected": total,
+        "by_mode": by_mode,
+        "by_receiver": receivers,
+        "payments": [
+            {
+                "receipt_number": p.receipt_number,
+                "invoice_id": p.invoice_id,
+                "amount": float(p.amount),
+                "payment_mode": p.payment_mode.value,
+                "reference": p.reference,
+                "received_by_id": p.received_by_id,
+                "received_at": p.received_at,
+            }
+            for p in payments
+        ],
+    }
 
 
 @router.get("/summary")

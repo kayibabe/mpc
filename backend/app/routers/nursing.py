@@ -73,6 +73,7 @@ async def add_note(
 async def list_notes(
     patient_id: str | None = Query(None),
     admission_id: str | None = Query(None),
+    note_type: str | None = Query(None, description="routine or handover"),
     skip: int = 0,
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
@@ -83,6 +84,8 @@ async def list_notes(
         stmt = stmt.where(NursingNote.patient_id == patient_id)
     if admission_id:
         stmt = stmt.where(NursingNote.admission_id == admission_id)
+    if note_type:
+        stmt = stmt.where(NursingNote.note_type == note_type.lower())
     stmt = stmt.order_by(NursingNote.created_at.desc()).offset(skip).limit(limit)
     result = await db.execute(stmt)
     return result.scalars().all()

@@ -53,6 +53,7 @@ class LineItemResponse(BaseModel):
 class PaymentResponse(BaseModel):
     id: str
     invoice_id: str
+    receipt_number: str | None = None
     amount: float
     payment_mode: PaymentMode
     reference: str | None

@@ -10,6 +10,8 @@
 
 **Initial audit (2026-07-04): 13/19 passed. All 6 defects/gaps fixed same day. Final state: 19/19 passed — zero failures, zero gaps.**
 
+> **A second, handover-scoped pass was run later the same day** covering ten end-to-end flows including theatre, mortuary, insurance claims, and medical-scheme billing — see **“Handover Audit — Second Pass”** at the end of this document. Result: 10/10 scenarios pass; full backend suite 75/75.
+
 Six issues were identified and remediated in the same session. Two were operational blockers: the `cashier` role could not record payments (403 on all billing endpoints), and there was no duplicate patient detection — two receptionists could create two MRNs for the same patient with no server-side warning. Three compliance gaps were also closed: under-18 MDA 2024 consent is now enforced server-side (422 if `consent_given=False` or no guardian contact), a dedicated `Referral` entity now captures destination, urgency, letter text, and receiving-facility feedback, and the `clinician` role now has consistent clinical access across encounters, notes, lab orders, and prescriptions. The final gap (S03) — no appointment booking module — was fully implemented: `POST /appointments` with double-booking prevention, `PATCH` for reschedule/cancel/status transitions, `POST /checkin` that auto-creates an encounter, and `GET /availability` for provider slot views.
 
 ---
@@ -347,7 +349,7 @@ The following were not exercised in this audit run:
 
 1. **No imaging module.** Radiology orders are handled as lab tests. This is functional but loses radiology-specific workflow (acceptance, positioning, exposure, report).
 
-2. **No appointment module.** All patients are walk-ins. This may be appropriate for the clinic's current stage but limits the ability to manage provider schedules.
+2. **Appointment module now live.** `POST /appointments`, double-booking prevention, check-in auto-encounter, and availability view are implemented. Walk-in encounters remain fully supported in parallel.
 
 3. **Patient demographic model is complete.** First name, last name, gender, DOB, blood group, phone, insurance, village, district, emergency contact, allergies, chronic conditions, and MDA consent fields are all present.
 
@@ -359,5 +361,52 @@ The following were not exercised in this audit run:
 
 ---
 
-*Audit conducted 2026-07-04 against commit `ccbb3e8` (branch `audit-fixes`).  
-No application code was modified. SQLite in-memory database used; no Fly.io production systems were accessed.*
+*Audit conducted 2026-07-04. Scenarios driven against in-session SQLite test database (commits `9bea033` + `7c01a2f`, branch `audit-fixes`). Re-verified 2026-07-04: full `pytest` suite — 55/55 passed. No Fly.io production systems were accessed.*
+
+---
+
+# Handover Audit — Second Pass (2026-07-04)
+
+**Scope:** Pre-production handover audit covering ten end-to-end patient flows, including four domains that did not exist in the backend at the start of the pass: surgical/theatre, death/mortuary, insurance claims, and medical-scheme billing.
+
+**Method:** Every scenario is exercised by `backend/tests/test_patient_flows.py` — one test per scenario, driving the real API through the FastAPI test client (registration → clinical activity → billing, no mocking). Full suite after the pass: **75/75 passed** (55 pre-existing + 10 theatre/mortuary module tests + 10 scenario flow tests).
+
+## Scenario results
+
+| # | Scenario | Result | Backing test |
+|---|----------|--------|--------------|
+| 1 | Walk-in OPD (triage → consult → prescription → dispense → cashier billing) | **PASS** | `test_s01_walkin_opd_full_flow` |
+| 2 | Emergency intake (rapid registration, triage override to immediate, stabilisation notes) | **PASS** | `test_s02_emergency_intake` |
+| 3 | Inpatient (bed assignment, ward round notes, investigations + results, nursing handover) | **PASS** (handover added) | `test_s03_inpatient_admission` |
+| 4 | Surgical flow (theatre booking, pre-op checklist, post-op notes, recovery) | **PASS** (module added) | `test_s04_surgical_flow`, `tests/test_theatre.py` |
+| 5 | Discharge (summary, discharge meds, billing clearance) | **PASS** (clearance added) | `test_s05_discharge_billing_clearance` |
+| 6 | Death/mortuary (certification, intake, family notification, release permit) | **PASS** (module added) | `test_s06_death_mortuary_flow`, `tests/test_mortuary.py` |
+| 7 | Referral (referral entity, feedback, follow-up appointment) | **PASS** | `test_s07_referral_flow` |
+| 8 | Payments (cash, partial, receipt generation, daily reconciliation) | **PASS** (receipts + recon added) | `test_s08_payments_receipts_reconciliation` |
+| 9 | Insurance claim (insurer lookup, pre-auth, submission, approval/rejection, co-pay split) | **PASS** (module added) | `test_s09_insurance_claim_flow` |
+| 10 | Medical scheme (member verification, scheme billing, scheme statement) | **PASS** (module added) | `test_s10_medical_scheme_flow` |
+
+## What was added or fixed in this pass
+
+**Theatre module** (`app/models/theatre.py`, `app/routers/theatre.py`, migration `005_theatre`): `TheatreCase` lifecycle booked → pre_op → in_theatre → recovery → completed | cancelled under `/api/v1/theatre/cases`. Room double-booking returns 409 with the conflicting case id. `POST …/start` refuses (422) unless the pre-op checklist exists with consent, fasting, site-marking and anaesthesia review all confirmed. Post-op notes and recovery discharge are recorded on dedicated endpoints.
+
+**Mortuary module** (`app/models/mortuary.py`, `app/routers/mortuary.py`, migration `006_mortuary`): `POST /api/v1/mortuary/deaths` issues death certificates (`DC000001`, doctor/clinician/admin only; one per patient). Intake, family-notification record, and body release live under `/api/v1/mortuary/deaths/{id}/intake` and `/api/v1/mortuary/intakes/{id}/…`. Release is refused (422) until the family notification is recorded, and generates burial/release permit `BRP000001`.
+
+**Insurance/scheme module** (`app/models/insurance.py`, `app/routers/insurance.py`, migration `007_insurance`): insurers and medical schemes share one registry (`payer_type`), searchable via `GET /api/v1/insurance/insurers?q=`. Member cards with validity windows are verified at the desk via `GET /api/v1/insurance/members/verify`. Pre-authorizations issue `PA000001` numbers on approval. Claims (`CLM000001`) are created against an invoice with a co-payment split (claimed = invoice total − co-pay), then submitted → approved/partially approved/rejected (reason mandatory) → settled; settlement posts a real insurance payment onto the invoice. `GET /api/v1/insurance/insurers/{id}/statement` produces the per-scheme statement with claimed/approved/settled/outstanding totals.
+
+**Billing** (`app/routers/billing.py`, migration `008_receipts_handover`): every payment now gets a receipt number (`RCT000001`); `GET /api/v1/billing/payments/{id}/receipt` returns the printable receipt payload; `GET /api/v1/billing/reconciliation?recon_date=` produces the end-of-day cash-up (totals by payment mode and by receiving cashier). The reconciliation date filter uses a datetime range rather than a `CAST(… AS DATE)` so it behaves identically on Postgres and SQLite.
+
+**Discharge billing clearance** (`app/routers/admissions.py`): `GET /api/v1/admissions/{id}/billing-clearance` reports outstanding invoices for the admission's encounter, and `POST …/discharge` now returns 409 while a balance is outstanding unless `billing_override=true` is sent (death/AMA/management cases).
+
+**Nursing handover** (`app/models/nursing.py`): nursing notes carry `note_type` (`routine` | `handover`), filterable via `GET /api/v1/nursing/notes?note_type=handover`.
+
+**Frontend adapter** (`src/api/customClient.js`): `Appointment`, `InsuranceClaim`, and `MedicalAidScheme` were silently stubbed (pages showed empty data and fake-successful saves in self-hosted mode) even though the backend endpoints exist. They are now live: appointments map `appointment_date`/`appointment_time`/`type`/`doctor_id` onto `scheduled_datetime`/`appointment_type`/`provider_id` (PATCH-aware), and the claims portal's single-status model dispatches onto the claim lifecycle endpoints (submit / decision / settle) with insurer-name and patient joins. Verified by `src/api/customClient.test.js` (10 tests) and a clean production build.
+
+## Remaining known gaps (documented, not blocking)
+
+1. **Base44 pages still stubbed in self-hosted mode:** `SurgicalBooking`, `SurgicalChecklist`, `DeathCertificate`, `Discharge` (and other listed stub entities) are not wired to the new backend modules. Their page data models lack the encounter/user foreign keys the clinical backend requires (e.g. the surgery calendar records `surgeon_name` free text and has no encounter), so faithful wiring needs a small UI iteration, not just an adapter transform. The backend APIs for these flows are complete and tested.
+2. **Stub create() fakes success:** for entities still in `STUB_ENTITIES`, `create()` returns a locally-fabricated record. Pre-existing behaviour, kept to avoid breaking ~40 pages, but it means those specific pages silently do not persist in self-hosted mode.
+3. **Claim partial approval from the portal** requires the approved amount; the portal's one-click "Partial" button surfaces a readable error asking for it (backend enforces `0 < approved_amount < claimed`).
+4. Earlier low-severity observations stand: no stale-encounter auto-close, no patient-level ledger across visits, no dedicated imaging module, emergency priority is frontend-enforced.
+
+*Second pass conducted 2026-07-04 on branch `audit-fixes`. Verification: `pytest` 75/75 passed; Alembic chain `001 → 008` generates valid SQL offline; `vitest` 10/10; `vite build` exit 0. No Fly.io production systems were accessed.*

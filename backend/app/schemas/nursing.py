@@ -72,6 +72,7 @@ class NursingNoteCreate(BaseModel):
     admission_id: str
     patient_id: str
     shift: str
+    note_type: str = "routine"
     note_text: str
 
     @field_validator("shift")
@@ -80,6 +81,14 @@ class NursingNoteCreate(BaseModel):
         valid = {"day", "night", "evening", "morning", "afternoon"}
         if v.lower() not in valid:
             raise ValueError(f"shift must be one of: {', '.join(sorted(valid))}")
+        return v.lower()
+
+    @field_validator("note_type")
+    @classmethod
+    def validate_note_type(cls, v: str) -> str:
+        valid = {"routine", "handover"}
+        if v.lower() not in valid:
+            raise ValueError(f"note_type must be one of: {', '.join(sorted(valid))}")
         return v.lower()
 
 
@@ -120,6 +129,7 @@ class NursingNoteResponse(BaseModel):
     patient_id: str
     nurse_id: str
     shift: str
+    note_type: str
     note_text: str
     created_at: datetime
 

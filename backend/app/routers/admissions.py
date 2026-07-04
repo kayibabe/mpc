@@ -142,6 +142,46 @@ async def get_admission(
     return admission
 
 
+@router.get("/{admission_id}/billing-clearance")
+async def billing_clearance(
+    admission_id: str,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_role(
+        UserRole.doctor, UserRole.nurse, UserRole.billing_clerk, UserRole.cashier, UserRole.admin,
+    )),
+):
+    """Pre-discharge check: any unpaid invoices on this admission's encounter?"""
+    from app.models.billing import BillingInvoice, InvoiceStatus
+
+    result = await db.execute(select(Admission).where(Admission.id == admission_id))
+    admission = result.scalar_one_or_none()
+    if not admission:
+        raise HTTPException(status_code=404, detail="Admission not found")
+
+    inv_result = await db.execute(
+        select(BillingInvoice).where(
+            BillingInvoice.encounter_id == admission.encounter_id,
+            BillingInvoice.status != InvoiceStatus.void,
+        )
+    )
+    invoices = inv_result.scalars().all()
+    outstanding = sum(float(inv.balance) for inv in invoices)
+    return {
+        "cleared": outstanding <= 0,
+        "outstanding": outstanding,
+        "invoices": [
+            {
+                "invoice_number": inv.invoice_number,
+                "total": float(inv.total),
+                "amount_paid": float(inv.amount_paid),
+                "balance": float(inv.balance),
+                "status": inv.status.value,
+            }
+            for inv in invoices
+        ],
+    }
+
+
 @router.post("/{admission_id}/discharge", response_model=AdmissionResponse)
 async def discharge_patient(
     admission_id: str,
@@ -149,12 +189,31 @@ async def discharge_patient(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_role(UserRole.doctor, UserRole.admin)),
 ):
+    from app.models.billing import BillingInvoice, InvoiceStatus
+
     result = await db.execute(select(Admission).where(Admission.id == admission_id))
     admission = result.scalar_one_or_none()
     if not admission:
         raise HTTPException(status_code=404, detail="Admission not found")
     if admission.status != AdmissionStatus.admitted:
         raise HTTPException(status_code=400, detail="Patient is not currently admitted")
+
+    # Billing clearance: block discharge with an unpaid balance unless
+    # explicitly overridden (the override is recorded via the request payload).
+    if not body.billing_override:
+        inv_result = await db.execute(
+            select(BillingInvoice).where(
+                BillingInvoice.encounter_id == admission.encounter_id,
+                BillingInvoice.status != InvoiceStatus.void,
+            )
+        )
+        outstanding = sum(float(inv.balance) for inv in inv_result.scalars().all())
+        if outstanding > 0:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Billing not cleared: outstanding balance {outstanding:.2f}. "
+                       "Settle the invoices or discharge with billing_override=true.",
+            )
 
     admission.status = AdmissionStatus.discharged
     admission.discharge_date = datetime.now(timezone.utc)
