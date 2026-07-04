@@ -13,6 +13,11 @@ Run: python scripts/db_migrate.py
 """
 import subprocess
 import sys
+import os
+
+# Ensure /app is on sys.path when run as `python scripts/db_migrate.py`
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from sqlalchemy import create_engine, text
 from app.core.config import settings
 
