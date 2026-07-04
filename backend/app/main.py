@@ -9,7 +9,8 @@ from app.core.database import engine, Base
 from app.core.ratelimit import limiter
 from app.core.redis import close_redis
 from app.routers import auth, patients, admin, sync
-from app.routers import encounters, billing, lab, pharmacy, admissions, nursing
+from app.routers import encounters, billing, lab, pharmacy, admissions, nursing, referrals
+import app.models.referral  # ensure Referral table is registered with Base.metadata
 
 
 @asynccontextmanager
@@ -50,6 +51,7 @@ app.include_router(lab.router, prefix="/api/v1")
 app.include_router(pharmacy.router, prefix="/api/v1")
 app.include_router(admissions.router, prefix="/api/v1")
 app.include_router(nursing.router, prefix="/api/v1")
+app.include_router(referrals.router, prefix="/api/v1")
 
 
 @app.get("/health")

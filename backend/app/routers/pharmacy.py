@@ -157,7 +157,7 @@ async def create_prescription(
     body: PrescriptionCreate,
     request: Request,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.doctor, UserRole.admin)),
+    current_user: User = Depends(require_role(UserRole.doctor, UserRole.clinician, UserRole.admin)),
 ):
     conflicts = await _safety_conflicts(db, body.patient_id, [i.drug_id for i in body.items])
     if conflicts:

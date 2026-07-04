@@ -61,7 +61,7 @@ async def list_invoices(
 async def create_invoice(
     body: InvoiceCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.billing_clerk, UserRole.admin)),
+    current_user: User = Depends(require_role(UserRole.billing_clerk, UserRole.cashier, UserRole.admin)),
 ):
     invoice_number = _generate_invoice_number(await _next_inv_seq(db))
 
@@ -141,7 +141,7 @@ async def record_payment(
     invoice_id: str,
     body: PaymentCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.billing_clerk, UserRole.admin)),
+    current_user: User = Depends(require_role(UserRole.billing_clerk, UserRole.cashier, UserRole.admin)),
 ):
     invoice = await _get_invoice_or_404(invoice_id, db)
     if invoice.status == InvoiceStatus.void:

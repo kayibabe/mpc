@@ -15,7 +15,7 @@ import uuid
 router = APIRouter(prefix="/encounters", tags=["encounters"])
 
 _CLINICAL = (
-    UserRole.doctor, UserRole.nurse, UserRole.receptionist,
+    UserRole.doctor, UserRole.clinician, UserRole.nurse, UserRole.receptionist,
     UserRole.lab_technician, UserRole.pharmacist, UserRole.admin,
 )
 
@@ -30,7 +30,7 @@ async def list_encounters(
     skip: int = 0,
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.receptionist, UserRole.admin)),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.clinician, UserRole.nurse, UserRole.receptionist, UserRole.admin)),
 ):
     stmt = select(Encounter)
     if patient_id:
@@ -55,7 +55,7 @@ async def create_encounter(
     body: EncounterCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.receptionist, UserRole.doctor, UserRole.nurse, UserRole.admin,
+        UserRole.receptionist, UserRole.doctor, UserRole.clinician, UserRole.nurse, UserRole.admin,
     )),
 ):
     encounter = Encounter(
@@ -74,7 +74,7 @@ async def create_encounter(
 async def get_encounter(
     encounter_id: str,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.admin)),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.clinician, UserRole.nurse, UserRole.admin)),
 ):
     result = await db.execute(select(Encounter).where(Encounter.id == encounter_id))
     encounter = result.scalar_one_or_none()
@@ -104,7 +104,7 @@ async def update_encounter(
     encounter_id: str,
     body: EncounterUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.admin)),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.clinician, UserRole.nurse, UserRole.admin)),
 ):
     result = await db.execute(select(Encounter).where(Encounter.id == encounter_id))
     encounter = result.scalar_one_or_none()
@@ -157,7 +157,7 @@ async def upsert_triage(
 async def list_notes(
     encounter_id: str,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.admin)),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.clinician, UserRole.nurse, UserRole.admin)),
 ):
     result = await db.execute(
         select(ClinicalNote).where(ClinicalNote.encounter_id == encounter_id)
@@ -171,7 +171,7 @@ async def add_note(
     encounter_id: str,
     body: ClinicalNoteCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.doctor, UserRole.admin)),
+    current_user: User = Depends(require_role(UserRole.doctor, UserRole.clinician, UserRole.admin)),
 ):
     enc_result = await db.execute(select(Encounter).where(Encounter.id == encounter_id))
     if not enc_result.scalar_one_or_none():

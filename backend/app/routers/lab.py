@@ -110,7 +110,7 @@ async def list_orders(
 async def create_order(
     body: LabOrderCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.doctor, UserRole.admin)),
+    current_user: User = Depends(require_role(UserRole.doctor, UserRole.clinician, UserRole.admin)),
 ):
     order = LabOrder(
         id=str(uuid.uuid4()),
