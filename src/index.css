@@ -17,7 +17,7 @@
     --secondary: 210 25% 94%;
     --secondary-foreground: 210 35% 25%;
     --muted: 210 20% 95%;
-    --muted-foreground: 215 15% 48%;
+    --muted-foreground: 215 15% 38%;
     --accent: 180 50% 40%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 55% 52%;
@@ -35,8 +35,8 @@
     --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
     --font-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    --sidebar-background: 210 25% 97%;
-    --sidebar-foreground: 215 28% 25%;
+    --sidebar-background: 210 28% 94%;
+    --sidebar-foreground: 215 28% 18%;
     --sidebar-primary: 205 55% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 205 55% 42%;

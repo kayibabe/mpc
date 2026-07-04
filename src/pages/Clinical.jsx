@@ -708,15 +708,15 @@ export default function Clinical() {
                         </p>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                           <div>
-                            <label className="block text-[10px] text-muted-foreground mb-1">Diagnosis Name</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1">Diagnosis Name</label>
                             <input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" value={diagnosisForm.diagnosis_name} onChange={e => setDiagnosisForm({...diagnosisForm, diagnosis_name: e.target.value})} placeholder="e.g. Malaria" />
                           </div>
                           <div>
-                            <label className="block text-[10px] text-muted-foreground mb-1">ICD-10 Code</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1">ICD-10 Code</label>
                             <input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" value={diagnosisForm.icd10_code} onChange={e => setDiagnosisForm({...diagnosisForm, icd10_code: e.target.value})} placeholder="e.g. B54" />
                           </div>
                           <div>
-                            <label className="block text-[10px] text-muted-foreground mb-1">Type</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1">Type</label>
                             <select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" value={diagnosisForm.type} onChange={e => setDiagnosisForm({...diagnosisForm, type: e.target.value})}>
                               <option value="primary">Primary</option><option value="secondary">Secondary</option><option value="differential">Differential</option>
                             </select>
@@ -731,11 +731,11 @@ export default function Clinical() {
                         </h4>
                         <div className="space-y-2.5">
                           <div>
-                            <label className="block text-[10px] font-medium text-muted-foreground mb-1">Chief Complaint</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1.5">Chief Complaint <span className="text-clinical-critical">*</span></label>
                             <textarea className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" rows={2} value={consultForm.chief_complaint} onChange={e => setConsultForm({...consultForm, chief_complaint: e.target.value})} placeholder="Patient's main concern in their own words..." />
                           </div>
                           <div>
-                            <label className="block text-[10px] font-medium text-muted-foreground mb-1">History of Present Illness</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1.5">History of Present Illness</label>
                             <textarea className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" rows={3} value={consultForm.history_present_illness} onChange={e => setConsultForm({...consultForm, history_present_illness: e.target.value})} placeholder="Onset, duration, severity, aggravating/relieving factors..." />
                           </div>
                         </div>
@@ -747,7 +747,7 @@ export default function Clinical() {
                           <span className="w-5 h-5 rounded-full bg-chart-3/10 text-chart-3 flex items-center justify-center text-[10px] font-bold">O</span> Objective
                         </h4>
                         <div>
-                          <label className="block text-[10px] font-medium text-muted-foreground mb-1">Physical Examination</label>
+                          <label className="block text-xs font-medium text-muted-foreground mb-1.5">Physical Examination</label>
                           <textarea className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" rows={3} value={consultForm.physical_examination} onChange={e => setConsultForm({...consultForm, physical_examination: e.target.value})} placeholder="General appearance, vitals, system-specific findings, lab results..." />
                         </div>
                       </div>
@@ -758,7 +758,7 @@ export default function Clinical() {
                           <span className="w-5 h-5 rounded-full bg-chart-2/10 text-chart-2 flex items-center justify-center text-[10px] font-bold">A</span> Assessment
                         </h4>
                         <div>
-                          <label className="block text-[10px] font-medium text-muted-foreground mb-1">Clinical Assessment & Differential</label>
+                          <label className="block text-xs font-medium text-muted-foreground mb-1.5">Clinical Assessment & Differential</label>
                           <textarea className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" rows={2} value={consultForm.assessment} onChange={e => setConsultForm({...consultForm, assessment: e.target.value})} placeholder="Summary, differential diagnoses, clinical reasoning..." />
                         </div>
                       </div>
@@ -770,11 +770,11 @@ export default function Clinical() {
                         </h4>
                         <div className="space-y-2.5">
                           <div>
-                            <label className="block text-[10px] font-medium text-muted-foreground mb-1">Treatment Plan</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1.5">Treatment Plan <span className="text-clinical-critical">*</span></label>
                             <textarea className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" rows={2} value={consultForm.plan} onChange={e => setConsultForm({...consultForm, plan: e.target.value})} placeholder="Medications, investigations, referrals, follow-up..." />
                           </div>
                           <div>
-                            <label className="block text-[10px] font-medium text-muted-foreground mb-1">Additional Notes</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1.5">Additional Notes</label>
                             <textarea className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" rows={3} value={consultForm.clinical_notes} onChange={e => setConsultForm({...consultForm, clinical_notes: e.target.value})} placeholder="Patient education, counselling, special instructions..." />
                           </div>
                         </div>
