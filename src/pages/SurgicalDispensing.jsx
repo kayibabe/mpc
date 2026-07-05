@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { Package, Check, Clock } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
@@ -35,7 +36,7 @@ export default function SurgicalDispensing() {
   const dispenseItem = async (req, item, idx) => {
     const key = `${req.id}-${idx}`;
     const qty = Number(dispensingForm[key]?.quantity) || 0;
-    if (qty <= 0) { alert("Enter valid quantity"); return; }
+    if (qty <= 0) { toast({ title: "Invalid quantity", description: "Enter a quantity greater than zero.", variant: "destructive" }); return; }
 
     setSaving(true);
     try {
@@ -70,7 +71,7 @@ export default function SurgicalDispensing() {
       setDispensingForm(prev => ({ ...prev, [key]: {} }));
       loadData();
     } catch (e) {
-      alert("Failed: " + e.message);
+      toast({ title: "Dispense failed", description: e.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -102,7 +103,7 @@ export default function SurgicalDispensing() {
 
       loadData();
     } catch (e) {
-      alert("Failed: " + e.message);
+      toast({ title: "Receive failed", description: e.message, variant: "destructive" });
     }
   };
 

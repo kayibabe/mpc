@@ -181,7 +181,7 @@ export default function Pharmacy() {
       const jList = await base44.entities.PatientJourney.filter({ current_stage: { $in: ["PHARMACY_PENDING", "PHARMACY_DISPENSING"] }, status: "active" }, "-created_date", 30);
       setPharmacyJourneys(jList);
     } catch (e) {
-      alert("Workflow transition failed: " + (e.response?.data?.error || e.message));
+      toast({ title: "Workflow transition failed", description: e.response?.data?.error || e.message, variant: "destructive" });
     } finally {
       setTransitioning(false);
     }

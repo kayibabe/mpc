@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { Plus, Check, Loader2, X, Edit2, Package } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
@@ -70,13 +71,13 @@ export default function SurgicalRequisitions() {
         ...prev,
         items: kitItems
       }));
-    } catch (e) { alert("Failed to apply kit"); }
+    } catch (e) { toast({ title: "Failed to apply kit", description: e.message, variant: "destructive" }); }
   };
 
   const saveRequisition = async (e) => {
     e.preventDefault();
     if (!form.booking_id || form.items.length === 0) {
-      alert("Please select a booking and add items");
+      toast({ title: "Incomplete requisition", description: "Please select a booking and add at least one item.", variant: "destructive" });
       return;
     }
     
@@ -105,7 +106,7 @@ export default function SurgicalRequisitions() {
       setSelectedReq(null);
       resetForm();
     } catch (e) {
-      alert("Save failed: " + e.message);
+      toast({ title: "Save failed", description: e.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -115,7 +116,7 @@ export default function SurgicalRequisitions() {
     try {
       await base44.entities.SurgicalRequisition.update(req.id, { status: "submitted" });
       loadData();
-    } catch (e) { alert("Failed: " + e.message); }
+    } catch (e) { toast({ title: "Action failed", description: e.message, variant: "destructive" }); }
   };
 
   const approveRequisition = async (req) => {
@@ -127,7 +128,7 @@ export default function SurgicalRequisitions() {
         approved_date: new Date().toISOString()
       });
       loadData();
-    } catch (e) { alert("Failed: " + e.message); }
+    } catch (e) { toast({ title: "Action failed", description: e.message, variant: "destructive" }); }
   };
 
   const resetForm = () => {

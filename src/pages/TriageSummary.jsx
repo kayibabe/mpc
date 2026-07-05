@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import {
   ClipboardCheck, AlertTriangle, Clock, Heart, Thermometer, Activity,
@@ -130,7 +131,7 @@ export default function TriageSummary() {
       });
       if (data.success) { setSelected([]); load(); }
     } catch (e) {
-      alert("Bulk triage failed: " + (e.response?.data?.error || e.message));
+      toast({ title: "Bulk triage failed", description: e.response?.data?.error || e.message, variant: "destructive" });
     } finally { setTriaging(false); }
   };
 

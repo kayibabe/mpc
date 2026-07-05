@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { toast } from "@/components/ui/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import InsuranceClaimFormBuilder from "@/components/InsuranceClaimFormBuilder";
 import { base44 } from "@/api/base44Client";
 import {
@@ -52,6 +54,7 @@ export default function InsuranceClaimPortal() {
   const [validationErrors, setValidationErrors] = useState([]);
   const [batchSyncing, setBatchSyncing] = useState(false);
   const [previewClaimId, setPreviewClaimId] = useState(null);
+  const [warningConfirm, setWarningConfirm] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -96,10 +99,14 @@ export default function InsuranceClaimPortal() {
     }
 
     if (validation.warnings.length > 0) {
-      const proceed = confirm("Warnings:\n\n" + validation.warnings.join("\n") + "\n\nContinue anyway?");
-      if (!proceed) return;
+      setWarningConfirm({ warnings: validation.warnings });
+      return;
     }
 
+    await doSaveClaim();
+  };
+
+  const doSaveClaim = async () => {
     setSaving(true);
     setValidationErrors([]);
     try {
@@ -121,7 +128,7 @@ export default function InsuranceClaimPortal() {
         co_pay_amount: "0",
       });
     } catch (e) {
-      alert("Save failed: " + e.message);
+      toast({ title: "Save failed", description: e.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -135,7 +142,7 @@ export default function InsuranceClaimPortal() {
       });
       loadData();
     } catch (e) {
-      alert("Submit failed: " + e.message);
+      toast({ title: "Submit failed", description: e.message, variant: "destructive" });
     }
   };
 
@@ -148,7 +155,7 @@ export default function InsuranceClaimPortal() {
       await base44.entities.InsuranceClaim.update(claimId, updateData);
       loadData();
     } catch (e) {
-      alert("Update failed: " + e.message);
+      toast({ title: "Update failed", description: e.message, variant: "destructive" });
     }
   };
 
@@ -165,14 +172,14 @@ export default function InsuranceClaimPortal() {
   const exportClaimForm = async (claim) => {
     const validation = validateClaim(claim, patients, invoices);
     if (!validation.valid) {
-      alert("Cannot export:\n\n" + validation.errors.join("\n"));
+      toast({ title: "Cannot export", description: validation.errors.join(" · "), variant: "destructive" });
       return;
     }
 
     // Validate scheme exists
     const scheme = schemes.find(s => s.id === claim.scheme_id);
     if (!scheme) {
-      alert("Insurance scheme is invalid or was deleted. Please update the claim with a valid scheme.");
+      toast({ title: "Invalid scheme", description: "Insurance scheme is invalid or was deleted. Please update the claim with a valid scheme.", variant: "destructive" });
       return;
     }
 
@@ -189,7 +196,7 @@ export default function InsuranceClaimPortal() {
       link.download = data.filename || `claim_${claim.id.slice(0, 8)}.pdf`;
       link.click();
     } catch (e) {
-      alert("Export failed: " + (e.response?.data?.error || e.message));
+      toast({ title: "Export failed", description: e.response?.data?.error || e.message, variant: "destructive" });
     } finally {
       setExportingClaimId(null);
     }
@@ -201,10 +208,10 @@ export default function InsuranceClaimPortal() {
       for (const claimId of selectedForBatch) {
         await base44.functions.invoke('syncClaimsToDrive', { claim_id: claimId });
       }
-      alert(`✅ Synced ${selectedForBatch.length} claim(s) to Google Drive`);
+      toast({ title: "Sync complete", description: `${selectedForBatch.length} claim(s) synced to Google Drive.` });
       setSelectedForBatch([]);
     } catch (e) {
-      alert("Sync failed: " + e.message);
+      toast({ title: "Sync failed", description: e.message, variant: "destructive" });
     } finally {
       setBatchSyncing(false);
     }
@@ -363,7 +370,7 @@ export default function InsuranceClaimPortal() {
                   setSelectedForBatch([]);
                   loadData();
                 } catch (e) {
-                  alert("Batch submit failed: " + e.message);
+                  toast({ title: "Batch submit failed", description: e.message, variant: "destructive" });
                 } finally {
                   setSaving(false);
                 }
@@ -809,6 +816,27 @@ export default function InsuranceClaimPortal() {
         </div>
       )}
       </>
+      )}
+
+      {warningConfirm && (
+        <AlertDialog open onOpenChange={() => setWarningConfirm(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Claim Warnings</AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-1">
+                  {warningConfirm.warnings.map((w, i) => (
+                    <p key={i} className="text-sm text-amber-700">{w}</p>
+                  ))}
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setWarningConfirm(null)}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => { setWarningConfirm(null); doSaveClaim(); }}>Save Anyway</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       )}
     </div>
   );

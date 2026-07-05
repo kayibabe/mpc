@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import {
   Heart, Thermometer, Activity, Wind, Stethoscope, Pill, Syringe,
@@ -176,7 +177,7 @@ export default function Nursing() {
       setAssessments(prev => ({ ...prev, [journey.id]: data }));
       setExpandedAssess(prev => ({ ...prev, [journey.id]: true }));
     } catch (e) {
-      alert("Assessment failed: " + (e.response?.data?.error || e.message));
+      toast({ title: "Assessment failed", description: e.response?.data?.error || e.message, variant: "destructive" });
     } finally {
       setAssessing(prev => ({ ...prev, [journey.id]: false }));
     }
@@ -194,7 +195,7 @@ export default function Nursing() {
       setExpandedAssess(prev => { const n = { ...prev }; delete n[journey.id]; return n; });
       loadData();
     } catch (e) {
-      alert("Triage failed: " + (e.response?.data?.error || e.message));
+      toast({ title: "Triage failed", description: e.response?.data?.error || e.message, variant: "destructive" });
     } finally {
       setTransitioning(false);
     }
@@ -230,7 +231,7 @@ export default function Nursing() {
       setBulkSelect(new Set());
       loadData();
     } catch (e) {
-      alert("Bulk triage failed: " + (e.response?.data?.error || e.message));
+      toast({ title: "Bulk triage failed", description: e.response?.data?.error || e.message, variant: "destructive" });
     } finally {
       setBulkTriageing(false);
     }
@@ -239,7 +240,7 @@ export default function Nursing() {
   const handleSaveVitals = async (e) => {
     e.preventDefault();
     if (!vitalsForm.visit_id || !vitalsForm.patient_id) {
-      alert("Please select a patient first");
+      toast({ title: "No patient selected", description: "Select a patient from the list before saving vitals.", variant: "destructive" });
       return;
     }
     setSaving(true);
@@ -337,7 +338,7 @@ export default function Nursing() {
       });
       loadData();
     } catch (e) {
-      alert("Transition failed: " + (e.response?.data?.error || e.message));
+      toast({ title: "Transition failed", description: e.response?.data?.error || e.message, variant: "destructive" });
     } finally {
       setTransitioning(false);
     }

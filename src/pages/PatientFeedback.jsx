@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { MessageSquare, Star, Send, Loader2, BarChart2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -46,7 +47,7 @@ export default function PatientFeedback() {
   const submitFeedback = async (e) => {
     e.preventDefault();
     if (!form.visit_id || !form.patient_id) {
-      alert("Please select visit and patient");
+      toast({ title: "Selection required", description: "Please select a visit and patient before submitting.", variant: "destructive" });
       return;
     }
 
@@ -68,7 +69,7 @@ export default function PatientFeedback() {
         }),
       });
 
-      alert("Thank you for your feedback!");
+      toast({ title: "Feedback submitted", description: "Thank you for your feedback!" });
       setShowForm(false);
       setForm({
         visit_id: "",
@@ -81,7 +82,7 @@ export default function PatientFeedback() {
       });
       loadData();
     } catch (e) {
-      alert("Submission failed: " + e.message);
+      toast({ title: "Submission failed", description: e.message, variant: "destructive" });
     } finally {
       setSubmitting(false);
     }

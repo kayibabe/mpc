@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { Scan, Search, Download, Plus, X, Save, Loader2, Eye, FileText } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
@@ -46,7 +47,7 @@ export default function RadiologyReportLibrary() {
   const saveReport = async (e) => {
     e.preventDefault();
     if (!form.patient_id || !form.body_part) {
-      alert("Fill required fields");
+      toast({ title: "Required fields missing", description: "Please fill all required fields before saving.", variant: "destructive" });
       return;
     }
 
@@ -78,7 +79,7 @@ export default function RadiologyReportLibrary() {
         status: "preliminary",
       });
     } catch (e) {
-      alert("Save failed: " + e.message);
+      toast({ title: "Save failed", description: e.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
