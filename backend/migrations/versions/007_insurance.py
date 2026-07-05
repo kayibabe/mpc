@@ -3,16 +3,10 @@
 Revision ID: 007_insurance
 Revises: 006_mortuary
 Create Date: 2026-07-04
-
-Adds insurers (insurance companies and medical schemes), scheme_members
-(member cards with validity windows for front-desk verification),
-pre_authorizations (approval before high-cost services), and
-insurance_claims (invoice-linked claims with co-payment split and
-submitted → approved/partially_approved/rejected → settled lifecycle).
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import ENUM as PgEnum
+from sqlalchemy.dialects.postgresql import ENUM as PgEnum, UUID as PgUUID
 
 revision = "007_insurance"
 down_revision = "006_mortuary"
@@ -52,7 +46,7 @@ def upgrade() -> None:
     if "insurers" not in existing:
         op.create_table(
             "insurers",
-            sa.Column("id", sa.String(36), primary_key=True),
+            sa.Column("id", PgUUID(as_uuid=False), primary_key=True),
             sa.Column("name", sa.String(150), nullable=False, unique=True),
             sa.Column("payer_type",
                       PgEnum("insurance", "medical_scheme", name="payertype", create_type=False),
@@ -69,10 +63,10 @@ def upgrade() -> None:
     if "scheme_members" not in existing:
         op.create_table(
             "scheme_members",
-            sa.Column("id", sa.String(36), primary_key=True),
-            sa.Column("insurer_id", sa.String(36),
+            sa.Column("id", PgUUID(as_uuid=False), primary_key=True),
+            sa.Column("insurer_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("insurers.id"), nullable=False, index=True),
-            sa.Column("patient_id", sa.String(36),
+            sa.Column("patient_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("patients.id"), nullable=False, index=True),
             sa.Column("member_number", sa.String(50), nullable=False),
             sa.Column("plan_name", sa.String(100), nullable=True),
@@ -91,13 +85,13 @@ def upgrade() -> None:
     if "pre_authorizations" not in existing:
         op.create_table(
             "pre_authorizations",
-            sa.Column("id", sa.String(36), primary_key=True),
+            sa.Column("id", PgUUID(as_uuid=False), primary_key=True),
             sa.Column("auth_number", sa.String(30), nullable=True, unique=True),
-            sa.Column("insurer_id", sa.String(36),
+            sa.Column("insurer_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("insurers.id"), nullable=False, index=True),
-            sa.Column("patient_id", sa.String(36),
+            sa.Column("patient_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("patients.id"), nullable=False, index=True),
-            sa.Column("member_id", sa.String(36),
+            sa.Column("member_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("scheme_members.id"), nullable=True, index=True),
             sa.Column("service_description", sa.Text, nullable=False),
             sa.Column("estimated_amount", sa.Numeric(12, 2), nullable=False),
@@ -105,7 +99,7 @@ def upgrade() -> None:
                       PgEnum("requested", "approved", "rejected", name="preauthstatus", create_type=False),
                       nullable=False, server_default="requested"),
             sa.Column("decision_notes", sa.Text, nullable=True),
-            sa.Column("requested_by_id", sa.String(36),
+            sa.Column("requested_by_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("users.id"), nullable=False, index=True),
             sa.Column("decided_at", sa.DateTime(timezone=True), nullable=True),
             sa.Column("created_at", sa.DateTime(timezone=True), nullable=False,
@@ -117,15 +111,15 @@ def upgrade() -> None:
     if "insurance_claims" not in existing:
         op.create_table(
             "insurance_claims",
-            sa.Column("id", sa.String(36), primary_key=True),
+            sa.Column("id", PgUUID(as_uuid=False), primary_key=True),
             sa.Column("claim_number", sa.String(30), nullable=False, unique=True),
-            sa.Column("invoice_id", sa.String(36),
+            sa.Column("invoice_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("billing_invoices.id"), nullable=False, index=True),
-            sa.Column("insurer_id", sa.String(36),
+            sa.Column("insurer_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("insurers.id"), nullable=False, index=True),
-            sa.Column("member_id", sa.String(36),
+            sa.Column("member_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("scheme_members.id"), nullable=True, index=True),
-            sa.Column("preauth_id", sa.String(36),
+            sa.Column("preauth_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("pre_authorizations.id"), nullable=True, index=True),
             sa.Column("claimed_amount", sa.Numeric(12, 2), nullable=False),
             sa.Column("copay_amount", sa.Numeric(12, 2), nullable=False, server_default="0"),
@@ -138,7 +132,7 @@ def upgrade() -> None:
             sa.Column("submitted_at", sa.DateTime(timezone=True), nullable=True),
             sa.Column("decided_at", sa.DateTime(timezone=True), nullable=True),
             sa.Column("settled_at", sa.DateTime(timezone=True), nullable=True),
-            sa.Column("created_by_id", sa.String(36),
+            sa.Column("created_by_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("users.id"), nullable=False, index=True),
             sa.Column("created_at", sa.DateTime(timezone=True), nullable=False,
                       server_default=sa.func.now()),

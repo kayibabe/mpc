@@ -3,15 +3,10 @@
 Revision ID: 004_appointments
 Revises: 003_referrals
 Create Date: 2026-07-04
-
-Adds the appointments table for pre-booking patient visits with a provider,
-supporting the full lifecycle: scheduled → confirmed → arrived → in_progress
-→ completed | cancelled | no_show. Check-in links the appointment to an
-encounter. Double-booking is prevented at the application layer.
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import ENUM as PgEnum
+from sqlalchemy.dialects.postgresql import ENUM as PgEnum, UUID as PgUUID
 
 revision = "004_appointments"
 down_revision = "003_referrals"
@@ -40,10 +35,10 @@ def upgrade() -> None:
     if "appointments" not in existing:
         op.create_table(
             "appointments",
-            sa.Column("id", sa.String(36), primary_key=True),
-            sa.Column("patient_id", sa.String(36),
+            sa.Column("id", PgUUID(as_uuid=False), primary_key=True),
+            sa.Column("patient_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("patients.id"), nullable=False, index=True),
-            sa.Column("provider_id", sa.String(36),
+            sa.Column("provider_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("users.id"), nullable=True, index=True),
             sa.Column("scheduled_datetime", sa.DateTime(timezone=True),
                       nullable=False, index=True),
@@ -59,10 +54,10 @@ def upgrade() -> None:
                              name="appointmentstatus", create_type=False),
                       nullable=False, server_default="scheduled"),
             sa.Column("cancellation_reason", sa.Text, nullable=True),
-            sa.Column("encounter_id", sa.String(36),
+            sa.Column("encounter_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("encounters.id"), nullable=True, index=True),
             sa.Column("notes", sa.Text, nullable=True),
-            sa.Column("created_by_id", sa.String(36),
+            sa.Column("created_by_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("users.id"), nullable=False, index=True),
             sa.Column("created_at", sa.DateTime(timezone=True), nullable=False,
                       server_default=sa.func.now()),

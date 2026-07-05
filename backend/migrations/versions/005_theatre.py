@@ -3,15 +3,10 @@
 Revision ID: 005_theatre
 Revises: 004_appointments
 Create Date: 2026-07-04
-
-Adds the theatre (surgical/procedure) module: theatre case booking with room
-conflict prevention at the application layer, a mandatory pre-op safety
-checklist gating the start of the operation, and the full case lifecycle:
-booked → pre_op → in_theatre → recovery → completed | cancelled.
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import ENUM as PgEnum
+from sqlalchemy.dialects.postgresql import ENUM as PgEnum, UUID as PgUUID
 
 revision = "005_theatre"
 down_revision = "004_appointments"
@@ -34,16 +29,16 @@ def upgrade() -> None:
     if "theatre_cases" not in existing:
         op.create_table(
             "theatre_cases",
-            sa.Column("id", sa.String(36), primary_key=True),
-            sa.Column("patient_id", sa.String(36),
+            sa.Column("id", PgUUID(as_uuid=False), primary_key=True),
+            sa.Column("patient_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("patients.id"), nullable=False, index=True),
-            sa.Column("encounter_id", sa.String(36),
+            sa.Column("encounter_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("encounters.id"), nullable=False, index=True),
-            sa.Column("admission_id", sa.String(36),
+            sa.Column("admission_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("admissions.id"), nullable=True, index=True),
-            sa.Column("surgeon_id", sa.String(36),
+            sa.Column("surgeon_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("users.id"), nullable=False, index=True),
-            sa.Column("anaesthetist_id", sa.String(36),
+            sa.Column("anaesthetist_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("users.id"), nullable=True, index=True),
             sa.Column("theatre_room", sa.String(50), nullable=False,
                       server_default="Theatre 1"),
@@ -65,7 +60,7 @@ def upgrade() -> None:
             sa.Column("operation_ended_at", sa.DateTime(timezone=True), nullable=True),
             sa.Column("recovery_notes", sa.Text, nullable=True),
             sa.Column("recovery_discharged_at", sa.DateTime(timezone=True), nullable=True),
-            sa.Column("created_by_id", sa.String(36),
+            sa.Column("created_by_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("users.id"), nullable=False, index=True),
             sa.Column("created_at", sa.DateTime(timezone=True), nullable=False,
                       server_default=sa.func.now()),
@@ -76,8 +71,8 @@ def upgrade() -> None:
     if "preop_checklists" not in existing:
         op.create_table(
             "preop_checklists",
-            sa.Column("id", sa.String(36), primary_key=True),
-            sa.Column("case_id", sa.String(36),
+            sa.Column("id", PgUUID(as_uuid=False), primary_key=True),
+            sa.Column("case_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("theatre_cases.id"), nullable=False),
             sa.Column("consent_signed", sa.Boolean, nullable=False),
             sa.Column("fasting_confirmed", sa.Boolean, nullable=False),
@@ -85,7 +80,7 @@ def upgrade() -> None:
             sa.Column("anaesthesia_review_done", sa.Boolean, nullable=False),
             sa.Column("bloods_available", sa.Boolean, nullable=False),
             sa.Column("notes", sa.Text, nullable=True),
-            sa.Column("completed_by_id", sa.String(36),
+            sa.Column("completed_by_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("users.id"), nullable=False, index=True),
             sa.Column("completed_at", sa.DateTime(timezone=True), nullable=False,
                       server_default=sa.func.now()),

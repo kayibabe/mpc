@@ -3,15 +3,10 @@
 Revision ID: 006_mortuary
 Revises: 005_theatre
 Create Date: 2026-07-04
-
-Adds death certification and mortuary management: death_records (official
-death certificate, DC-numbered via death_cert_seq) and mortuary_admissions
-(body intake -> family notification -> release with a BRP-numbered burial
-permit via burial_permit_seq). One mortuary admission per death record.
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import ENUM as PgEnum
+from sqlalchemy.dialects.postgresql import ENUM as PgEnum, UUID as PgUUID
 
 revision = "006_mortuary"
 down_revision = "005_theatre"
@@ -35,12 +30,12 @@ def upgrade() -> None:
     if "death_records" not in existing:
         op.create_table(
             "death_records",
-            sa.Column("id", sa.String(36), primary_key=True),
-            sa.Column("patient_id", sa.String(36),
+            sa.Column("id", PgUUID(as_uuid=False), primary_key=True),
+            sa.Column("patient_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("patients.id"), nullable=False, index=True),
-            sa.Column("encounter_id", sa.String(36),
+            sa.Column("encounter_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("encounters.id"), nullable=True, index=True),
-            sa.Column("admission_id", sa.String(36),
+            sa.Column("admission_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("admissions.id"), nullable=True, index=True),
             sa.Column("date_of_death", sa.DateTime(timezone=True), nullable=False),
             sa.Column("place_of_death", sa.String(150), nullable=True),
@@ -48,7 +43,7 @@ def upgrade() -> None:
             sa.Column("underlying_cause", sa.String(300), nullable=True),
             sa.Column("contributing_conditions", sa.Text, nullable=True),
             sa.Column("certificate_number", sa.String(30), nullable=False, unique=True),
-            sa.Column("certified_by_id", sa.String(36),
+            sa.Column("certified_by_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("users.id"), nullable=False),
             sa.Column("certified_at", sa.DateTime(timezone=True), nullable=False,
                       server_default=sa.func.now()),
@@ -60,12 +55,12 @@ def upgrade() -> None:
     if "mortuary_admissions" not in existing:
         op.create_table(
             "mortuary_admissions",
-            sa.Column("id", sa.String(36), primary_key=True),
-            sa.Column("death_record_id", sa.String(36),
+            sa.Column("id", PgUUID(as_uuid=False), primary_key=True),
+            sa.Column("death_record_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("death_records.id"), nullable=False, unique=True),
             sa.Column("tag_number", sa.String(30), nullable=False),
             sa.Column("compartment", sa.String(30), nullable=True),
-            sa.Column("received_by_id", sa.String(36),
+            sa.Column("received_by_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("users.id"), nullable=False),
             sa.Column("received_at", sa.DateTime(timezone=True), nullable=False,
                       server_default=sa.func.now()),
@@ -78,14 +73,14 @@ def upgrade() -> None:
             sa.Column("notified_person_relationship", sa.String(50), nullable=True),
             sa.Column("notified_person_phone", sa.String(30), nullable=True),
             sa.Column("notified_at", sa.DateTime(timezone=True), nullable=True),
-            sa.Column("notified_by_id", sa.String(36),
+            sa.Column("notified_by_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("users.id"), nullable=True),
             sa.Column("release_permit_number", sa.String(30), nullable=True, unique=True),
             sa.Column("released_to_name", sa.String(150), nullable=True),
             sa.Column("released_to_relationship", sa.String(50), nullable=True),
             sa.Column("released_to_id_number", sa.String(50), nullable=True),
             sa.Column("released_at", sa.DateTime(timezone=True), nullable=True),
-            sa.Column("released_by_id", sa.String(36),
+            sa.Column("released_by_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("users.id"), nullable=True),
             sa.Column("created_at", sa.DateTime(timezone=True), nullable=False,
                       server_default=sa.func.now()),

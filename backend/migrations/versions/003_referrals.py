@@ -3,15 +3,10 @@
 Revision ID: 003_referrals
 Revises: 002_mda_consent
 Create Date: 2026-07-04
-
-Adds the referrals table to record outbound patient referrals with
-destination facility, urgency, referral letter, and feedback from the
-receiving provider.  Replaces the previous status-string-only approach
-where encounter.status='referred' was the only record of a referral.
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import ENUM as PgEnum
+from sqlalchemy.dialects.postgresql import ENUM as PgEnum, UUID as PgUUID
 
 revision = "003_referrals"
 down_revision = "002_mda_consent"
@@ -38,12 +33,12 @@ def upgrade() -> None:
     if "referrals" not in existing:
         op.create_table(
             "referrals",
-            sa.Column("id", sa.String(36), primary_key=True),
-            sa.Column("encounter_id", sa.String(36),
+            sa.Column("id", PgUUID(as_uuid=False), primary_key=True),
+            sa.Column("encounter_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("encounters.id"), nullable=False, index=True),
-            sa.Column("patient_id", sa.String(36),
+            sa.Column("patient_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("patients.id"), nullable=False, index=True),
-            sa.Column("referred_by_id", sa.String(36),
+            sa.Column("referred_by_id", PgUUID(as_uuid=False),
                       sa.ForeignKey("users.id"), nullable=False, index=True),
             sa.Column("destination_facility", sa.String(200), nullable=False),
             sa.Column("destination_department", sa.String(100), nullable=True),
