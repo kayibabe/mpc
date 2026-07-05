@@ -11,6 +11,7 @@ encounter. Double-booking is prevented at the application layer.
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import ENUM as PgEnum
 
 revision = "004_appointments"
 down_revision = "003_referrals"
@@ -48,14 +49,14 @@ def upgrade() -> None:
                       nullable=False, index=True),
             sa.Column("duration_minutes", sa.Integer, nullable=False, server_default="15"),
             sa.Column("appointment_type",
-                      sa.Enum("opd", "follow_up", "procedure", "antenatal",
-                              "immunization", "other", name="appointmenttype", create_type=False),
+                      PgEnum("opd", "follow_up", "procedure", "antenatal",
+                             "immunization", "other", name="appointmenttype", create_type=False),
                       nullable=False, server_default="opd"),
             sa.Column("visit_reason", sa.Text, nullable=True),
             sa.Column("status",
-                      sa.Enum("scheduled", "confirmed", "arrived", "in_progress",
-                              "completed", "cancelled", "no_show",
-                              name="appointmentstatus", create_type=False),
+                      PgEnum("scheduled", "confirmed", "arrived", "in_progress",
+                             "completed", "cancelled", "no_show",
+                             name="appointmentstatus", create_type=False),
                       nullable=False, server_default="scheduled"),
             sa.Column("cancellation_reason", sa.Text, nullable=True),
             sa.Column("encounter_id", sa.String(36),

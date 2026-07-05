@@ -11,6 +11,7 @@ permit via burial_permit_seq). One mortuary admission per death record.
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import ENUM as PgEnum
 
 revision = "006_mortuary"
 down_revision = "005_theatre"
@@ -69,7 +70,7 @@ def upgrade() -> None:
             sa.Column("received_at", sa.DateTime(timezone=True), nullable=False,
                       server_default=sa.func.now()),
             sa.Column("status",
-                      sa.Enum("admitted", "released", name="mortuarystatus", create_type=False),
+                      PgEnum("admitted", "released", name="mortuarystatus", create_type=False),
                       nullable=False, server_default="admitted"),
             sa.Column("family_notified", sa.Boolean, nullable=False,
                       server_default=sa.text("false")),

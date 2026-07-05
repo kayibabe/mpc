@@ -11,6 +11,7 @@ booked → pre_op → in_theatre → recovery → completed | cancelled.
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import ENUM as PgEnum
 
 revision = "005_theatre"
 down_revision = "004_appointments"
@@ -53,8 +54,8 @@ def upgrade() -> None:
             sa.Column("estimated_duration_minutes", sa.Integer,
                       nullable=False, server_default="60"),
             sa.Column("status",
-                      sa.Enum("booked", "pre_op", "in_theatre", "recovery",
-                              "completed", "cancelled", name="theatrecasestatus", create_type=False),
+                      PgEnum("booked", "pre_op", "in_theatre", "recovery",
+                             "completed", "cancelled", name="theatrecasestatus", create_type=False),
                       nullable=False, server_default="booked"),
             sa.Column("cancellation_reason", sa.Text, nullable=True),
             sa.Column("operation_notes", sa.Text, nullable=True),

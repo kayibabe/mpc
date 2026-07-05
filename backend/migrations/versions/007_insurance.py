@@ -12,6 +12,7 @@ submitted → approved/partially_approved/rejected → settled lifecycle).
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import ENUM as PgEnum
 
 revision = "007_insurance"
 down_revision = "006_mortuary"
@@ -54,7 +55,7 @@ def upgrade() -> None:
             sa.Column("id", sa.String(36), primary_key=True),
             sa.Column("name", sa.String(150), nullable=False, unique=True),
             sa.Column("payer_type",
-                      sa.Enum("insurance", "medical_scheme", name="payertype", create_type=False),
+                      PgEnum("insurance", "medical_scheme", name="payertype", create_type=False),
                       nullable=False),
             sa.Column("contact_person", sa.String(150), nullable=True),
             sa.Column("phone", sa.String(30), nullable=True),
@@ -78,7 +79,7 @@ def upgrade() -> None:
             sa.Column("valid_from", sa.Date, nullable=False),
             sa.Column("valid_to", sa.Date, nullable=True),
             sa.Column("status",
-                      sa.Enum("active", "suspended", "expired", name="memberstatus", create_type=False),
+                      PgEnum("active", "suspended", "expired", name="memberstatus", create_type=False),
                       nullable=False, server_default="active"),
             sa.Column("created_at", sa.DateTime(timezone=True), nullable=False,
                       server_default=sa.func.now()),
@@ -101,7 +102,7 @@ def upgrade() -> None:
             sa.Column("service_description", sa.Text, nullable=False),
             sa.Column("estimated_amount", sa.Numeric(12, 2), nullable=False),
             sa.Column("status",
-                      sa.Enum("requested", "approved", "rejected", name="preauthstatus", create_type=False),
+                      PgEnum("requested", "approved", "rejected", name="preauthstatus", create_type=False),
                       nullable=False, server_default="requested"),
             sa.Column("decision_notes", sa.Text, nullable=True),
             sa.Column("requested_by_id", sa.String(36),
@@ -130,8 +131,8 @@ def upgrade() -> None:
             sa.Column("copay_amount", sa.Numeric(12, 2), nullable=False, server_default="0"),
             sa.Column("approved_amount", sa.Numeric(12, 2), nullable=True),
             sa.Column("status",
-                      sa.Enum("draft", "submitted", "approved", "partially_approved",
-                              "rejected", "settled", name="claimstatus", create_type=False),
+                      PgEnum("draft", "submitted", "approved", "partially_approved",
+                             "rejected", "settled", name="claimstatus", create_type=False),
                       nullable=False, server_default="draft"),
             sa.Column("rejection_reason", sa.Text, nullable=True),
             sa.Column("submitted_at", sa.DateTime(timezone=True), nullable=True),
