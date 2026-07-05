@@ -50,7 +50,7 @@ def upgrade() -> None:
                   nullable=False, server_default="60"),
         sa.Column("status",
                   sa.Enum("booked", "pre_op", "in_theatre", "recovery",
-                          "completed", "cancelled", name="theatrecasestatus"),
+                          "completed", "cancelled", name="theatrecasestatus", create_type=False),
                   nullable=False, server_default="booked"),
         sa.Column("cancellation_reason", sa.Text, nullable=True),
         sa.Column("operation_notes", sa.Text, nullable=True),

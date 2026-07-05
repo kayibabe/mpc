@@ -64,7 +64,7 @@ def upgrade() -> None:
         sa.Column("received_at", sa.DateTime(timezone=True), nullable=False,
                   server_default=sa.func.now()),
         sa.Column("status",
-                  sa.Enum("admitted", "released", name="mortuarystatus"),
+                  sa.Enum("admitted", "released", name="mortuarystatus", create_type=False),
                   nullable=False, server_default="admitted"),
         sa.Column("family_notified", sa.Boolean, nullable=False,
                   server_default=sa.text("false")),
