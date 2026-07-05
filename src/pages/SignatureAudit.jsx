@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   PenTool, Search, Filter, Calendar, FileText, Pill, FlaskConical,
-  Scan, ClipboardPen, Clock, User, ChevronDown, Download, X
+  Scan, ClipboardPen, Clock, User, ChevronDown, X
 } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 

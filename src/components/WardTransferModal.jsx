@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { ArrowRightLeft, AlertCircle } from "lucide-react";
+import { ArrowRightLeft } from "lucide-react";
 
 export default function WardTransferModal({ patient, admission, onComplete, onCancel }) {
   const [wards, setWards] = useState([]);

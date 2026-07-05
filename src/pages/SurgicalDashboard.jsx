@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Package, AlertTriangle, TrendingUp, Clock, CheckCircle2, Plus, Eye, Zap } from "lucide-react";
+import { Package, AlertTriangle, Clock, CheckCircle2, Plus, Eye, Zap } from "lucide-react";
 import SurgicalRequisitionModal from "@/components/SurgicalRequisitionModal";
 import PageHeader from "@/components/ui/PageHeader";
 

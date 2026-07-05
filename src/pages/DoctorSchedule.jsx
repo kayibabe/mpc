@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import {
-  Calendar, Clock, Users, AlertTriangle, CheckCircle, Plus, Edit2, X,
-  ChevronLeft, ChevronRight, Loader2, Save, Trash2, Zap, Search
+  Calendar, Plus, Edit2, X,
+  ChevronLeft, ChevronRight, Save, Trash2
 } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import PageHeader from "@/components/ui/PageHeader";
 
 const SHIFT_TIMES = {
@@ -59,7 +61,7 @@ export default function DoctorSchedule() {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!form.doctor_id || !form.schedule_date || !form.shift_type) {
-      alert("Please fill required fields");
+      toast({ title: "Required fields missing", description: "Doctor, date, and shift type are required.", variant: "destructive" });
       return;
     }
 
@@ -83,7 +85,7 @@ export default function DoctorSchedule() {
       setEditingId(null);
       setForm({ doctor_id: "", doctor_name: "", schedule_date: "", shift_type: "morning", department: "clinical", ward_id: "", ward_name: "", specialty: "", notes: "" });
     } catch (e) {
-      alert("Save failed: " + (e.response?.data?.error || e.message));
+      toast({ title: "Save failed", description: e.response?.data?.error || e.message, variant: "destructive" });
     }
   };
 
@@ -93,13 +95,18 @@ export default function DoctorSchedule() {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("Delete this schedule?")) return;
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+
+  const handleDelete = (id) => setDeleteConfirmId(id);
+
+  const doDelete = async () => {
+    const id = deleteConfirmId;
+    setDeleteConfirmId(null);
     try {
       await base44.entities.DoctorSchedule.delete(id);
       loadData();
     } catch (e) {
-      alert("Delete failed");
+      toast({ title: "Delete failed", variant: "destructive" });
     }
   };
 
@@ -466,6 +473,19 @@ export default function DoctorSchedule() {
           </div>
         </div>
       )}
+
+      <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => { if (!open) setDeleteConfirmId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Schedule?</AlertDialogTitle>
+            <AlertDialogDescription>This will permanently remove the schedule entry. This action cannot be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={doDelete} className="bg-destructive hover:bg-destructive/90 text-white">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

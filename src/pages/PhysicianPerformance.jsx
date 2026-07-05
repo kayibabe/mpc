@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   Stethoscope, TrendingUp, Users, ClipboardCheck, Pill, FlaskConical, Scan,
-  BedDouble, PenTool, Shield, Award, Loader2, Calendar, Clock, BarChart3
+  BedDouble, PenTool, Shield, Award, Calendar, Clock, BarChart3
 } from "lucide-react";
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, BarChart, Bar } from "recharts";
 import PageHeader from "@/components/ui/PageHeader";

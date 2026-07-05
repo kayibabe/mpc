@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { FileBarChart, Download, Loader2, Users, FlaskConical, BedDouble, Baby, TrendingUp, Calendar, Activity } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
@@ -38,7 +39,7 @@ export default function MoHReports() {
       setReportData(data.data || data);
       loadExports();
     } catch (err) {
-      alert("Export failed: " + (err.response?.data?.error || err.message));
+      toast({ title: "Export failed", description: err.response?.data?.error || err.message, variant: "destructive" });
     } finally {
       setExporting(false);
     }
@@ -97,7 +98,7 @@ export default function MoHReports() {
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
-      alert('Download failed: ' + err.message);
+      toast({ title: "Download failed", description: err.message, variant: "destructive" });
     }
   };
 

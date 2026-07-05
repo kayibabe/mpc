@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import uuid
 import enum
 from datetime import datetime, timezone
@@ -12,7 +14,6 @@ class UserRole(str, enum.Enum):
     receptionist = "receptionist"
     doctor = "doctor"
     nurse = "nurse"
-    lab_tech = "lab_tech"
     pharmacist = "pharmacist"
     billing_clerk = "billing_clerk"
     admin = "admin"
@@ -49,3 +50,4 @@ class User(Base):
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+

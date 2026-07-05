@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { ClipboardList, Plus, Check, Clock, User, ArrowRightLeft, TrendingUp, Loader2, DollarSign, CreditCard, Smartphone, Shield } from "lucide-react";
+import { ClipboardList, Plus, Check, Clock, ArrowRightLeft, TrendingUp, Loader2, DollarSign, Shield } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const SHIFT_TYPES = ["reception", "nursing", "pharmacy", "lab", "clinical", "admin", "billing"];

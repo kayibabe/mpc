@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     }
 
     // Create the digital signature record
-    const sig = await base44.asServiceRole.entities.DigitalSignature.create({
+    const sig = await base44.entities.DigitalSignature.create({
       document_type,
       document_id,
       patient_id,

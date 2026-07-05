@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import {
-  Users, Clock, AlertTriangle, CheckCircle, Calendar, Search,
-  ChevronRight, RefreshCw
+  Users, Clock, CheckCircle, Calendar, RefreshCw
 } from "lucide-react";
 import ShiftHandoffNotes from "@/components/ShiftHandoffNotes";
 import PageHeader from "@/components/ui/PageHeader";

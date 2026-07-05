@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Search, UserPlus, ChevronDown, Check, Clock, Phone, MapPin, Users, RefreshCw, DoorOpen } from "lucide-react";
+import { formatApiError } from "@/api/customClient";
+import { Search, UserPlus, Clock, MapPin, Users, RefreshCw, DoorOpen } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
+import { queueLabel } from "@/lib/labels";
 import PageHeader from "@/components/ui/PageHeader";
 import SectionTitle from "@/components/ui/SectionTitle";
 import InsuranceVerifier from "@/components/InsuranceVerifier";
@@ -13,6 +16,8 @@ export default function Reception() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [roomVacancyNotifs, setRoomVacancyNotifs] = useState([]);
   const [activeJourneys, setActiveJourneys] = useState([]);
   const [form, setForm] = useState({
@@ -51,14 +56,22 @@ export default function Reception() {
   const syncPatient = async (patientId) => {
     try {
       const { data } = await base44.functions.invoke('syncPatientRecords', { patient_id: patientId });
-      alert(`Synced: ${data.updates_applied?.visits || 0} visits, ${data.updates_applied?.invoices || 0} invoices updated.`);
-    } catch (e) { console.error(e); }
+      toast({
+        title: "Patient records synced",
+        description: `${data.updates_applied?.visits || 0} visits, ${data.updates_applied?.invoices || 0} invoices updated.`,
+      });
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Sync failed", description: "Could not sync patient records.", variant: "destructive" });
+    }
   };
 
   const schemes = ["MASM", "Liberty Health", "MRA", "PSMAS", "Madison", "Resolution Health", "Britam", "Old Mutual", "CHAM"];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError("");
+    setSubmitting(true);
     const mrn = `ZCP-${String(patients.length + 1).padStart(6, "0")}`;
     try {
       const patient = await base44.entities.Patient.create({
@@ -95,7 +108,12 @@ export default function Reception() {
       setPatients(p);
       setVisits(v);
       setShowForm(false);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      setFormError(formatApiError(e, "Failed to register patient. Please check the details and try again."));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (loading) return <div className="page-container flex justify-center py-20"><div className="w-8 h-8 border-3 border-muted border-t-primary rounded-full animate-spin" /></div>;
@@ -287,7 +305,7 @@ export default function Reception() {
                       v.queue_status === "in_consultation" ? "bg-chart-1/10 text-chart-1" :
                       v.queue_status === "waiting" ? "bg-chart-4/10 text-chart-4" :
                       "bg-muted text-muted-foreground"
-                    }`}>{v.queue_status}</span>
+                    }`}>{queueLabel(v.queue_status)}</span>
                   </div>
                   {journey && <PatientJourneyTimeline journeyId={journey.id} compact />}
                 </div>

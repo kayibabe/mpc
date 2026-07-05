@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
 import { X, AlertTriangle, CheckCircle, Download, Loader2 } from "lucide-react";
 
 const VALIDATION_RULES = [

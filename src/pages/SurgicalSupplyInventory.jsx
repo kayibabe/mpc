@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { Package, Plus, Search, AlertTriangle, RefreshCw, Save, Loader2, Edit2, X } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
@@ -46,7 +47,7 @@ export default function SurgicalSupplyInventory() {
   const saveSupply = async (e) => {
     e.preventDefault();
     if (!form.name) {
-      alert("Supply name required");
+      toast({ title: "Supply name required", description: "Enter a name for the supply item before saving.", variant: "destructive" });
       return;
     }
 
@@ -67,7 +68,7 @@ export default function SurgicalSupplyInventory() {
       setSelectedSupply(null);
       resetForm();
     } catch (e) {
-      alert("Save failed: " + e.message);
+      toast({ title: "Save failed", description: e.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { FlaskConical, Plus, Save, AlertTriangle, ClipboardCheck, Square, CheckSquare, Play, ArrowRight, CheckCircle, GitBranch } from "lucide-react";
+import { FlaskConical, Plus, Save, ClipboardCheck, Square, CheckSquare, Play, ArrowRight, CheckCircle, GitBranch } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
 import DepartmentDashboard from "@/components/DepartmentDashboard";
 import ExpiryAlerts from "@/components/ExpiryAlerts";
@@ -115,7 +116,7 @@ export default function Lab() {
       const jList = await base44.entities.PatientJourney.filter({ current_stage: { $in: ["LAB_PENDING", "LAB_PROCESSING"] }, status: "active" }, "-created_date", 30);
       setLabJourneys(jList);
     } catch (e) {
-      alert("Workflow transition failed: " + (e.response?.data?.error || e.message));
+      toast({ title: "Workflow transition failed", description: e.response?.data?.error || e.message, variant: "destructive" });
     } finally {
       setTransitioning(false);
     }

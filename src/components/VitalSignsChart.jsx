@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { Activity, TrendingUp, Loader2 } from "lucide-react";
+import { TrendingUp, Loader2 } from "lucide-react";
 
 export default function VitalSignsChart({ patientId, visitId }) {
   const [vitalsData, setVitalsData] = useState([]);

@@ -121,9 +121,6 @@
     "read": {
       "$or": [
         {
-          "id": "{{user.id}}"
-        },
-        {
           "created_by_id": "{{user.id}}"
         },
         {

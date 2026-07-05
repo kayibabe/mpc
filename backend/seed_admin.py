@@ -1,6 +1,12 @@
 """
 One-time script to create the initial admin user.
 Run from backend/ directory:  python seed_admin.py
+
+The admin password is read from the ADMIN_PASSWORD environment variable.
+If not set, the script will refuse to run.
+
+Example:
+    ADMIN_PASSWORD="MyStr0ng!Pass" python seed_admin.py
 """
 import asyncio
 import sys
@@ -17,6 +23,12 @@ from sqlalchemy import select
 
 
 async def seed():
+    password = os.environ.get("ADMIN_PASSWORD")
+    if not password:
+        print("ERROR: Set the ADMIN_PASSWORD environment variable before running this script.")
+        print("Example: ADMIN_PASSWORD='MyStr0ng!Pass' python seed_admin.py")
+        sys.exit(1)
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
@@ -32,7 +44,7 @@ async def seed():
                 employee_id="ADMIN001",
                 full_name="System Administrator",
                 email="admin@zcpc.mw",
-                password_hash=hash_password("Admin@zcpc2024"),
+                password_hash=hash_password(password),
                 role=UserRole.admin,
                 department="Administration",
                 is_active=True,
@@ -41,7 +53,7 @@ async def seed():
             await db.commit()
             print("Admin user created successfully.")
             print("  Employee ID : ADMIN001")
-            print("  Password    : Admin@zcpc2024")
+            print("  Password    : (set via ADMIN_PASSWORD env var)")
 
     await engine.dispose()
 

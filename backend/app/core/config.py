@@ -5,7 +5,7 @@ from functools import lru_cache
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     # Database — fly.dev sets DATABASE_URL when postgres is attached;
     # individual DB_* vars are used for local development.
@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     AT_API_KEY: str = ""
     AT_USERNAME: str = "sandbox"
     AT_SENDER_ID: str = "ZCPC"
+
+    # Seed scripts — required when running seed_admin.py / seed_users.py
+    ADMIN_PASSWORD: str = ""
+    SEED_USER_PASSWORD: str = ""
 
     ENVIRONMENT: str = "development"
     DEBUG: bool = False

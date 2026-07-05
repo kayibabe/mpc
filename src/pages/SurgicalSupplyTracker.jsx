@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
-import { Package, TrendingUp, Clock, CheckCircle, AlertTriangle, Filter, Download } from "lucide-react";
+import { Package, Filter, Download } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 
 const STATUS_FLOW = ["pending", "dispensed", "received", "used", "returned"];
@@ -69,7 +70,7 @@ export default function SurgicalSupplyTracker() {
         a.click();
         URL.revokeObjectURL(url);
       }
-    } catch (e) { alert('Export failed: ' + e.message); }
+    } catch (e) { toast({ title: "Export failed", description: e.message, variant: "destructive" }); }
   };
 
   if (loading) return <div className="page-container flex justify-center py-20"><div className="w-8 h-8 border-3 border-muted border-t-primary rounded-full animate-spin" /></div>;

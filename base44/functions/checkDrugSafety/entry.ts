@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     const drugNames = drugs.map(d => (d.generic_name || d.drug_name || '').toLowerCase().replace(/\s+/g, '_'));
 
     // 1. Check patient allergies
-    const allergies = await base44.asServiceRole.entities.PatientAllergy.filter(
+    const allergies = await base44.entities.PatientAllergy.filter(
       { patient_id },
       "",
       50

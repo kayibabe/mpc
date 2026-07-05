@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Calendar as CalendarIcon, Plus, Clock, Users, Check, X, Square, CheckSquare, ChevronDown } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, Check, X, Square, CheckSquare } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 
 export default function Appointments() {

@@ -1,0 +1,9 @@
+# E712: SQLAlchemy filters use `Column == True` / `== False` — these build SQL
+#       expressions; replacing them with bare truthiness breaks the query DSL.
+# F821 (models only): relationship() targets are string forward references
+#       resolved by the SQLAlchemy registry at runtime; ruff cannot see them.
+[lint]
+ignore = ["E712"]
+
+[lint.per-file-ignores]
+"app/models/*" = ["F821"]

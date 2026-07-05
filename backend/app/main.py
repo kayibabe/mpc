@@ -1,18 +1,21 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base
+from app.core.ratelimit import limiter
 from app.core.redis import close_redis
 from app.routers import auth, patients, admin, sync
-from app.routers import encounters, billing, lab, pharmacy, admissions, nursing
-
-
-limiter = Limiter(key_func=get_remote_address)
+from app.routers import encounters, billing, lab, pharmacy, admissions, nursing, referrals, appointments
+from app.routers import theatre, mortuary, insurance
+import app.models.referral       # ensure Referral table is registered with Base.metadata
+import app.models.appointment    # ensure Appointment table is registered with Base.metadata
+import app.models.theatre        # ensure theatre tables are registered with Base.metadata
+import app.models.mortuary       # ensure mortuary tables are registered with Base.metadata
+import app.models.insurance      # ensure insurance tables are registered with Base.metadata
 
 
 @asynccontextmanager
@@ -33,12 +36,13 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)  # applies the default limit to all endpoints (audit H8)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins_list,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_credentials=False,  # Using Bearer tokens, not cookies
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
 )
 
@@ -52,6 +56,11 @@ app.include_router(lab.router, prefix="/api/v1")
 app.include_router(pharmacy.router, prefix="/api/v1")
 app.include_router(admissions.router, prefix="/api/v1")
 app.include_router(nursing.router, prefix="/api/v1")
+app.include_router(referrals.router, prefix="/api/v1")
+app.include_router(appointments.router, prefix="/api/v1")
+app.include_router(theatre.router, prefix="/api/v1")
+app.include_router(mortuary.router, prefix="/api/v1")
+app.include_router(insurance.router, prefix="/api/v1")
 
 
 @app.get("/health")

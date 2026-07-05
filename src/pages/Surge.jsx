@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { useSurgeStatus } from "@/lib/useSurgeStatus";
 import PageHeader from "@/components/ui/PageHeader";
@@ -23,7 +24,7 @@ export default function Surge() {
       const { data } = await base44.functions.invoke("emergencySurgeCapacity", {});
       setProtocol(data);
     } catch (e) {
-      alert("Failed to run surge protocols: " + (e.response?.data?.error || e.message));
+      toast({ title: "Surge protocol failed", description: e.response?.data?.error || e.message, variant: "destructive" });
     } finally {
       setRunning(false);
     }

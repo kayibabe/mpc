@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { PenTool, Check, Clock, X } from "lucide-react";
+import { PenTool, Check, Clock } from "lucide-react";
 
 export default function SignatureStatus({ documentType, documentId, compact = false }) {
   const [signature, setSignature] = useState(null);

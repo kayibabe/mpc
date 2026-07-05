@@ -4,8 +4,8 @@ from sqlalchemy import select
 from datetime import datetime, timezone
 from pydantic import BaseModel
 from app.core.database import get_db
-from app.core.auth import get_current_user
-from app.models.user import User
+from app.core.auth import require_role
+from app.models.user import User, UserRole
 from app.models.patient import Patient
 from app.models.encounter import Encounter
 
@@ -23,7 +23,7 @@ async def pull_changes(
     since: str | None = Query(None, description="ISO timestamp of last sync"),
     modules: str = Query("patients,encounters", description="Comma-separated list of modules"),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.admin)),
 ):
     server_time = datetime.now(timezone.utc).isoformat()
     since_dt = datetime.fromisoformat(since) if since else None

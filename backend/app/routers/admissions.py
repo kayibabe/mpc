@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime, timezone
 from app.core.database import get_db
-from app.core.auth import get_current_user, require_role
+from app.core.auth import require_role
 from app.models.user import User, UserRole
 from app.models.admission import Ward, Bed, Admission, BedStatus, AdmissionStatus
 from app.schemas.admission import (
@@ -18,7 +18,7 @@ router = APIRouter(prefix="/admissions", tags=["admissions"])
 @router.get("/wards", response_model=list[WardResponse])
 async def list_wards(
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.midwife, UserRole.admin)),
 ):
     result = await db.execute(select(Ward).where(Ward.is_active == True).order_by(Ward.name))
     wards = result.scalars().all()
@@ -69,9 +69,9 @@ async def list_admissions(
     ward_id: str | None = Query(None),
     status: AdmissionStatus | None = Query(None),
     skip: int = 0,
-    limit: int = 50,
+    limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.midwife, UserRole.admin)),
 ):
     stmt = select(Admission)
     if patient_id:
@@ -93,12 +93,21 @@ async def admit_patient(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.admin)),
 ):
-    bed_result = await db.execute(select(Bed).where(Bed.id == body.bed_id))
+    # Row-lock the bed so two concurrent admissions can't both see it as
+    # available (audit M1). No-op on SQLite tests, FOR UPDATE on Postgres.
+    bed_result = await db.execute(
+        select(Bed).where(Bed.id == body.bed_id).with_for_update()
+    )
     bed = bed_result.scalar_one_or_none()
     if not bed:
         raise HTTPException(status_code=404, detail="Bed not found")
     if bed.status != BedStatus.available:
         raise HTTPException(status_code=409, detail="Bed is not available")
+    if bed.ward_id != body.ward_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Bed does not belong to the specified ward",  # audit N6
+        )
 
     admission = Admission(
         id=str(uuid.uuid4()),
@@ -124,13 +133,53 @@ async def admit_patient(
 async def get_admission(
     admission_id: str,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.admin)),
 ):
     result = await db.execute(select(Admission).where(Admission.id == admission_id))
     admission = result.scalar_one_or_none()
     if not admission:
         raise HTTPException(status_code=404, detail="Admission not found")
     return admission
+
+
+@router.get("/{admission_id}/billing-clearance")
+async def billing_clearance(
+    admission_id: str,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_role(
+        UserRole.doctor, UserRole.nurse, UserRole.billing_clerk, UserRole.cashier, UserRole.admin,
+    )),
+):
+    """Pre-discharge check: any unpaid invoices on this admission's encounter?"""
+    from app.models.billing import BillingInvoice, InvoiceStatus
+
+    result = await db.execute(select(Admission).where(Admission.id == admission_id))
+    admission = result.scalar_one_or_none()
+    if not admission:
+        raise HTTPException(status_code=404, detail="Admission not found")
+
+    inv_result = await db.execute(
+        select(BillingInvoice).where(
+            BillingInvoice.encounter_id == admission.encounter_id,
+            BillingInvoice.status != InvoiceStatus.void,
+        )
+    )
+    invoices = inv_result.scalars().all()
+    outstanding = sum(float(inv.balance) for inv in invoices)
+    return {
+        "cleared": outstanding <= 0,
+        "outstanding": outstanding,
+        "invoices": [
+            {
+                "invoice_number": inv.invoice_number,
+                "total": float(inv.total),
+                "amount_paid": float(inv.amount_paid),
+                "balance": float(inv.balance),
+                "status": inv.status.value,
+            }
+            for inv in invoices
+        ],
+    }
 
 
 @router.post("/{admission_id}/discharge", response_model=AdmissionResponse)
@@ -140,6 +189,8 @@ async def discharge_patient(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_role(UserRole.doctor, UserRole.admin)),
 ):
+    from app.models.billing import BillingInvoice, InvoiceStatus
+
     result = await db.execute(select(Admission).where(Admission.id == admission_id))
     admission = result.scalar_one_or_none()
     if not admission:
@@ -147,13 +198,32 @@ async def discharge_patient(
     if admission.status != AdmissionStatus.admitted:
         raise HTTPException(status_code=400, detail="Patient is not currently admitted")
 
+    # Billing clearance: block discharge with an unpaid balance unless
+    # explicitly overridden (the override is recorded via the request payload).
+    if not body.billing_override:
+        inv_result = await db.execute(
+            select(BillingInvoice).where(
+                BillingInvoice.encounter_id == admission.encounter_id,
+                BillingInvoice.status != InvoiceStatus.void,
+            )
+        )
+        outstanding = sum(float(inv.balance) for inv in inv_result.scalars().all())
+        if outstanding > 0:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Billing not cleared: outstanding balance {outstanding:.2f}. "
+                       "Settle the invoices or discharge with billing_override=true.",
+            )
+
     admission.status = AdmissionStatus.discharged
     admission.discharge_date = datetime.now(timezone.utc)
     admission.discharge_type = body.discharge_type
     admission.discharge_summary = body.discharge_summary
     admission.updated_at = datetime.now(timezone.utc)
 
-    bed_result = await db.execute(select(Bed).where(Bed.id == admission.bed_id))
+    bed_result = await db.execute(
+        select(Bed).where(Bed.id == admission.bed_id).with_for_update()
+    )
     bed = bed_result.scalar_one_or_none()
     if bed:
         bed.status = BedStatus.available

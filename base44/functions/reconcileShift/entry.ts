@@ -13,6 +13,11 @@ Deno.serve(async (req) => {
     const shift = await base44.asServiceRole.entities.CashierShift.get(shift_id);
     if (!shift) return Response.json({ error: 'Shift not found' }, { status: 404 });
 
+    // Only the shift's cashier or an admin can reconcile it
+    if (shift.cashier_id !== user.id && user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden: can only reconcile your own shift' }, { status: 403 });
+    }
+
     const openedAt = new Date(shift.opened_at);
     const closedAt = shift.closed_at ? new Date(shift.closed_at) : new Date();
 

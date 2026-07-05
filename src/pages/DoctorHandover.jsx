@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { ArrowRightLeft, Plus, Check, Clock, User, Stethoscope, AlertTriangle, Users, Search, X, Save, Loader2, ClipboardList, ShieldCheck, ClipboardPen, FileDown, RefreshCw, Bookmark, Copy } from "lucide-react";
+import { ArrowRightLeft, Plus, Check, Clock, Stethoscope, AlertTriangle, Users, Search, X, Save, Loader2, ClipboardList, ShieldCheck, ClipboardPen, FileDown, RefreshCw, Bookmark, Copy } from "lucide-react";
 import StaffComplianceDashboard from "@/components/StaffComplianceDashboard";
 import PageHeader from "@/components/ui/PageHeader";
 

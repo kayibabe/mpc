@@ -3,11 +3,13 @@ Seed random staff users for every role.
 
 1. Adds any missing values to the Postgres `userrole` enum (so the new
    frontend roles can be stored).
-2. Inserts one sample user per role with a known password.
+2. Inserts one sample user per role with a password read from the
+   SEED_USER_PASSWORD environment variable.
 
-Run from backend/ directory:  python seed_users.py
+Run from backend/ directory:
+    SEED_USER_PASSWORD='Str0ng!Pass' python seed_users.py
 
-All seeded users share the password:  Zcpc@2024
+WARNING: This script is for development/testing only. Do NOT run in production.
 """
 import asyncio
 import sys
@@ -22,7 +24,6 @@ from app.core.database import engine, Base
 from app.core.security import hash_password
 from app.models.user import User, UserRole
 
-DEFAULT_PASSWORD = "Zcpc@2024"
 
 # employee_id, full_name, role, department, email
 SEED_USERS = [
@@ -53,6 +54,12 @@ async def ensure_enum_values():
 
 
 async def seed():
+    password = os.environ.get("SEED_USER_PASSWORD")
+    if not password:
+        print("ERROR: Set the SEED_USER_PASSWORD environment variable before running this script.")
+        print("Example: SEED_USER_PASSWORD='Str0ng!Pass' python seed_users.py")
+        sys.exit(1)
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
@@ -70,7 +77,7 @@ async def seed():
                 employee_id=emp_id,
                 full_name=name,
                 email=email,
-                password_hash=hash_password(DEFAULT_PASSWORD),
+                password_hash=hash_password(password),
                 role=role,
                 department=dept,
                 is_active=True,
@@ -80,7 +87,7 @@ async def seed():
         await db.commit()
 
     print(f"\nDone. Created {created}, skipped {skipped}.")
-    print(f"All users password: {DEFAULT_PASSWORD}")
+    print("All users password: (set via SEED_USER_PASSWORD env var)")
     await engine.dispose()
 
 

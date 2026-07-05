@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { UserCircle, Calendar, FlaskConical, Receipt, Baby, Clock, Pill, Syringe, FileText, Edit3, Plus, Save, X, ChevronDown } from "lucide-react";
+import { UserCircle, Calendar, FlaskConical, Receipt, Baby, Clock, Pill, Syringe, FileText, Edit3, Plus, Save, X } from "lucide-react";
 
 const TABS = [
   { key: "overview", label: "Overview", icon: UserCircle },

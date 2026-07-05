@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { base44 } from "@/api/base44Client";
-import { Heart, Thermometer, Activity, Wind, Droplets, Users, Monitor, Wifi, WifiOff } from "lucide-react";
+import { Heart, Thermometer, Activity, Wind, Monitor, Wifi, WifiOff } from "lucide-react";
 
 const VITAL_RANGES = {
   heart_rate: { min: 60, max: 100, critical_min: 40, critical_max: 130, unit: "bpm", label: "HR", icon: Heart, color: "text-rose-500" },

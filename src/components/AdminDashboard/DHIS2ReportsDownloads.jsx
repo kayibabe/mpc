@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Download, FileJson, Eye, Trash2, Loader2, Calendar, CheckCircle, AlertCircle, Clock } from "lucide-react";
+import { Download, FileJson, Trash2, Loader2, Calendar, CheckCircle, AlertCircle, Clock } from "lucide-react";
 
 export default function DHIS2ReportsDownloads() {
   const [reports, setReports] = useState([]);

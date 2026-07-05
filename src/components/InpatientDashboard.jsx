@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import {
-  BedDouble, BedSingle, Users, DoorOpen, AlertTriangle, Heart, Clock,
-  Bell, ArrowRight, GitBranch, Activity, Stethoscope, Pill, FlaskConical,
+  BedDouble, Users, DoorOpen, AlertTriangle, Clock,
+  Bell, ArrowRight, GitBranch, Activity,
   RefreshCw, ChevronDown, ChevronUp
 } from "lucide-react";
 

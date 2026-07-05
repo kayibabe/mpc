@@ -32,3 +32,8 @@ dist-ssr
 
 .env
 .vite
+
+# Python tool caches
+.pytest_cache/
+.ruff_cache/
+__pycache__/

@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import uuid
 import enum
 from datetime import datetime, date, timezone
 from sqlalchemy import String, Boolean, DateTime, Date, Enum as SAEnum, Text, Sequence
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.core.database import Base
 
@@ -52,9 +54,12 @@ class Patient(Base):
     insurance_number: Mapped[str | None] = mapped_column(String(100), nullable=True)
     known_allergies: Mapped[str | None] = mapped_column(Text, nullable=True)
     chronic_conditions: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # MDA 2024: data-processing consent captured at registration
+    consent_given: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    consent_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -62,3 +67,15 @@ class Patient(Base):
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
+    # Relationships
+    encounters: Mapped[list["Encounter"]] = relationship(back_populates="patient", cascade="all, delete-orphan")
+    admissions: Mapped[list["Admission"]] = relationship(back_populates="patient", cascade="all, delete-orphan")
+    lab_orders: Mapped[list["LabOrder"]] = relationship(back_populates="patient", cascade="all, delete-orphan")
+    prescriptions: Mapped[list["Prescription"]] = relationship(back_populates="patient", cascade="all, delete-orphan")
+    vital_signs: Mapped[list["VitalSigns"]] = relationship(back_populates="patient", cascade="all, delete-orphan")
+    nursing_notes: Mapped[list["NursingNote"]] = relationship(back_populates="patient", cascade="all, delete-orphan")
+    billing_invoices: Mapped[list["BillingInvoice"]] = relationship(back_populates="patient", cascade="all, delete-orphan")
+    medication_administrations: Mapped[list["MedicationAdministration"]] = relationship(back_populates="patient", cascade="all, delete-orphan")
+
+

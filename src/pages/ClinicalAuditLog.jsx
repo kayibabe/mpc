@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { FileText, Search, RefreshCw, Filter, BarChart3 } from "lucide-react";
+import { FileText, Search, RefreshCw } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 
 export default function ClinicalAuditLog() {

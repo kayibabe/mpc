@@ -1,7 +1,8 @@
 import re
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
-from jose import jwt, JWTError
+from jose import jwt
 from passlib.context import CryptContext
 from app.core.config import settings
 
@@ -38,6 +39,7 @@ def create_access_token(subject: str, role: str, department: str | None = None) 
         "department": department,
         "exp": expire,
         "type": "access",
+        "jti": str(uuid.uuid4()),  # unique per token, even within the same second
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
@@ -48,6 +50,9 @@ def create_refresh_token(subject: str) -> str:
         "sub": subject,
         "exp": expire,
         "type": "refresh",
+        # jti guarantees uniqueness — without it, two tokens minted in the same
+        # second are byte-identical and rotation/revocation can't distinguish them
+        "jti": str(uuid.uuid4()),
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 

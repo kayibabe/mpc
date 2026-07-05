@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
-import { ShieldAlert, DollarSign, CreditCard, Smartphone, RotateCcw, AlertTriangle, XCircle, CheckCircle, Eye, EyeOff, TrendingUp, Clock, RefreshCw } from "lucide-react";
+import { ShieldAlert, DollarSign, CreditCard, Smartphone, AlertTriangle, XCircle, CheckCircle, Eye, EyeOff, Clock, RefreshCw } from "lucide-react";
 
 const SEVERITY_CONFIG = {
   minor: { bg: "bg-muted/50", border: "border-border", text: "text-muted-foreground", icon: CheckCircle, iconColor: "text-chart-3" },

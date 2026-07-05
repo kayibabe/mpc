@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { AlertTriangle, Clock, Package, X, ChevronDown, ChevronUp } from "lucide-react";
+import { AlertTriangle, Clock, X, ChevronDown, ChevronUp } from "lucide-react";
 
 export default function InventoryAlerts() {
   const [alerts, setAlerts] = useState(null);

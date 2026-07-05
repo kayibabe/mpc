@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Stethoscope, Heart, FileText, Pill, Activity, Plus, Save, Search, AlertTriangle, ShieldAlert, FlaskConical, ArrowRight, CheckCircle, GitBranch, PenTool, ArrowRightLeft, Clock, Users, FileBadge, FileWarning, Zap, Scissors, Beaker } from "lucide-react";
+import { Stethoscope, Heart, FileText, Pill, Plus, Save, AlertTriangle, ShieldAlert, FlaskConical, ArrowRight, CheckCircle, GitBranch, PenTool, ArrowRightLeft, Clock, FileBadge, FileWarning, Zap, Scissors, Beaker } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { toast } from "@/components/ui/use-toast";
+import { queueLabel } from "@/lib/labels";
 import TemplateSelector from "@/components/TemplateSelector";
 import VitalSignsChart from "@/components/VitalSignsChart";
 import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
@@ -49,6 +52,14 @@ export default function Clinical() {
   const [signingDoc, setSigningDoc] = useState(null); // { document_type, document_id }
   const [savingSignature, setSavingSignature] = useState(false);
   const [lastSavedDocId, setLastSavedDocId] = useState(null);
+
+  // Consultation overwrite confirmation
+  const [consultConfirmOpen, setConsultConfirmOpen] = useState(false);
+
+  // Drug safety / prescription alerts
+  const [drugSafetyError, setDrugSafetyError] = useState(null); // hard-stop string
+  const [drugSafetyConfirm, setDrugSafetyConfirm] = useState(null); // { title, message, onConfirm }
+  const [labDuplicateConfirm, setLabDuplicateConfirm] = useState(null); // { count, onConfirm }
 
   useEffect(() => {
     async function load() {
@@ -132,13 +143,18 @@ export default function Clinical() {
 
   const saveConsultation = async () => {
     if (!selectedVisit) return;
-    
+
     // Enforce single active consultation per visit
     const existingDrafts = consultations.filter(c => c.is_draft === true || c.status === "in_progress");
     if (existingDrafts.length > 0) {
-      const proceed = confirm(`⚠️ There is already an active consultation for this visit.\n\nCreating a new consultation will leave the previous one incomplete.\n\nProceed?`);
-      if (!proceed) return;
+      setConsultConfirmOpen(true);
+      return;
     }
+    await doSaveConsultation();
+  };
+
+  const doSaveConsultation = async () => {
+    if (!selectedVisit) return;
 
     const consultation = await base44.entities.Consultation.create({
       visit_id: selectedVisit.id, patient_id: selectedVisit.patient_id,
@@ -212,7 +228,7 @@ export default function Clinical() {
       setSelectedVisit(v);
     } catch (e) {
       console.error(e);
-      alert("Workflow transition failed: " + (e.response?.data?.error || e.message));
+      toast({ title: "Workflow transition failed", description: e.response?.data?.error || e.message, variant: "destructive" });
     } finally {
       setTransitioning(false);
     }
@@ -230,7 +246,12 @@ export default function Clinical() {
         const tests = (l.tests || "").toLowerCase();
         return tests.includes("malaria") || tests.includes("rdt") || tests.includes("microscopy") || tests.includes("mps") || tests.includes("blood slide");
       });
-      const positiveLab = malariaLabOrders.find(l => l.status === "completed" || l.status === "verified");
+      // Same positive-result predicate as the save-time gate below (audit N11):
+      // a completed-but-negative test must NOT satisfy the malaria protocol.
+      const positiveLab = malariaLabOrders.find(l =>
+        (l.status === "completed" || l.status === "verified") &&
+        (l.result?.toLowerCase()?.includes("positive") || l.result_value?.includes("+") || l.result?.toLowerCase()?.includes("+"))
+      );
 
       if (!positiveLab) {
         warnings.push({
@@ -263,65 +284,9 @@ export default function Clinical() {
     setCdsWarnings(warnings);
   };
 
-  // CDS-aware prescription save
-  const savePrescription = async () => {
-  if (!selectedVisit) return;
-  const prescribedDrugs = prescForm.items.map(i => i.drug_name?.toLowerCase() || "");
-  const actDrugs = ["artemether", "lumefantrine", "artesunate", "coartem", "al", "quinine", "artemether-lumefantrine"];
-  const isPrescribingAct = prescribedDrugs.some(d => actDrugs.some(act => d.includes(act)));
-
-  // ── Drug Safety Check (Check allergies first) ──
-  try {
-    // Check patient allergies
-    const allergies = await base44.entities.PatientAllergy.filter({ patient_id: selectedVisit.patient_id }, "", 50);
-    const allergyNames = allergies.map(a => a.allergen?.toLowerCase() || "");
-    const allergyConflicts = prescForm.items.filter(item => {
-      const drugName = item.drug_name?.toLowerCase() || "";
-      return allergyNames.some(a => drugName.includes(a) || a.includes(drugName.split(" ")[0]));
-    });
-    if (allergyConflicts.length > 0) {
-      alert(`⚠️ ALLERGY ALERT\n\nPatient has known allergies to:\n${allergies.map(a => `• ${a.allergen}`).join("\n")}\n\nCannot prescribe: ${allergyConflicts.map(a => a.drug_name).join(", ")}`);
-      return;
-    }
-
-    const { data: safety } = await base44.functions.invoke("checkDrugSafety", {
-      patient_id: selectedVisit.patient_id,
-      drugs: prescForm.items.map(i => ({ drug_name: i.drug_name, generic_name: i.drug_name, category: "" })),
-    });
-    if (!safety.safe) {
-      const criticalWarnings = safety.warnings.filter(w => w.severity === "contraindicated");
-      if (criticalWarnings.length > 0) {
-        alert(`⚠️ CANNOT PROCEED — CONTRAINDICATED COMBINATIONS\n\nThese drug combinations violate safety protocols and CANNOT be prescribed:\n\n${criticalWarnings.map(w => w.message).join("\n\n")}\n\nPlease adjust your prescription.`);
-        return; // Hard stop - do not proceed
-      }
-      const majorWarnings = safety.warnings.filter(w => w.severity === "major");
-      if (majorWarnings.length > 0) {
-        const proceed = confirm(`⚠️ DRUG SAFETY — MAJOR INTERACTIONS\n\n${majorWarnings.map(w => w.message).join("\n\n")}\n\nPrescribe anyway with caution?`);
-        if (!proceed) return;
-      }
-    }
-  } catch (_) { /* proceed if safety check fails */ }
-
-    if (isPrescribingAct) {
-      const [diags, labs] = await Promise.all([
-        base44.entities.Diagnosis.filter({ visit_id: selectedVisit.id }, "-created_date", 20),
-        base44.entities.LabOrder.filter({ patient_id: selectedVisit.patient_id }, "-created_date", 30),
-      ]);
-      const allDiagnoses = diags.map(d => d.diagnosis_name?.toLowerCase() || "");
-      const hasMalariaDiagnosis = allDiagnoses.some(d => d.includes("malaria"));
-      if (hasMalariaDiagnosis) {
-        const malariaLabOrders = labs.filter(l => {
-          const tests = (l.tests || "").toLowerCase();
-          return tests.includes("malaria") || tests.includes("rdt") || tests.includes("microscopy") || tests.includes("mps") || tests.includes("blood slide");
-        });
-        const positiveLab = malariaLabOrders.find(l => l.status === "completed" || l.status === "verified");
-        if (!positiveLab) {
-          alert("⚠️ MoH Clinical Decision Support\n\nCannot prescribe antimalarials without a positive malaria test (RDT/Microscopy).\n\nPlease order a Malaria test from the Lab module first.\n\nThis follows the Malawi Test-Treat-Track protocol.");
-          return;
-        }
-      }
-    }
-
+  // Actual prescription save — called after all safety checks pass
+  const doSavePrescriptionItems = async () => {
+    if (!selectedVisit) return;
     const presc = await base44.entities.Prescription.create({
       visit_id: selectedVisit.id, patient_id: selectedVisit.patient_id,
       status: "pending", prescription_date: new Date().toISOString(),
@@ -334,8 +299,81 @@ export default function Clinical() {
     setPrescForm({ items: [{ drug_name: "", dosage: "", frequency: "", duration: "", route: "", quantity: "", instructions: "" }] });
     const p = await base44.entities.Prescription.filter({ visit_id: selectedVisit.id }, "-created_date", 10);
     setPrescriptions(p);
-    // Trigger signature capture
     setSigningDoc({ document_type: "prescription", document_id: presc.id });
+  };
+
+  // CDS-aware prescription save — performs safety checks before delegating to doSavePrescriptionItems
+  const savePrescription = async () => {
+    if (!selectedVisit) return;
+    setDrugSafetyError(null);
+
+    // ── Drug Safety Check ──
+    try {
+      const allergies = await base44.entities.PatientAllergy.filter({ patient_id: selectedVisit.patient_id }, "", 50);
+      const allergyNames = allergies.map(a => a.allergen?.toLowerCase() || "");
+      const allergyConflicts = prescForm.items.filter(item => {
+        const drugName = item.drug_name?.toLowerCase() || "";
+        return allergyNames.some(a => drugName.includes(a) || a.includes(drugName.split(" ")[0]));
+      });
+      if (allergyConflicts.length > 0) {
+        setDrugSafetyError(
+          `ALLERGY ALERT — Patient has known allergies to: ${allergies.map(a => a.allergen).join(", ")}. Cannot prescribe: ${allergyConflicts.map(a => a.drug_name).join(", ")}.`
+        );
+        return;
+      }
+
+      const { data: safety } = await base44.functions.invoke("checkDrugSafety", {
+        patient_id: selectedVisit.patient_id,
+        drugs: prescForm.items.map(i => ({ drug_name: i.drug_name, generic_name: i.drug_name, category: "" })),
+      });
+      if (!safety.safe) {
+        const criticalWarnings = safety.warnings.filter(w => w.severity === "contraindicated");
+        if (criticalWarnings.length > 0) {
+          setDrugSafetyError(`CONTRAINDICATED — ${criticalWarnings.map(w => w.message).join(" | ")} — Please adjust your prescription.`);
+          return;
+        }
+        const majorWarnings = safety.warnings.filter(w => w.severity === "major");
+        if (majorWarnings.length > 0) {
+          setDrugSafetyConfirm({
+            title: "Major Drug Interactions Detected",
+            message: majorWarnings.map(w => w.message).join("\n\n"),
+            onConfirm: doSavePrescriptionItems,
+          });
+          return;
+        }
+      }
+    } catch (e) {
+      console.error("Drug safety check failed:", e);
+      setDrugSafetyConfirm({
+        title: "Drug Safety Check Unavailable",
+        message: "The drug safety service is unavailable. Prescribing without safety verification is not recommended. Proceed only if clinically justified.",
+        onConfirm: doSavePrescriptionItems,
+      });
+      return;
+    }
+
+    // ── Malaria CDS gate ──
+    const [diags, labs] = await Promise.all([
+      base44.entities.Diagnosis.filter({ visit_id: selectedVisit.id }, "-created_date", 20),
+      base44.entities.LabOrder.filter({ patient_id: selectedVisit.patient_id }, "-created_date", 30),
+    ]);
+    const hasMalariaDiagnosis = diags.some(d => d.diagnosis_name?.toLowerCase().includes("malaria"));
+    if (hasMalariaDiagnosis) {
+      const malariaLabOrders = labs.filter(l => {
+        const tests = (l.tests || "").toLowerCase();
+        return tests.includes("malaria") || tests.includes("rdt") || tests.includes("microscopy") || tests.includes("mps") || tests.includes("blood slide");
+      });
+      const positiveLab = malariaLabOrders.find(l =>
+        (l.status === "completed" || l.status === "verified") &&
+        (l.result?.toLowerCase()?.includes("positive") || l.result_value?.includes("+") || l.result?.toLowerCase()?.includes("+"))
+      );
+      if (!positiveLab) {
+        setDrugSafetyError("MoH Protocol (Malawi Test-Treat-Track): Cannot prescribe antimalarials without a positive malaria test (RDT or Microscopy). Please order the lab test first.");
+        return;
+      }
+    }
+
+    await doSavePrescriptionItems();
   };
 
   const addPrescItem = () => setPrescForm({ items: [...prescForm.items, { drug_name: "", dosage: "", frequency: "", duration: "", route: "", quantity: "", instructions: "" }] });
@@ -407,7 +445,7 @@ export default function Clinical() {
                     {priority === "emergency" && <span className="text-[9px] font-bold text-triage-emergency bg-triage-emergency/10 px-1 rounded flex-shrink-0">EMRG</span>}
                     {priority === "urgent" && <span className="text-[9px] font-bold text-triage-urgent bg-triage-urgent/10 px-1 rounded flex-shrink-0">URG</span>}
                   </div>
-                  <p className="text-xs text-muted-foreground capitalize">{v.visit_type} · {v.queue_status?.replace(/_/g, " ")}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{v.visit_type} · {queueLabel(v.queue_status)}</p>
                 </button>
               );
             })}
@@ -542,31 +580,32 @@ export default function Clinical() {
                         <button
                           onClick={async () => {
                             if (!selectedVisit) return;
-                            try {
-                              // Check for existing pending orders for same diagnoses
-                              const existingOrders = labOrders.filter(lo => lo.status === "pending" || lo.status === "ordered");
-                              const diagnosisNames = diagnoses.map(d => d.diagnosis_name);
-                              const duplicates = existingOrders.filter(lo => {
-                                const loTests = (lo.tests || "").toLowerCase();
-                                return diagnosisNames.some(dn => loTests.includes(dn.toLowerCase()));
-                              });
-                              
-                              if (duplicates.length > 0) {
-                                const proceed = confirm(`⚠️ ${duplicates.length} pending lab order(s) already exist for these diagnoses.\n\nCreate additional orders anyway?`);
-                                if (!proceed) return;
-                              }
+                            const existingOrders = labOrders.filter(lo => lo.status === "pending" || lo.status === "ordered");
+                            const diagnosisNames = diagnoses.map(d => d.diagnosis_name);
+                            const duplicates = existingOrders.filter(lo => {
+                              const loTests = (lo.tests || "").toLowerCase();
+                              return diagnosisNames.some(dn => loTests.includes(dn.toLowerCase()));
+                            });
 
-                              const { data } = await base44.functions.invoke("autoGenerateLabOrders", {
-                                visit_id: selectedVisit.id,
-                                patient_id: selectedVisit.patient_id,
-                                diagnoses: diagnosisNames,
-                              });
-                              alert(`✅ ${data.orders_created} lab order(s) generated.\n\n${data.orders.map(o => `• ${o.diagnosis}: ${o.tests.join(", ")}`).join("\n")}`);
-                              // Refresh lab orders
-                              const lList = await base44.entities.LabOrder.filter({ patient_id: selectedVisit.patient_id }, "-created_date", 30);
-                              setLabOrders(lList);
-                            } catch (e) {
-                              alert("Lab order generation failed: " + (e.response?.data?.error || e.message));
+                            const doGenerate = async () => {
+                              try {
+                                const { data } = await base44.functions.invoke("autoGenerateLabOrders", {
+                                  visit_id: selectedVisit.id,
+                                  patient_id: selectedVisit.patient_id,
+                                  diagnoses: diagnosisNames,
+                                });
+                                toast({ title: `${data.orders_created} lab order(s) generated`, description: data.orders?.map(o => `${o.diagnosis}: ${o.tests?.join(", ")}`).join(" · ") });
+                                const lList = await base44.entities.LabOrder.filter({ patient_id: selectedVisit.patient_id }, "-created_date", 30);
+                                setLabOrders(lList);
+                              } catch (e) {
+                                toast({ title: "Lab order generation failed", description: e.response?.data?.error || e.message, variant: "destructive" });
+                              }
+                            };
+
+                            if (duplicates.length > 0) {
+                              setLabDuplicateConfirm({ count: duplicates.length, onConfirm: doGenerate });
+                            } else {
+                              doGenerate();
                             }
                           }}
                           className="inline-flex items-center gap-1 px-2.5 py-1 bg-chart-4/10 text-chart-4 rounded-md text-xs font-medium hover:bg-chart-4/20"
@@ -690,15 +729,15 @@ export default function Clinical() {
                         </p>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                           <div>
-                            <label className="block text-[10px] text-muted-foreground mb-1">Diagnosis Name</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1">Diagnosis Name</label>
                             <input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" value={diagnosisForm.diagnosis_name} onChange={e => setDiagnosisForm({...diagnosisForm, diagnosis_name: e.target.value})} placeholder="e.g. Malaria" />
                           </div>
                           <div>
-                            <label className="block text-[10px] text-muted-foreground mb-1">ICD-10 Code</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1">ICD-10 Code</label>
                             <input className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" value={diagnosisForm.icd10_code} onChange={e => setDiagnosisForm({...diagnosisForm, icd10_code: e.target.value})} placeholder="e.g. B54" />
                           </div>
                           <div>
-                            <label className="block text-[10px] text-muted-foreground mb-1">Type</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1">Type</label>
                             <select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" value={diagnosisForm.type} onChange={e => setDiagnosisForm({...diagnosisForm, type: e.target.value})}>
                               <option value="primary">Primary</option><option value="secondary">Secondary</option><option value="differential">Differential</option>
                             </select>
@@ -713,11 +752,11 @@ export default function Clinical() {
                         </h4>
                         <div className="space-y-2.5">
                           <div>
-                            <label className="block text-[10px] font-medium text-muted-foreground mb-1">Chief Complaint</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1.5">Chief Complaint <span className="text-clinical-critical">*</span></label>
                             <textarea className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" rows={2} value={consultForm.chief_complaint} onChange={e => setConsultForm({...consultForm, chief_complaint: e.target.value})} placeholder="Patient's main concern in their own words..." />
                           </div>
                           <div>
-                            <label className="block text-[10px] font-medium text-muted-foreground mb-1">History of Present Illness</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1.5">History of Present Illness</label>
                             <textarea className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" rows={3} value={consultForm.history_present_illness} onChange={e => setConsultForm({...consultForm, history_present_illness: e.target.value})} placeholder="Onset, duration, severity, aggravating/relieving factors..." />
                           </div>
                         </div>
@@ -729,7 +768,7 @@ export default function Clinical() {
                           <span className="w-5 h-5 rounded-full bg-chart-3/10 text-chart-3 flex items-center justify-center text-[10px] font-bold">O</span> Objective
                         </h4>
                         <div>
-                          <label className="block text-[10px] font-medium text-muted-foreground mb-1">Physical Examination</label>
+                          <label className="block text-xs font-medium text-muted-foreground mb-1.5">Physical Examination</label>
                           <textarea className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" rows={3} value={consultForm.physical_examination} onChange={e => setConsultForm({...consultForm, physical_examination: e.target.value})} placeholder="General appearance, vitals, system-specific findings, lab results..." />
                         </div>
                       </div>
@@ -740,7 +779,7 @@ export default function Clinical() {
                           <span className="w-5 h-5 rounded-full bg-chart-2/10 text-chart-2 flex items-center justify-center text-[10px] font-bold">A</span> Assessment
                         </h4>
                         <div>
-                          <label className="block text-[10px] font-medium text-muted-foreground mb-1">Clinical Assessment & Differential</label>
+                          <label className="block text-xs font-medium text-muted-foreground mb-1.5">Clinical Assessment & Differential</label>
                           <textarea className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" rows={2} value={consultForm.assessment} onChange={e => setConsultForm({...consultForm, assessment: e.target.value})} placeholder="Summary, differential diagnoses, clinical reasoning..." />
                         </div>
                       </div>
@@ -752,11 +791,11 @@ export default function Clinical() {
                         </h4>
                         <div className="space-y-2.5">
                           <div>
-                            <label className="block text-[10px] font-medium text-muted-foreground mb-1">Treatment Plan</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1.5">Treatment Plan <span className="text-clinical-critical">*</span></label>
                             <textarea className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" rows={2} value={consultForm.plan} onChange={e => setConsultForm({...consultForm, plan: e.target.value})} placeholder="Medications, investigations, referrals, follow-up..." />
                           </div>
                           <div>
-                            <label className="block text-[10px] font-medium text-muted-foreground mb-1">Additional Notes</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-1.5">Additional Notes</label>
                             <textarea className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" rows={3} value={consultForm.clinical_notes} onChange={e => setConsultForm({...consultForm, clinical_notes: e.target.value})} placeholder="Patient education, counselling, special instructions..." />
                           </div>
                         </div>
@@ -790,6 +829,13 @@ export default function Clinical() {
                         </div>
                       ))}
                     </div>
+                    {drugSafetyError && (
+                      <div className="mt-3 p-3 rounded-lg bg-destructive/10 border border-destructive/30 flex items-start gap-2">
+                        <ShieldAlert className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-destructive flex-1">{drugSafetyError}</p>
+                        <button onClick={() => setDrugSafetyError(null)} className="text-destructive/60 hover:text-destructive text-lg leading-none flex-shrink-0">×</button>
+                      </div>
+                    )}
                     <div className="flex gap-3 mt-3">
                       <button onClick={addPrescItem} className="px-3 py-1.5 border border-border rounded-lg text-sm hover:bg-muted"><Plus className="w-3 h-3 inline mr-1" /> Add Drug</button>
                       <button onClick={savePrescription} className="px-4 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90"><Save className="w-3 h-3 inline mr-1" /> Save Prescription</button>
@@ -1042,6 +1088,77 @@ export default function Clinical() {
           )}
         </div>
       </div>
+
+      {/* Consultation overwrite confirmation */}
+      <AlertDialog open={consultConfirmOpen} onOpenChange={setConsultConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+              Active Consultation Exists
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              There is already an active consultation for this visit. Creating a new one will mark the previous as complete. Do you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => { setConsultConfirmOpen(false); doSaveConsultation(); }}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Drug safety — warn-and-proceed */}
+      <AlertDialog open={!!drugSafetyConfirm} onOpenChange={(open) => { if (!open) setDrugSafetyConfirm(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-amber-500" />
+              {drugSafetyConfirm?.title}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="whitespace-pre-wrap">
+              {drugSafetyConfirm?.message}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel Prescription</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => { const fn = drugSafetyConfirm?.onConfirm; setDrugSafetyConfirm(null); fn?.(); }}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              Prescribe with Caution
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Lab duplicate orders confirmation */}
+      <AlertDialog open={!!labDuplicateConfirm} onOpenChange={(open) => { if (!open) setLabDuplicateConfirm(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+              Duplicate Lab Orders
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {labDuplicateConfirm?.count} pending lab order(s) already exist for these diagnoses. Create additional orders anyway?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => { const fn = labDuplicateConfirm?.onConfirm; setLabDuplicateConfirm(null); fn?.(); }}
+            >
+              Create Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

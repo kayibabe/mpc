@@ -37,5 +37,34 @@
   },
   "required": [
     "name"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "read": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "doctor" } },
+        { "user_condition": { "role": "clinician" } },
+        { "user_condition": { "role": "nurse" } },
+        { "user_condition": { "role": "midwife" } },
+        { "user_condition": { "role": "receptionist" } },
+        { "user_condition": { "role": "surgical_lead" } },
+        { "user_condition": { "role": "cashier" } }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "delete": {
+      "$or": [
+        { "user_condition": { "role": "admin" } }
+      ]
+    }
+  }
 }

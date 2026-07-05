@@ -47,4 +47,6 @@ async def log_action(
         ))
         await db.flush()
     except Exception as e:  # never let auditing break the real operation
+        import sys
         log.warning("Audit log failed for %s/%s: %s", action, entity_type, e)
+        print(f"⚠️ AUDIT LOG FAILURE: {action}/{entity_type}: {e}", file=sys.stderr)

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from app.models.encounter import EncounterType, EncounterStatus, TriageCategory
 
@@ -8,27 +8,29 @@ class EncounterCreate(BaseModel):
     encounter_type: EncounterType = EncounterType.opd
     attending_doctor_id: str | None = None
     chief_complaint: str | None = None
-    department: str | None = None
+    # NOTE: no `department` field — the Encounter model has no such column;
+    # including it made Encounter(**model_dump()) raise TypeError on every create.
 
 
 class EncounterUpdate(BaseModel):
     attending_doctor_id: str | None = None
     status: EncounterStatus | None = None
     chief_complaint: str | None = None
-    department: str | None = None
 
 
 class TriageCreate(BaseModel):
+    # Physiological ranges match VitalSignsCreate (app/schemas/nursing.py) so
+    # triage and ward charting enforce the same bounds (audit H13).
     triage_category: TriageCategory
-    bp_systolic: int | None = None
-    bp_diastolic: int | None = None
-    pulse: int | None = None
-    temperature: float | None = None
-    spo2: int | None = None
-    weight: float | None = None
-    height: float | None = None
-    respiratory_rate: int | None = None
-    pain_score: int | None = None
+    bp_systolic: int | None = Field(None, ge=40, le=300)
+    bp_diastolic: int | None = Field(None, ge=20, le=200)
+    pulse: int | None = Field(None, ge=20, le=250)
+    temperature: float | None = Field(None, ge=30.0, le=45.0)
+    spo2: int | None = Field(None, ge=0, le=100)
+    weight: float | None = Field(None, gt=0, le=500)
+    height: float | None = Field(None, gt=0, le=250)
+    respiratory_rate: int | None = Field(None, ge=5, le=60)
+    pain_score: int | None = Field(None, ge=0, le=10)
     notes: str | None = None
 
 

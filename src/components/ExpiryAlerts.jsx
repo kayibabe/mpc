@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
-import { AlertTriangle, Clock, FlaskConical, Pill, CalendarX, X, RefreshCw } from "lucide-react";
+import { AlertTriangle, FlaskConical, Pill, X, RefreshCw } from "lucide-react";
 
 export default function ExpiryAlerts({ department }) {
   const [data, setData] = useState(null);

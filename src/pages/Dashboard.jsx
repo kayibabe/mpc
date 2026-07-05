@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Users, Calendar, FlaskConical, BedDouble, Pill, Receipt, TrendingUp, Clock, Activity, RefreshCw, Bell, Send, Loader2, GitBranch, Megaphone, ArrowRight, AlertTriangle, FileDown, CheckSquare, Square, X, FileText, ChevronDown, ChevronUp, RefreshCcw, Download } from "lucide-react";
-import PatientJourneyTimeline from "@/components/PatientJourneyTimeline";
+import { Users, Calendar, FlaskConical, BedDouble, Pill, Receipt, TrendingUp, Clock, Activity, RefreshCw, Bell, Send, Loader2, GitBranch, Megaphone, ArrowRight, AlertTriangle, FileDown, CheckSquare, Square, X, ChevronDown, ChevronUp, RefreshCcw, Download } from "lucide-react";
 import InventoryAlerts from "@/components/InventoryAlerts";
 import LivePulse from "@/components/LivePulse";
 import DoctorDashboard from "@/components/DoctorDashboard";
@@ -20,6 +19,7 @@ import WardOccupancyChart from "@/components/WardOccupancyChart";
 import DepartmentHeatmap from "@/components/DepartmentHeatmap";
 import BedOccupancyAlert from "@/components/BedOccupancyAlert";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { queueLabel, visitLabel, priorityLabel } from "@/lib/labels";
 import DailyIntakeSummary from "@/components/AdminDashboardWidgets/DailyIntakeSummary";
 import RevenueBreakdown from "@/components/AdminDashboardWidgets/RevenueBreakdown";
 import WardOccupancySummary from "@/components/AdminDashboardWidgets/WardOccupancySummary";
@@ -74,6 +74,7 @@ function StatCard({ label, value, sub, color, to, metaKey }) {
 export default function Dashboard() {
   const [currentUser, setCurrentUser] = useState(null);
   const [stats, setStats] = useState({ patients: 0, appointments: 0, labOrders: 0, occupiedBeds: 0, drugs: 0, revenue: 0 });
+  const [patientMap, setPatientMap] = useState({});
   const [recentVisits, setRecentVisits] = useState([]);
   const [dailyReport, setDailyReport] = useState(null);
   const [reportLoading, setReportLoading] = useState(false);
@@ -217,6 +218,9 @@ export default function Dashboard() {
           drugs: drugs.filter(d => d.quantity_in_stock <= d.reorder_level).length,
           revenue: rev,
         });
+        const pm = {};
+        patients.forEach(p => { pm[p.id] = `${p.first_name} ${p.last_name}`; });
+        setPatientMap(pm);
         setRecentVisits(visits);
       } catch (e) {
         console.error(e);
@@ -254,7 +258,6 @@ export default function Dashboard() {
     setNotifications(notifications.filter(n => n.id !== id));
   };
 
-  const visitTypeLabel = (t) => ({ outpatient: "OPD", inpatient: "IPD", emergency: "ER", anc: "ANC", postnatal: "PNC", procedure: "PROC" }[t] || t);
 
   const STAGE_LABELS = {
     RECEPTION: "Reception", TRIAGE: "Triage", CONSULTATION: "Doctor",
@@ -358,6 +361,9 @@ export default function Dashboard() {
 
       {(isAdmin || isNurse || isPharmacist) && <InventoryAlerts />}
       {(isAdmin || isNurse) && <BedOccupancyAlert threshold={80} />}
+
+      {/* Live HIMS — prominent banner, top of dashboard */}
+      {(isAdmin || isDoctor || isNurse || isCashier) && <LivePulse prominent />}
 
       {/* Role-Specific KPI Cards */}
        <div>
@@ -575,7 +581,7 @@ export default function Dashboard() {
                       {waiting.slice(0, 3).map((v, i) => (
                         <div key={v.id} className="flex items-center gap-2 text-[10px] text-muted-foreground py-0.5">
                           <span className="w-4 h-4 rounded-full bg-muted/60 flex items-center justify-center text-[9px] font-bold text-muted-foreground flex-shrink-0">{i + 1}</span>
-                          <span className="truncate">{v.patient_id?.slice(0, 8)}</span>
+                          <span className="truncate">{patientMap[v.patient_id] || v.patient_id?.slice(0, 8) || "Unknown"}</span>
                         </div>
                       ))}
                     </div>
@@ -622,9 +628,9 @@ export default function Dashboard() {
                     {recentVisits.map((v) => (
                       <tr key={v.id} className="hover:bg-muted/20 transition-colors">
                         <td className="py-2 px-3 text-muted-foreground">{new Date(v.created_date).toLocaleDateString("en-GB")}</td>
-                        <td className="py-2 px-3 font-mono text-[10px] text-foreground">{v.patient_id?.slice(0, 8)}</td>
+                        <td className="py-2 px-3 text-foreground">{patientMap[v.patient_id] || <span className="font-mono text-[10px]">{v.patient_id?.slice(0, 8)}</span>}</td>
                         <td className="py-2 px-3">
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary">{visitTypeLabel(v.visit_type)}</span>
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary">{visitLabel(v.visit_type)}</span>
                         </td>
                         <td className="py-2 px-3">
                           {v.priority === "emergency" ? (
@@ -632,7 +638,7 @@ export default function Dashboard() {
                           ) : v.priority === "urgent" ? (
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-triage-urgent/10 text-triage-urgent border border-triage-urgent/20">! Urgent</span>
                           ) : (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium text-muted-foreground">Routine</span>
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium text-muted-foreground">{priorityLabel(v.priority)}</span>
                           )}
                         </td>
                         <td className="py-2 px-3 capitalize text-muted-foreground">{v.payment_type}</td>
@@ -642,7 +648,7 @@ export default function Dashboard() {
                             v.queue_status === "waiting" ? "bg-triage-urgent/10 text-triage-urgent" :
                             v.queue_status === "in_consultation" ? "bg-primary/10 text-primary" :
                             "bg-muted text-muted-foreground"
-                          }`}>{v.queue_status.replace(/_/g, " ")}</span>
+                          }`}>{queueLabel(v.queue_status)}</span>
                         </td>
                       </tr>
                     ))}
@@ -753,9 +759,9 @@ export default function Dashboard() {
                       { label: "Pharmacy Inventory", path: "/pharmacy" },
                       { label: "Process Payment", path: "/billing" },
                     ].map(action => (
-                      <a key={action.label} href={action.path} className="block px-3 py-2 rounded border border-border hover:bg-muted/50 hover:border-primary/30 transition-all text-xs font-medium">
+                      <Link key={action.label} to={action.path} className="block px-3 py-2 rounded border border-border hover:bg-muted/50 hover:border-primary/30 transition-all text-xs font-medium">
                         {action.label}
-                      </a>
+                      </Link>
                     ))}
                   </div>
                 </div>
@@ -788,8 +794,6 @@ export default function Dashboard() {
 
                 <RoleBasedReportDownload userRole={userRole} />
 
-                {/* Live HIMS Pulse — Admin, Doctors, Nurses, Cashiers only */}
-                {(isAdmin || isDoctor || isNurse || isCashier) && <LivePulse />}
 
                 {/* Notifications Panel */}
                 {notifications.length > 0 && (

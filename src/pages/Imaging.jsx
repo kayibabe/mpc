@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Scan, Plus, Save, FileImage, Upload } from "lucide-react";
+import { Scan, Plus, Save, FileImage } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 
 export default function Imaging() {

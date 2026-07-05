@@ -38,5 +38,35 @@
     "drug_b",
     "severity",
     "description"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "pharmacist" } }
+      ]
+    },
+    "read": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "doctor" } },
+        { "user_condition": { "role": "clinician" } },
+        { "user_condition": { "role": "nurse" } },
+        { "user_condition": { "role": "midwife" } },
+        { "user_condition": { "role": "pharmacist" } },
+        { "user_condition": { "role": "surgical_lead" } }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "pharmacist" } }
+      ]
+    },
+    "delete": {
+      "$or": [
+        { "user_condition": { "role": "admin" } }
+      ]
+    }
+  }
 }

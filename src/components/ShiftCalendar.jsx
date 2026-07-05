@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { ChevronLeft, ChevronRight, Users, Clock, ClipboardCheck } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, ClipboardCheck } from "lucide-react";
 
 const SHIFT_TYPES = {
   reception: { label: "Reception", color: "bg-primary", text: "text-primary" },

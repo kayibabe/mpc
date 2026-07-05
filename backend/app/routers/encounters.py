@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime, timezone, date
 from app.core.database import get_db
-from app.core.auth import get_current_user, require_role
+from app.core.auth import require_role
 from app.models.user import User, UserRole
 from app.models.encounter import Encounter, EncounterStatus, EncounterType, TriageAssessment, ClinicalNote
 from app.schemas.encounter import (
@@ -15,8 +15,8 @@ import uuid
 router = APIRouter(prefix="/encounters", tags=["encounters"])
 
 _CLINICAL = (
-    UserRole.doctor, UserRole.nurse, UserRole.receptionist,
-    UserRole.lab_tech, UserRole.pharmacist, UserRole.admin,
+    UserRole.doctor, UserRole.clinician, UserRole.nurse, UserRole.receptionist,
+    UserRole.lab_technician, UserRole.pharmacist, UserRole.admin,
 )
 
 
@@ -28,9 +28,9 @@ async def list_encounters(
     doctor_id: str | None = Query(None),
     encounter_type: EncounterType | None = Query(None),
     skip: int = 0,
-    limit: int = 50,
+    limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.clinician, UserRole.nurse, UserRole.receptionist, UserRole.admin)),
 ):
     stmt = select(Encounter)
     if patient_id:
@@ -42,7 +42,7 @@ async def list_encounters(
     if encounter_type:
         stmt = stmt.where(Encounter.encounter_type == encounter_type)
     if encounter_date:
-        from sqlalchemy import func, cast
+        from sqlalchemy import cast
         from sqlalchemy.dialects.postgresql import DATE
         stmt = stmt.where(cast(Encounter.encounter_date, DATE) == encounter_date)
     stmt = stmt.order_by(Encounter.encounter_date.desc()).offset(skip).limit(limit)
@@ -55,7 +55,7 @@ async def create_encounter(
     body: EncounterCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.receptionist, UserRole.doctor, UserRole.nurse, UserRole.admin,
+        UserRole.receptionist, UserRole.doctor, UserRole.clinician, UserRole.nurse, UserRole.admin,
     )),
 ):
     encounter = Encounter(
@@ -74,7 +74,7 @@ async def create_encounter(
 async def get_encounter(
     encounter_id: str,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.clinician, UserRole.nurse, UserRole.admin)),
 ):
     result = await db.execute(select(Encounter).where(Encounter.id == encounter_id))
     encounter = result.scalar_one_or_none()
@@ -104,7 +104,7 @@ async def update_encounter(
     encounter_id: str,
     body: EncounterUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.admin)),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.clinician, UserRole.nurse, UserRole.admin)),
 ):
     result = await db.execute(select(Encounter).where(Encounter.id == encounter_id))
     encounter = result.scalar_one_or_none()
@@ -157,7 +157,7 @@ async def upsert_triage(
 async def list_notes(
     encounter_id: str,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.clinician, UserRole.nurse, UserRole.admin)),
 ):
     result = await db.execute(
         select(ClinicalNote).where(ClinicalNote.encounter_id == encounter_id)
@@ -171,7 +171,7 @@ async def add_note(
     encounter_id: str,
     body: ClinicalNoteCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.doctor, UserRole.admin)),
+    current_user: User = Depends(require_role(UserRole.doctor, UserRole.clinician, UserRole.admin)),
 ):
     enc_result = await db.execute(select(Encounter).where(Encounter.id == encounter_id))
     if not enc_result.scalar_one_or_none():

@@ -5,6 +5,9 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!['admin', 'cashier'].includes(user.role)) {
+      return Response.json({ error: 'Forbidden: admin or cashier role required' }, { status: 403 });
+    }
 
     // Fetch all pending claims
     const pendingClaims = await base44.entities.InsuranceClaim.filter(

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
-import { BedDouble, Plus, Save, Building, DoorOpen, FileText, Loader2, LayoutDashboard, ArrowRightLeft, AlertCircle } from "lucide-react";
+import { BedDouble, Plus, Save, Building, DoorOpen, FileText, Loader2, ArrowRightLeft, AlertCircle } from "lucide-react";
 import WardTransferModal from "@/components/WardTransferModal";
 import IncidentReportForm from "@/components/IncidentReportForm";
 import DepartmentDashboard from "@/components/DepartmentDashboard";
@@ -121,7 +122,7 @@ export default function Inpatient() {
     // Validate admission exists
     const admission = admissions.find(a => a.id === admissionId);
     if (!admission) {
-      alert("Admission record not found. Please refresh and try again.");
+      toast({ title: "Admission not found", description: "The admission record could not be found. Please refresh and try again.", variant: "destructive" });
       return;
     }
     setSummaryLoading(true);
@@ -132,7 +133,7 @@ export default function Inpatient() {
       }
       setDischargeSummary(data);
     } catch (e) {
-      alert("Failed to generate summary: " + (e.response?.data?.error || e.message));
+      toast({ title: "Summary generation failed", description: e.response?.data?.error || e.message, variant: "destructive" });
       setSummaryLoading(false);
     } finally {
       setSummaryLoading(false);
@@ -352,7 +353,7 @@ export default function Inpatient() {
           visitId={selectedAdmission.visit_id}
           onComplete={async () => {
             setShowIncidentForm(false);
-            alert("Incident report submitted for review");
+            toast({ title: "Incident report submitted", description: "The report has been queued for review." });
           }}
           onCancel={() => setShowIncidentForm(false)}
         />

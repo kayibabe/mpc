@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { ArrowRight, ArrowLeft, ChevronDown, Users, ClipboardCheck, AlertCircle, Clock, Activity, Pill } from "lucide-react";
+import { ArrowRight, Users, ClipboardCheck, AlertCircle, Clock, Activity, Pill } from "lucide-react";
 
 const DEPT_CONFIGS = {
   reception: {

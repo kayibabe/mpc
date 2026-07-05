@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
-import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, ScatterChart, Scatter
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer
 } from "recharts";
 import { TrendingUp, Download, Loader2, RefreshCw, Award, Users, Clock } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
@@ -59,7 +59,7 @@ export default function DoctorPerformanceReport() {
         return [...prev, { ...data, doctor_id: doctorId, doctor_name: doctor?.full_name }];
       });
     } catch (e) {
-      alert("Analysis failed: " + e.message);
+      toast({ title: "Analysis failed", description: e.message, variant: "destructive" });
     } finally {
       setAnalyzing(false);
     }

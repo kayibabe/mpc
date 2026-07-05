@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime, timezone
 from app.core.database import get_db
-from app.core.auth import get_current_user, require_role
+from app.core.auth import require_role
 from app.models.user import User, UserRole
 from app.models.lab import LabTest, LabOrder, LabOrderItem, LabOrderStatus, ResultFlag
 from app.schemas.lab import (
@@ -19,7 +19,7 @@ router = APIRouter(prefix="/lab", tags=["lab"])
 async def list_tests(
     category: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.lab_technician, UserRole.admin)),
 ):
     stmt = select(LabTest).where(LabTest.is_active == True)
     if category:
@@ -33,7 +33,7 @@ async def list_tests(
 async def create_test(
     body: LabTestCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.lab_tech, UserRole.admin)),
+    _: User = Depends(require_role(UserRole.lab_technician, UserRole.admin)),
 ):
     existing = await db.execute(select(LabTest).where(LabTest.code == body.code))
     if existing.scalar_one_or_none():
@@ -48,9 +48,9 @@ async def create_test(
 @router.get("/results")
 async def list_results(
     patient_id: str | None = Query(None),
-    limit: int = 100,
+    limit: int = Query(100, ge=1, le=500),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.lab_technician, UserRole.admin)),
 ):
     """Flattened view of resulted lab order items (one row per result).
     Joins the test catalogue so each row carries a human-readable test name."""
@@ -90,9 +90,9 @@ async def list_orders(
     encounter_id: str | None = Query(None),
     status: LabOrderStatus | None = Query(None),
     skip: int = 0,
-    limit: int = 50,
+    limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.lab_technician, UserRole.admin)),
 ):
     stmt = select(LabOrder)
     if patient_id:
@@ -110,7 +110,7 @@ async def list_orders(
 async def create_order(
     body: LabOrderCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.doctor, UserRole.admin)),
+    current_user: User = Depends(require_role(UserRole.doctor, UserRole.clinician, UserRole.admin)),
 ):
     order = LabOrder(
         id=str(uuid.uuid4()),
@@ -142,7 +142,7 @@ async def create_order(
 async def get_order(
     order_id: str,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.doctor, UserRole.nurse, UserRole.lab_technician, UserRole.admin)),
 ):
     result = await db.execute(select(LabOrder).where(LabOrder.id == order_id))
     if not result.scalar_one_or_none():
@@ -155,7 +155,7 @@ async def update_order_status(
     order_id: str,
     body: LabStatusUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.lab_tech, UserRole.admin)),
+    _: User = Depends(require_role(UserRole.lab_technician, UserRole.admin)),
 ):
     result = await db.execute(select(LabOrder).where(LabOrder.id == order_id))
     order = result.scalar_one_or_none()
@@ -173,7 +173,7 @@ async def record_result(
     item_id: str,
     body: LabResultCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.lab_tech, UserRole.admin)),
+    _: User = Depends(require_role(UserRole.lab_technician, UserRole.admin)),
 ):
     result = await db.execute(
         select(LabOrderItem).where(

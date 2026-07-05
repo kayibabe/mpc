@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Receipt, Plus, Save, CreditCard, DollarSign, FileText, Search, Download, ArrowRight, CheckCircle, GitBranch, ClipboardList, Shield, UserCircle, ChevronDown, ChevronUp, Users, Trash2 } from "lucide-react";
+import { Receipt, Plus, Save, CreditCard, DollarSign, FileText, Search, Download, CheckCircle, GitBranch, Shield, UserCircle, ChevronDown, ChevronUp, Users, Trash2 } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 import ShiftManagement from "@/components/ShiftManagement";
 import RevenueReport from "@/components/RevenueReport";
 import ReconciliationPanel from "@/components/ReconciliationPanel";
@@ -78,7 +79,7 @@ export default function Billing() {
     const validItems = items.filter(i => i.service_name && i.unit_price);
     if (validItems.length === 0) return;
     if (splitBilling && !splitsValid()) {
-      alert("Split billing percentages must add up to 100%.");
+      toast({ title: "Invalid split billing", description: "Percentages must add up to 100%.", variant: "destructive" });
       return;
     }
 
@@ -213,7 +214,7 @@ export default function Billing() {
       const jList = await base44.entities.PatientJourney.filter({ current_stage: "BILLING", status: "active" }, "-created_date", 30);
       setBillingJourneys(jList);
     } catch (e) {
-      alert("Workflow transition failed: " + (e.response?.data?.error || e.message));
+      toast({ title: "Workflow transition failed", description: e.response?.data?.error || e.message, variant: "destructive" });
     } finally { setTransitioning(false); }
   };
 
@@ -555,10 +556,10 @@ export default function Billing() {
                     if (patientId) {
                       try {
                         await base44.functions.invoke('generateDischargeSummary', { patient_id: patientId });
-                        alert("Discharge summary generated successfully!");
+                        toast({ title: "Discharge summary generated" });
                         setShowDischargeSummary(false);
                       } catch (err) {
-                        alert("Error: " + (err.response?.data?.error || err.message));
+                        toast({ title: "Error generating discharge summary", description: err.response?.data?.error || err.message, variant: "destructive" });
                       }
                     }
                   }}

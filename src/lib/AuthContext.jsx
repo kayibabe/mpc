@@ -110,6 +110,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Now check if the user is authenticated
       setIsLoadingAuth(true);
+      setAuthError(null);
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setIsAuthenticated(true);
@@ -145,8 +146,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const navigateToLogin = () => {
-    // Use the SDK's redirectToLogin method
-    base44.auth.redirectToLogin(window.location.href);
+    // Pass only the pathname (not full href) so navigate(next) in CustomLogin
+    // stays a React Router client-side navigation rather than a page reload.
+    base44.auth.redirectToLogin(window.location.pathname + window.location.search);
   };
 
   return (

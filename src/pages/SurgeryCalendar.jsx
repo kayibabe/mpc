@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { ChevronLeft, ChevronRight, Plus, Clock, MapPin, User, AlertCircle, X, Search, CheckCircle, Calendar, ClipboardCheck, Activity, Package } from "lucide-react";
 import moment from "moment";
@@ -118,7 +119,7 @@ export default function SurgeryCalendar() {
     if (!form.patient_id || !form.procedure_name || !form.start_time || !form.end_time) return;
     const c = checkConflict(form.theater_room, form.start_time, form.end_time);
     if (c) {
-      alert(`⚠️ Scheduling Conflict\n\n${getPatientName(c.patient_id)} — ${c.procedure_name} is already booked in ${THEATER_LABELS[c.theater_room]} at ${c.start_time}–${c.end_time}.`);
+      toast({ title: "Scheduling conflict", description: `${getPatientName(c.patient_id)} — ${c.procedure_name} is already booked in ${THEATER_LABELS[c.theater_room]} at ${c.start_time}–${c.end_time}.`, variant: "destructive" });
       return;
     }
     setSaving(true);
@@ -143,7 +144,7 @@ export default function SurgeryCalendar() {
       await loadData();
     } catch (e) {
       console.error(e);
-      alert("Failed to save booking: " + (e.message || "Unknown error"));
+      toast({ title: "Booking failed", description: e.message || "Unknown error", variant: "destructive" });
     } finally {
       setSaving(false);
     }

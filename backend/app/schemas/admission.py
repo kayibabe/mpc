@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from __future__ import annotations
+from pydantic import BaseModel, field_validator
 from datetime import datetime
 from app.models.admission import WardType, BedStatus, AdmissionStatus, DischargeType
 
@@ -11,25 +12,41 @@ class WardCreate(BaseModel):
     charge_per_day: float | None = None
     notes: str | None = None
 
+    @field_validator("total_beds")
+    @classmethod
+    def validate_total_beds(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("total_beds cannot be negative")
+        return v
+
+    @field_validator("charge_per_day")
+    @classmethod
+    def validate_charge(cls, v: float | None) -> float | None:
+        if v is not None and v < 0:
+            raise ValueError("charge_per_day cannot be negative")
+        return v
+
 
 class BedCreate(BaseModel):
     bed_number: str
     bed_type: str = "general"
 
 
+# NOTE (audit N6): fields the model doesn't store (notes, follow_up_date) were
+# removed — accepting them silently discarded clinician input.
 class AdmissionCreate(BaseModel):
     patient_id: str
     encounter_id: str
     ward_id: str
     bed_id: str
-    diagnosis: str | None = None
-    notes: str | None = None
 
 
 class DischargeCreate(BaseModel):
     discharge_type: DischargeType
     discharge_summary: str | None = None
-    follow_up_date: str | None = None
+    # Explicit acknowledgement that the patient is leaving with an unpaid
+    # balance (death, AMA, absconded, or management approval).
+    billing_override: bool = False
 
 
 class BedResponse(BaseModel):
@@ -76,3 +93,4 @@ class AdmissionResponse(AdmissionListResponse):
     discharge_summary: str | None
     created_at: datetime
     updated_at: datetime
+

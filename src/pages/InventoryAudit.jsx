@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { AlertTriangle, Package, RefreshCw, Save, Loader2, Search } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 
@@ -36,7 +36,7 @@ export default function InventoryAudit() {
   const auditItem = async (e) => {
     e.preventDefault();
     if (!selectedItem || !auditForm.physical_count) {
-      alert("Please enter physical count");
+      toast({ title: "Physical count required", description: "Enter the physical count before recording the audit.", variant: "destructive" });
       return;
     }
 
@@ -83,7 +83,7 @@ export default function InventoryAudit() {
       setSelectedItem(null);
       setAuditForm({ physical_count: "", notes: "" });
     } catch (e) {
-      alert("Audit failed: " + e.message);
+      toast({ title: "Audit failed", description: e.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
