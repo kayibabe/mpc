@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { CheckCircle, Circle, FileText, Loader2 } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 import PageHeader from "@/components/ui/PageHeader";
 
 const DISCHARGE_ITEMS = [
@@ -48,7 +49,7 @@ export default function DischargeChecklistFlow() {
   const initiateDischarge = async (e) => {
     e.preventDefault();
     if (!selectedAdmission) {
-      alert("Select admission");
+      toast({ title: "No admission selected", description: "Please select a patient admission first.", variant: "destructive" });
       return;
     }
 
@@ -79,9 +80,9 @@ export default function DischargeChecklistFlow() {
       setChecklist({});
       setNotes("");
       setShowForm(false);
-      alert("Patient discharged successfully");
+      toast({ title: "Patient discharged", description: "Discharge record created and bed freed." });
     } catch (e) {
-      alert("Discharge failed: " + e.message);
+      toast({ title: "Discharge failed", description: e.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }

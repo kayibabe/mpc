@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Users, Save, Loader2, X, Plus, AlertCircle } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 import PageHeader from "@/components/ui/PageHeader";
 
 const INTAKE_SECTIONS = ["demographics", "medical_history", "allergies", "medications", "review"];
@@ -57,7 +58,7 @@ export default function PatientIntake() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.first_name || !formData.last_name || !formData.date_of_birth) {
-      alert("Fill required fields");
+      toast({ title: "Required fields missing", description: "First name, last name and date of birth are required.", variant: "destructive" });
       return;
     }
 
@@ -103,11 +104,11 @@ export default function PatientIntake() {
         notes: `Intake: ${formData.chronic_conditions ? "Chronic conditions: " + formData.chronic_conditions : ""} ${formData.past_surgeries ? "Past surgeries: " + formData.past_surgeries : ""}`,
       });
 
-      alert(`Patient ${formData.first_name} ${formData.last_name} registered successfully`);
+      toast({ title: "Patient registered", description: `${formData.first_name} ${formData.last_name} has been registered and added to the queue.` });
       resetForm();
       setStep(0);
     } catch (e) {
-      alert("Registration failed: " + e.message);
+      toast({ title: "Registration failed", description: e.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
