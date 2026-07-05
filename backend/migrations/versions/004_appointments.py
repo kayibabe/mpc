@@ -34,37 +34,40 @@ def upgrade() -> None:
         END $$;
     """)
 
-    op.create_table(
-        "appointments",
-        sa.Column("id", sa.String(36), primary_key=True),
-        sa.Column("patient_id", sa.String(36),
-                  sa.ForeignKey("patients.id"), nullable=False, index=True),
-        sa.Column("provider_id", sa.String(36),
-                  sa.ForeignKey("users.id"), nullable=True, index=True),
-        sa.Column("scheduled_datetime", sa.DateTime(timezone=True),
-                  nullable=False, index=True),
-        sa.Column("duration_minutes", sa.Integer, nullable=False, server_default="15"),
-        sa.Column("appointment_type",
-                  sa.Enum("opd", "follow_up", "procedure", "antenatal",
-                          "immunization", "other", name="appointmenttype", create_type=False),
-                  nullable=False, server_default="opd"),
-        sa.Column("visit_reason", sa.Text, nullable=True),
-        sa.Column("status",
-                  sa.Enum("scheduled", "confirmed", "arrived", "in_progress",
-                          "completed", "cancelled", "no_show",
-                          name="appointmentstatus", create_type=False),
-                  nullable=False, server_default="scheduled"),
-        sa.Column("cancellation_reason", sa.Text, nullable=True),
-        sa.Column("encounter_id", sa.String(36),
-                  sa.ForeignKey("encounters.id"), nullable=True, index=True),
-        sa.Column("notes", sa.Text, nullable=True),
-        sa.Column("created_by_id", sa.String(36),
-                  sa.ForeignKey("users.id"), nullable=False, index=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False,
-                  server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False,
-                  server_default=sa.func.now()),
-    )
+    conn = op.get_bind()
+    existing = sa.inspect(conn).get_table_names()
+    if "appointments" not in existing:
+        op.create_table(
+            "appointments",
+            sa.Column("id", sa.String(36), primary_key=True),
+            sa.Column("patient_id", sa.String(36),
+                      sa.ForeignKey("patients.id"), nullable=False, index=True),
+            sa.Column("provider_id", sa.String(36),
+                      sa.ForeignKey("users.id"), nullable=True, index=True),
+            sa.Column("scheduled_datetime", sa.DateTime(timezone=True),
+                      nullable=False, index=True),
+            sa.Column("duration_minutes", sa.Integer, nullable=False, server_default="15"),
+            sa.Column("appointment_type",
+                      sa.Enum("opd", "follow_up", "procedure", "antenatal",
+                              "immunization", "other", name="appointmenttype", create_type=False),
+                      nullable=False, server_default="opd"),
+            sa.Column("visit_reason", sa.Text, nullable=True),
+            sa.Column("status",
+                      sa.Enum("scheduled", "confirmed", "arrived", "in_progress",
+                              "completed", "cancelled", "no_show",
+                              name="appointmentstatus", create_type=False),
+                      nullable=False, server_default="scheduled"),
+            sa.Column("cancellation_reason", sa.Text, nullable=True),
+            sa.Column("encounter_id", sa.String(36),
+                      sa.ForeignKey("encounters.id"), nullable=True, index=True),
+            sa.Column("notes", sa.Text, nullable=True),
+            sa.Column("created_by_id", sa.String(36),
+                      sa.ForeignKey("users.id"), nullable=False, index=True),
+            sa.Column("created_at", sa.DateTime(timezone=True), nullable=False,
+                      server_default=sa.func.now()),
+            sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False,
+                      server_default=sa.func.now()),
+        )
 
 
 def downgrade() -> None:
