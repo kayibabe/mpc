@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { base44, isBase44Env } from "@/api/base44Client";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,10 +11,8 @@ import GoogleIcon from "@/components/GoogleIcon";
 export default function Login() {
   const navigate = useNavigate();
 
-  // In self-hosted (custom backend) mode, staff log in with an Employee ID,
-  // not an email — send them to the dedicated CustomLogin page.
   useEffect(() => {
-    if (!isBase44Env) navigate("/custom-login", { replace: true });
+    navigate("/custom-login", { replace: true });
   }, [navigate]);
 
   const [email, setEmail] = useState("");

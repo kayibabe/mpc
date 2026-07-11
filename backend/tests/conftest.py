@@ -1,4 +1,4 @@
-import asyncio
+﻿import asyncio
 import pytest
 from typing import AsyncGenerator
 
@@ -110,7 +110,7 @@ async def create_test_user(db: AsyncSession):
             department=department,
             password_hash=hash_password(password),
             is_active=is_active,
-            email=f"{employee_id.lower()}@test.zcpc.mw",
+            email=f"{employee_id.lower()}@test.mpc.mw",
         )
         db.add(user)
         await db.commit()

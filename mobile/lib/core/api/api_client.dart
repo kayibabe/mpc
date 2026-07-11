@@ -2,7 +2,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiClient {
-  // Set at build time: flutter run --dart-define=API_BASE_URL=https://api.zcpc.mw/api/v1
+  // Set at build time: flutter run --dart-define=API_BASE_URL=https://api.mpc.mw/api/v1
   static const String _baseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'http://10.0.2.2:8000/api/v1', // Android emulator localhost

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Loader2, Copy, Check, AlertCircle, Download, Eye, EyeOff } from 'lucide-react';
 
@@ -99,7 +99,7 @@ export default function TotpSetup() {
   };
 
   const downloadBackupCodes = () => {
-    const content = `TOTP Backup Codes - Zomba City HIMS\nGenerated: ${new Date().toLocaleString('en-GB')}\n\n${backupCodes.join('\n')}\n\nStore these codes in a secure location. Each code can only be used once.`;
+    const content = `TOTP Backup Codes - MPC HIMS\nGenerated: ${new Date().toLocaleString('en-GB')}\n\n${backupCodes.join('\n')}\n\nStore these codes in a secure location. Each code can only be used once.`;
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

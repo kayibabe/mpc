@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import LivePulse from "@/components/LivePulse";
@@ -198,8 +198,8 @@ export default function Layout() {
         </div>
         {!collapsed && (
           <div className="overflow-hidden">
-            <h1 className="text-xs font-bold text-sidebar-foreground leading-tight tracking-tight">ZCPC · HIMS</h1>
-            <p className="text-[9px] font-semibold text-sidebar-foreground/45 tracking-widest uppercase">Zomba, Malawi</p>
+            <h1 className="text-xs font-bold text-sidebar-foreground leading-tight tracking-tight">MPC · HIMS</h1>
+            <p className="text-[9px] font-semibold text-sidebar-foreground/45 tracking-widest uppercase">Mtowera, Malawi</p>
           </div>
         )}
       </div>
@@ -386,7 +386,7 @@ export default function Layout() {
               </div>
               <div>
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Zomba City Private Clinic · HIMS
+                  Mtowera Private Clinic · HIMS
                 </p>
               </div>
             </div>

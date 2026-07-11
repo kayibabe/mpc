@@ -1,19 +1,19 @@
-app = 'zcpc'
+﻿app = 'mpc'
 primary_region = 'jnb'
 
 [build]
   [build.args]
-    VITE_BACKEND_URL = 'https://zcpc-api.fly.dev/api/v1'
+    VITE_BACKEND_URL = 'https://mpc-api.fly.dev/api/v1'
 
 [http_service]
   internal_port = 8080
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
-  min_machines_running = 1
+  min_machines_running = 0
   processes = ['app']
 
 [[vm]]
-  memory = '512mb'
+  memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1

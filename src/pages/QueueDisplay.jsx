@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Clock, Users, ChevronRight } from "lucide-react";
 
@@ -73,7 +73,7 @@ export default function QueueDisplay() {
       <div className="bg-gray-900 border-b border-gray-800 px-8 py-5">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-heading font-bold tracking-tight">Zomba City Private Clinic</h1>
+            <h1 className="text-3xl font-heading font-bold tracking-tight">Mtowera Private Clinic</h1>
             <p className="text-gray-400 text-sm mt-1">Patient Queue Display</p>
           </div>
           <div className="text-right">
@@ -140,7 +140,7 @@ export default function QueueDisplay() {
         {/* Footer */}
         <div className="mt-12 pt-6 border-t border-gray-800 text-center text-gray-600 text-xs">
           <p>Please wait for your name to be called. For inquiries, visit the reception desk.</p>
-          <p className="mt-1">This display refreshes automatically · Zomba City Private Clinic HIMS</p>
+          <p className="mt-1">This display refreshes automatically · Mtowera Private Clinic HIMS</p>
         </div>
       </div>
     </div>

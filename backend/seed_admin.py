@@ -1,4 +1,4 @@
-"""
+﻿"""
 One-time script to create the initial admin user.
 Run from backend/ directory:  python seed_admin.py
 
@@ -43,7 +43,7 @@ async def seed():
             admin = User(
                 employee_id="ADMIN001",
                 full_name="System Administrator",
-                email="admin@zcpc.mw",
+                email="admin@mpc.mw",
                 password_hash=hash_password(password),
                 role=UserRole.admin,
                 department="Administration",

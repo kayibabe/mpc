@@ -32,16 +32,16 @@ final _router = GoRouter(
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ZCPCApp());
+  runApp(const MPCApp());
 }
 
-class ZCPCApp extends StatelessWidget {
-  const ZCPCApp({super.key});
+class MPCApp extends StatelessWidget {
+  const MPCApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'ZCPC',
+      title: 'MPC',
       routerConfig: _router,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(

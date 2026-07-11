@@ -1,4 +1,4 @@
-/**
+﻿/**
  * FastAPI adapter that implements the same interface as @base44/sdk.
  * Lets all 48 Base44 pages work against the self-hosted FastAPI backend
  * without any changes to the page components.
@@ -8,8 +8,8 @@
 
 // ─── TOKEN MANAGEMENT ────────────────────────────────────────────────────────
 
-const TOKEN_KEY = 'zcpc_access_token';
-const REFRESH_KEY = 'zcpc_refresh_token';
+const TOKEN_KEY = 'mpc_access_token';
+const REFRESH_KEY = 'mpc_refresh_token';
 
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -300,7 +300,7 @@ export const ENTITY_DEFS = {
       ...u,
       created_date: u.created_at,
       name: u.full_name,
-      email: u.email || `${u.employee_id}@zcpc.local`,
+      email: u.email || `${u.employee_id}@mpc.local`,
     }),
     toAPI: (d) => d,
     filterMap: {},
@@ -646,7 +646,7 @@ async function invokeFunction(name, params, http) {
   // Return `data: null` (not a truthy placeholder): components consistently
   // guard with `if (!data) return null` or fall back via `result || emptyData`,
   // both of which only work when the stub result is falsy.
-  console.info(`[zcpc-custom] function stub: ${name}`, params);
+  console.info(`[mpc-custom] function stub: ${name}`, params);
   return { data: null };
 }
 
@@ -665,7 +665,7 @@ function makeAuth(http) {
       const data = await http.get('/auth/me');
       return {
         ...data,
-        email: data.email || `${data.employee_id}@zcpc.local`,
+        email: data.email || `${data.employee_id}@mpc.local`,
       };
     },
 
@@ -683,7 +683,7 @@ function makeAuth(http) {
 
     // Social/provider login is not supported in custom backend mode
     loginWithProvider(_provider, redirectUrl) {
-      console.warn('[zcpc-custom] Social login unavailable in custom backend mode');
+      console.warn('[mpc-custom] Social login unavailable in custom backend mode');
       const next = encodeURIComponent(redirectUrl || '/');
       window.location.href = `/custom-login?next=${next}`;
     },
@@ -721,7 +721,7 @@ export function createCustomClient(baseURL) {
           if (STUB_ENTITIES.has(entityName)) return stubHandler();
           const def = ENTITY_DEFS[entityName];
           if (!def) {
-            console.warn(`[zcpc-custom] Unknown entity: ${entityName} — returning empty stub`);
+            console.warn(`[mpc-custom] Unknown entity: ${entityName} — returning empty stub`);
             return stubHandler();
           }
           return liveHandler(def, http);

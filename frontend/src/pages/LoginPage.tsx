@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/auth'
 
@@ -24,8 +24,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-blue-50">
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-blue-800">ZCPC</h1>
-          <p className="text-sm text-gray-500 mt-1">Zomba City Private Clinic</p>
+          <h1 className="text-2xl font-bold text-blue-800">MPC</h1>
+          <p className="text-sm text-gray-500 mt-1">Mtowera Private Clinic</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

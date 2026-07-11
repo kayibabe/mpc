@@ -1,4 +1,4 @@
-import pytest
+﻿import pytest
 from httpx import AsyncClient
 from app.models.user import UserRole
 
@@ -24,7 +24,7 @@ async def test_create_patient(client: AsyncClient, auth_token, receptionist_user
     data = response.json()
     assert data["first_name"] == "John"
     assert "mrn" in data
-    assert data["mrn"].startswith("ZCPC")
+    assert data["mrn"].startswith("MPC")
 
 
 @pytest.mark.asyncio

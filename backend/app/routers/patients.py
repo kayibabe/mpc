@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+﻿from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_, text
 from datetime import datetime, timezone, date
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/patients", tags=["patients"])
 
 
 def _generate_mrn(seq_val: int) -> str:
-    return f"ZCPC{str(seq_val).zfill(6)}"
+    return f"MPC{str(seq_val).zfill(6)}"
 
 
 async def _next_mrn_seq(db: AsyncSession) -> int:

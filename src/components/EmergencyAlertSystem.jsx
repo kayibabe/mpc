@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { base44, isBase44Env } from "@/api/base44Client";
+import { base44 } from "@/api/base44Client";
 import { getToken } from "@/api/customClient";
 import { AlertTriangle, X, Clock } from "lucide-react";
 
@@ -14,7 +14,7 @@ export default function EmergencyAlertSystem() {
   }, []);
 
   const loadAlerts = async () => {
-    if (!isBase44Env && !getToken()) return; // skip polling when not logged in
+    if (!getToken()) return; // skip polling when not logged in
     try {
       // Get critical visits
       const visits = await base44.entities.Visit.filter(

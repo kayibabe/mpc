@@ -1,14 +1,14 @@
-# ZCPC — Zomba City Private Clinic
+# MPC — Mtowera Private Clinic
 
-Full-stack clinic management system for a Malawi client. This repo holds **four apps plus the Base44 platform source**:
+Full-stack clinic management system for a Malawi client. This repo holds **four apps**:
 
 | Path | What it is |
 |------|------------|
-| `src/` (repo root app) | **Primary React frontend** (Vite, JS, 48 pages). Built as a Base44 app; runs dual-mode — against the Base44 platform when `?app_id=`/`VITE_BASE44_APP_ID` is present, otherwise against the FastAPI backend through the adapter `src/api/customClient.js`. |
+| `src/` (repo root app) | **Primary React frontend** (Vite, JS, 48 pages). Connects to the FastAPI backend via `src/api/customClient.js`. Entry point: `src/api/base44Client.js` (legacy name kept to avoid updating 100+ imports). |
 | `backend/` | **FastAPI + SQLAlchemy (async) backend — the system of record.** Routers in `backend/app/routers/`, models in `backend/app/models/`, Alembic chain `001` → `008` in `backend/migrations/versions/`. |
-| `frontend/` | Secondary React 19 + TypeScript Vite app (TanStack Query, axios, Dexie offline store). Early scaffold — stock Vite README, not the deployed frontend. |
-| `mobile/` | Flutter mobile app. |
-| `base44/` | Base44 platform source: 66 entity schemas + 102 cloud functions. **Read `base44/CLAUDE.md` before touching anything here — the flat layout is platform-managed.** |
+| `frontend/` | Secondary React 19 + TypeScript Vite app (TanStack Query, axios, Dexie offline store). Early scaffold — not the deployed frontend. |
+| `mobile/` | Flutter mobile app (`mpc_mobile`). |
+| `base44/` | **Reference only** — original platform-sourced entity schemas and cloud function specs. 45 of ~67 entities here have no backend model yet; use this as the implementation backlog. Do not delete. |
 | `deploy/`, `.github/workflows/` | Fly.io deploy assets and CI (backend Docker + frontend build). |
 | `docs/` + root `.docx`/`.pdf` | Client-facing system documentation and audit reports. |
 
@@ -28,10 +28,10 @@ Tests use in-memory SQLite via `backend/tests/conftest.py` (httpx ASGITransport,
 
 ## Deployment
 
-Three Fly.io apps: `zcpc` (frontend) → `zcpc-api` (backend) → `zcpc-db` (Postgres). **Deploy backend before frontend.** Migrations run via `release_command` (`db_migrate.py`). Do not deploy or push without explicit instruction from the operator.
+Three Fly.io apps: `mpc` (frontend) → `mpc-api` (backend) → `mpc-db` (Postgres). **Deploy backend before frontend.** Migrations run via `release_command` (`db_migrate.py`). Do not deploy or push without explicit instruction from the operator.
 
 ## Sources of truth (do not re-derive)
 
 - `AUDIT_WORKING_DOCUMENT.md` — all 66 security/audit findings with status and evidence.
 - `PATIENT_FLOW_AUDIT.md` — patient-flow coverage: pass 1 (19 scenarios) + handover pass 2 (10 end-to-end scenarios, one test each in `backend/tests/test_patient_flows.py`).
-- `base44/CLAUDE.md` — Base44 entity/function index and which entities are live vs stubbed in self-hosted mode.
+- `base44/` — implementation backlog: entity schemas and cloud function specs not yet in the FastAPI backend.

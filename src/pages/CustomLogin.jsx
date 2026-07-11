@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
@@ -89,7 +89,7 @@ export default function CustomLogin() {
               <HospitalIcon />
             </div>
             <h1 className="text-[19px] font-bold text-white leading-snug tracking-tight">
-              Zomba City Private Clinic
+              Mtowera Private Clinic
             </h1>
             <p className="text-[13px] mt-1.5" style={{ color: "rgba(255,255,255,0.55)" }}>
               Staff Portal
@@ -219,7 +219,7 @@ export default function CustomLogin() {
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
           <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>
-            ZCPC Clinical Information System · Secured
+            MPC Clinical Information System · Secured
           </p>
         </div>
       </div>

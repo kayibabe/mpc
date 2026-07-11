@@ -1,4 +1,4 @@
-package mw.zcpc.zcpc_mobile
+﻿package mw.mpc.mpc_mobile
 
 import io.flutter.embedding.android.FlutterActivity
 

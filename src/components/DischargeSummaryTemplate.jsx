@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { FileText, Printer, Loader2, CheckCircle, RefreshCw, User, Stethoscope, Pill, Calendar, Activity, BookOpen, AlertCircle } from "lucide-react";
 
@@ -177,8 +177,8 @@ export default function DischargeSummaryTemplate({ patientId, visitId, patientNa
         .condition { display: inline-block; padding: 2px 10px; border-radius: 12px; background: #dcfce7; color: #166534; font-weight: bold; text-transform: capitalize; }
       </style></head><body>
       <div class="header">
-        <div class="logo">🏥 ZOMBA CITY PRIVATE CLINIC</div>
-        <div class="subtitle">P.O. Box — Zomba, Malawi &nbsp;|&nbsp; Discharge Summary</div>
+        <div class="logo">🏥 MTOWERA PRIVATE CLINIC</div>
+        <div class="subtitle">P.O. Box — Mtowera, Malawi &nbsp;|&nbsp; Discharge Summary</div>
         <div class="meta">
           <span><strong>Patient:</strong> ${patientName}</span>
           <span><strong>Discharge Date:</strong> ${form.discharge_date}</span>

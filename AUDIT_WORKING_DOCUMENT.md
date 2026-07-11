@@ -1,4 +1,4 @@
-# ZCPC HIMS — Audit Working Document
+﻿# MPC HIMS — Audit Working Document
 
 **Single source of truth for all audit findings, statuses, and remediation.**
 
@@ -6,7 +6,7 @@
 |---|---|
 | Date | 3 July 2026 |
 | Prepared by | Claude (independent code audit + reconciliation) |
-| Reconciled against | `ZCPC_Audit_Report.docx` (Chatly AI, 25 June 2026) |
+| Reconciled against | `MPC_Audit_Report.docx` (Chatly AI, 25 June 2026) |
 | Branch | `audit-fixes` |
 | Scope | Backend (FastAPI), Frontend (React), Base44 layer, Mobile (Flutter), Deployment (Fly.io/Docker/nginx), CI/CD, tests |
 
@@ -23,7 +23,7 @@
 
 The external report (25 June 2026) predates the two fix commits `67ad4c0` (26 June) and `6ade3dc` (29 June). Of its 52 findings, the majority of the critical tier is genuinely fixed in code — I verified each against the current source, not the commit messages. What remains open from the external report is concentrated in: backend clinical safety depth (C6), the Base44 platform layer (C10, C11, H14), transport security (C14), Redis/token infrastructure (H5, M12), rate-limiting coverage (H8), and test health (H1).
 
-My independent audit adds **14 new findings (N1–N14)**, the most serious being **N1: the nginx CSP added in the June fixes would block every browser API call to `https://zcpc-api.fly.dev` on the next frontend deploy** — a fix that would have caused an outage — and **N14: `POST /encounters` returns 500 on every call** (a phantom schema field), meaning new visits could not be registered through the FastAPI backend at all.
+My independent audit adds **14 new findings (N1–N14)**, the most serious being **N1: the nginx CSP added in the June fixes would block every browser API call to `https://mpc-api.fly.dev` on the next frontend deploy** — a fix that would have caused an outage — and **N14: `POST /encounters` returns 500 on every call** (a phantom schema field), meaning new visits could not be registered through the FastAPI backend at all.
 
 ### Counts at a glance (final)
 
@@ -83,11 +83,11 @@ Confirmed and quantified: **59+ `asServiceRole` occurrences across the 102 cloud
 
 ## C14. Database SSL blanket-disabled — **FIXED (this session)**
 **Was OPEN** (intentionally skipped in `6ade3dc` because the prod DB host was unconfirmed). [database.py:9](backend/app/core/database.py:9) disabled SSL for *any* `DATABASE_URL`.
-**Fix:** SSL is now disabled **only** when the host is on Fly's private network (`.flycast` / `.internal`); any other host gets `ssl="require"`. The production URL (`zcpc-db.flycast`) matches the private-network branch, so behaviour in the current deployment is unchanged — no outage risk — while any future external Postgres is encrypted by default.
+**Fix:** SSL is now disabled **only** when the host is on Fly's private network (`.flycast` / `.internal`); any other host gets `ssl="require"`. The production URL (`mpc-db.flycast`) matches the private-network branch, so behaviour in the current deployment is unchanged — no outage risk — while any future external Postgres is encrypted by default.
 
 ## N1 (NEW). CSP blocks the API origin — production-breaking on next deploy — **FIXED (this session)**
-**Severity: CRITICAL (availability).** The CSP added in `6ade3dc` sets `connect-src 'self' https://*.base44.app wss://*.base44.app` ([nginx-fly.conf:14](deploy/nginx-fly.conf:14)), but the frontend is built with `VITE_BACKEND_URL = 'https://zcpc-api.fly.dev/api/v1'` ([fly.toml:6](fly.toml:6), [base44Client.js:14](src/api/base44Client.js:14)). Browsers would refuse every API call the moment this nginx config ships — login itself would fail clinic-wide.
-**Fix:** added `https://zcpc-api.fly.dev` and `wss://zcpc-api.fly.dev` to `connect-src`. Longer-term the frontend should call the same-origin `/api/` proxy path instead of the absolute URL (Advisory §5).
+**Severity: CRITICAL (availability).** The CSP added in `6ade3dc` sets `connect-src 'self' https://*.base44.app wss://*.base44.app` ([nginx-fly.conf:14](deploy/nginx-fly.conf:14)), but the frontend is built with `VITE_BACKEND_URL = 'https://mpc-api.fly.dev/api/v1'` ([fly.toml:6](fly.toml:6), [base44Client.js:14](src/api/base44Client.js:14)). Browsers would refuse every API call the moment this nginx config ships — login itself would fail clinic-wide.
+**Fix:** added `https://mpc-api.fly.dev` and `wss://mpc-api.fly.dev` to `connect-src`. Longer-term the frontend should call the same-origin `/api/` proxy path instead of the absolute URL (Advisory §5).
 
 ---
 
@@ -114,7 +114,7 @@ Real, but decomposing 70KB clinical components on a live system is exactly the k
 [audit.py:49-52](backend/app/core/audit.py:49): failures log a warning *and* print to stderr.
 
 ## H7. JWT in localStorage — **DEFERRED (disputed severity in context)**
-True ([customClient.js:11-16](src/api/customClient.js:11)), but moving to httpOnly cookies means CSRF protection, cookie-domain work across `zcpc.fly.dev`/`zcpc-api.fly.dev`, and a rewrite of the mobile flow — a deliberate architecture change, not a patch. Mitigations now in place: 15-min access tokens, CSP (XSS hardening), CORS locked down. The mobile app already uses `flutter_secure_storage` (correct). Advisory §5.
+True ([customClient.js:11-16](src/api/customClient.js:11)), but moving to httpOnly cookies means CSRF protection, cookie-domain work across `mpc.fly.dev`/`mpc-api.fly.dev`, and a rewrite of the mobile flow — a deliberate architecture change, not a patch. Mitigations now in place: 15-min access tokens, CSP (XSS hardening), CORS locked down. The mobile app already uses `flutter_secure_storage` (correct). Advisory §5.
 
 ## H8. No rate limiting beyond login — **FIXED (this session)**
 **Was OPEN**: only `/auth/login` was limited ([auth.py:21](backend/app/routers/auth.py:21)).
@@ -281,7 +281,7 @@ Refresh tokens have never worked in production (N2): staff are silently re-logge
 The scaffold is architecturally sound (secure token storage, refresh interceptor — better token hygiene than the web app). Two things before investing further: (a) `/sync/pull` is admin-only, so the offline-sync feature can't work for clinical staff — decide the intended roles; (b) the web app's allergy gate now lives in the backend (C6), so mobile prescribing inherits it for free. That was the point of moving it server-side.
 
 ### §5. Web auth architecture (H7, deferred)
-JWTs in localStorage are XSS-stealable; mitigations are in place (15-min tokens, CSP, tight CORS), but the durable fix is httpOnly cookies + CSRF or a BFF pattern. Do it together with moving the frontend to the same-origin `/api/` proxy path (drop `VITE_BACKEND_URL` absolute URL) — that also lets you remove `zcpc-api.fly.dev` from the CSP and stop exposing the API publicly at all. This is a deliberate 2–3 day project; don't do it piecemeal.
+JWTs in localStorage are XSS-stealable; mitigations are in place (15-min tokens, CSP, tight CORS), but the durable fix is httpOnly cookies + CSRF or a BFF pattern. Do it together with moving the frontend to the same-origin `/api/` proxy path (drop `VITE_BACKEND_URL` absolute URL) — that also lets you remove `mpc-api.fly.dev` from the CSP and stop exposing the API publicly at all. This is a deliberate 2–3 day project; don't do it piecemeal.
 
 ### §6. Code quality debt (deferred: H2, M2, M3, M9, L2, L6)
 The 70KB clinical components work but resist safe change — decompose them opportunistically (when a feature touches them), not as a big-bang refactor. Client-side filtering (M2) will start to hurt at a few thousand patients; the backend pagination is already there, the pages just need to use it. Real-time beds (M3) and the stub pages (L6) are feature decisions, not defects.

@@ -46,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ZCPC'),
+        title: const Text('MPC'),
         actions: [
           IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
         ],

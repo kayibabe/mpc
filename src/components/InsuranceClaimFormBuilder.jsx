@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import LibertyClaimForm from "./ClaimForms/LibertyclaimForm";
 import MraClaimForm from "./ClaimForms/MraclaimForm";
@@ -9,7 +9,7 @@ import ResmaidClaimForm from "./ClaimForms/ResmaidclaimForm";
 import MedhealthClaimForm from "./ClaimForms/MedhealthclaimForm";
 import NabmasClaimForm from "./ClaimForms/NabmasclaimForm";
 import HorizonClaimForm from "./ClaimForms/HorizonclaimForm";
-import ZombacityClaimForm from "./ClaimForms/ZombacityClaimForm";
+import MtoweraClaimForm from "./ClaimForms/MtoweraClaimForm";
 import UnimedClaimForm from "./ClaimForms/UnimedclaimForm";
 import PreciousClaimForm from "./ClaimForms/PreciousclaimForm";
 
@@ -23,7 +23,7 @@ const SCHEMES = [
   { id: "medhealth", name: "Medhealth", icon: "💊" },
   { id: "nabmas", name: "National Bank of Malawi (NABMAS)", icon: "🏛️" },
   { id: "horizon", name: "Horizon Health", icon: "🌅" },
-  { id: "zombacity", name: "Zomba City Private Clinic", icon: "🏢" },
+  { id: "mtowera", name: "Mtowera Private Clinic", icon: "🏢" },
   { id: "unimed", name: "University of Malawi (UNIMED)", icon: "🎓" },
   { id: "precious", name: "Precious Medical International", icon: "💎" },
 ];
@@ -38,7 +38,7 @@ const FORM_COMPONENTS = {
   medhealth: MedhealthClaimForm,
   nabmas: NabmasClaimForm,
   horizon: HorizonClaimForm,
-  zombacity: ZombacityClaimForm,
+  mtowera: MtoweraClaimForm,
   unimed: UnimedClaimForm,
   precious: PreciousClaimForm,
 };

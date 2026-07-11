@@ -1,7 +1,7 @@
-# ZCPC Patient Flow Audit
+﻿# MPC Patient Flow Audit
 **Run date:** 2026-07-04  
 **Environment:** Local — FastAPI test client (httpx ASGITransport) against in-memory SQLite  
-**Backend:** `D:\WebApps\zcpc\backend` — FastAPI 0.x, SQLAlchemy async, Python 3.14  
+**Backend:** `D:\WebApps\mpc\backend` — FastAPI 0.x, SQLAlchemy async, Python 3.14  
 **Method:** Every scenario was driven through the real API (request → response verified); nothing was inferred from reading code alone. Scenarios marked UNTESTED were not exercised.
 
 ---
@@ -87,7 +87,7 @@ Register patient   Create encounter   Lab order           Create invoice
 ### S01 — Happy Path: New Patient OPD ✓ PASS
 
 **Steps executed:**
-1. `POST /api/v1/patients` → MRN `ZCPC000001` assigned (auto-sequence, unique)
+1. `POST /api/v1/patients` → MRN `MPC000001` assigned (auto-sequence, unique)
 2. `POST /api/v1/encounters` → encounter `type=opd`, `status=open`
 3. `POST /api/v1/encounters/{id}/triage` → vitals + `triage_category=urgent`
 4. `POST /api/v1/encounters/{id}/notes` → SOAP note + ICD-10 diagnosis JSON
@@ -105,7 +105,7 @@ Register patient   Create encounter   Lab order           Create invoice
 
 ### S02 — Returning Patient ✓ PASS
 
-Patient looked up by MRN via `GET /api/v1/patients?q=ZCPC000002`. Found immediately. Second encounter created without obstruction. Both encounters visible in `GET /api/v1/encounters?patient_id=…`. Full visit history is maintained correctly.
+Patient looked up by MRN via `GET /api/v1/patients?q=MPC000002`. Found immediately. Second encounter created without obstruction. Both encounters visible in `GET /api/v1/encounters?patient_id=…`. Full visit history is maintained correctly.
 
 ---
 
@@ -312,7 +312,7 @@ All 5 actionable defects were fixed in the same session. Remaining items are fea
 The following features were exercised and confirmed working by actual API calls in this audit:
 
 - **Patient registration** with full demographics, allergies, chronic conditions, insurance, and MDA consent fields
-- **MRN generation** via PostgreSQL sequence (SQLite fallback in tests): gap-free, prefixed `ZCPC000001`
+- **MRN generation** via PostgreSQL sequence (SQLite fallback in tests): gap-free, prefixed `MPC000001`
 - **Encounter lifecycle** (open → closed / referred) for OPD, IPD, and emergency types
 - **Triage assessment** with physiological range validation (BP, pulse, temperature, SpO2, weight)
 - **SOAP clinical notes** with ICD-10 diagnosis JSON

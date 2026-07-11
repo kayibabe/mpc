@@ -1,4 +1,4 @@
-"""End-to-end patient-flow smoke tests — one test per handover scenario.
+﻿"""End-to-end patient-flow smoke tests — one test per handover scenario.
 
 Each test drives the full request chain through the real API (no mocking):
 registration → clinical activity → billing, exactly as the production
@@ -646,7 +646,7 @@ async def test_s07_referral_flow(client, auth_token):
     assert feedback.status_code == 200, feedback.text
     assert feedback.json()["status"] == "accepted"
 
-    # Follow-up appointment back at ZCPC after the specialist visit
+    # Follow-up appointment back at MPC after the specialist visit
     follow_up = await client.post(
         "/api/v1/appointments",
         json={"patient_id": patient["id"], "provider_id": doc.id,

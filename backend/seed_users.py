@@ -1,4 +1,4 @@
-"""
+﻿"""
 Seed random staff users for every role.
 
 1. Adds any missing values to the Postgres `userrole` enum (so the new
@@ -27,18 +27,18 @@ from app.models.user import User, UserRole
 
 # employee_id, full_name, role, department, email
 SEED_USERS = [
-    ("USER001",  "Tadala Banda",        UserRole.user,          "General",          "tadala.banda@zcpc.mw"),
-    ("DOC001",   "Dr. Chimwemwe Phiri", UserRole.doctor,        "Outpatient",       "c.phiri@zcpc.mw"),
-    ("CLN001",   "Dr. Yamikani Gondwe", UserRole.clinician,     "Outpatient",       "y.gondwe@zcpc.mw"),
-    ("NUR001",   "Grace Mhango",        UserRole.nurse,         "Inpatient",        "g.mhango@zcpc.mw"),
-    ("MID001",   "Esther Nkhoma",       UserRole.midwife,       "Maternity",        "e.nkhoma@zcpc.mw"),
-    ("PHA001",   "Limbani Kachale",     UserRole.pharmacist,    "Pharmacy",         "l.kachale@zcpc.mw"),
-    ("LAB001",   "Mphatso Chirwa",      UserRole.lab_technician,"Laboratory",       "m.chirwa@zcpc.mw"),
-    ("RAD001",   "Thoko Mwale",         UserRole.radiographer,  "Imaging",          "t.mwale@zcpc.mw"),
-    ("CSH001",   "Patrick Zulu",        UserRole.cashier,       "Billing",          "p.zulu@zcpc.mw"),
-    ("REC001",   "Memory Kumwenda",     UserRole.receptionist,  "Reception",        "m.kumwenda@zcpc.mw"),
-    ("SRG001",   "Dr. Blessings Tembo", UserRole.surgical_lead, "Theatre",          "b.tembo@zcpc.mw"),
-    ("STO001",   "Daniel Kanyenda",     UserRole.store_manager, "Stores",           "d.kanyenda@zcpc.mw"),
+    ("USER001",  "Tadala Banda",        UserRole.user,          "General",          "tadala.banda@mpc.mw"),
+    ("DOC001",   "Dr. Chimwemwe Phiri", UserRole.doctor,        "Outpatient",       "c.phiri@mpc.mw"),
+    ("CLN001",   "Dr. Yamikani Gondwe", UserRole.clinician,     "Outpatient",       "y.gondwe@mpc.mw"),
+    ("NUR001",   "Grace Mhango",        UserRole.nurse,         "Inpatient",        "g.mhango@mpc.mw"),
+    ("MID001",   "Esther Nkhoma",       UserRole.midwife,       "Maternity",        "e.nkhoma@mpc.mw"),
+    ("PHA001",   "Limbani Kachale",     UserRole.pharmacist,    "Pharmacy",         "l.kachale@mpc.mw"),
+    ("LAB001",   "Mphatso Chirwa",      UserRole.lab_technician,"Laboratory",       "m.chirwa@mpc.mw"),
+    ("RAD001",   "Thoko Mwale",         UserRole.radiographer,  "Imaging",          "t.mwale@mpc.mw"),
+    ("CSH001",   "Patrick Zulu",        UserRole.cashier,       "Billing",          "p.zulu@mpc.mw"),
+    ("REC001",   "Memory Kumwenda",     UserRole.receptionist,  "Reception",        "m.kumwenda@mpc.mw"),
+    ("SRG001",   "Dr. Blessings Tembo", UserRole.surgical_lead, "Theatre",          "b.tembo@mpc.mw"),
+    ("STO001",   "Daniel Kanyenda",     UserRole.store_manager, "Stores",           "d.kanyenda@mpc.mw"),
 ]
 
 

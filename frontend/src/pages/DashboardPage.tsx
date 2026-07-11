@@ -1,4 +1,4 @@
-import { useAuthStore } from '../store/auth'
+﻿import { useAuthStore } from '../store/auth'
 import { Link } from 'react-router-dom'
 
 const moduleCards = [
@@ -20,7 +20,7 @@ export default function DashboardPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-800 mb-1">Good day, {user?.full_name?.split(' ')[0]}</h1>
-      <p className="text-gray-500 text-sm mb-8">Welcome to Zomba City Private Clinic system</p>
+      <p className="text-gray-500 text-sm mb-8">Welcome to Mtowera Private Clinic system</p>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {visible.map((m) => (
           <Link

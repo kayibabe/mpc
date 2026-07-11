@@ -1,39 +1,52 @@
-**Welcome to your Base44 project** 
+# Mtowera Private Clinic — HIMS
 
-**About**
+Full-stack Hospital Information Management System (HIMS) for Mtowera Private Clinic, Malawi.
 
-View and Edit  your app on [Base44.com](http://Base44.com) 
+## Apps in this repo
 
-This project contains everything you need to run your app locally.
+| Directory | Description |
+|-----------|-------------|
+| `src/` | Primary React frontend (Vite, JS). Connects to the FastAPI backend. |
+| `backend/` | FastAPI + SQLAlchemy async backend — system of record. |
+| `frontend/` | Secondary React 19 + TypeScript scaffold (early-stage). |
+| `mobile/` | Flutter mobile app (`mpc_mobile`). |
+| `deploy/` | Fly.io configs, nginx, and local startup scripts. |
 
-**Edit the code in your local development environment**
+## Local development
 
-Any change pushed to the repo will also be reflected in the Base44 Builder.
+**Prerequisites:** Node 20+, Python 3.11+, PostgreSQL 15+
 
-**Prerequisites:** 
+### Frontend
 
-1. Clone the repository using the project's Git URL 
-2. Navigate to the project directory
-3. Install dependencies: `npm install`
-4. Create an `.env.local` file and set the right environment variables
-
-```
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=your_backend_url
-
-e.g.
-VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6
-VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
+```bash
+npm install
+cp .env.example .env.local   # set VITE_BACKEND_URL if needed
+npm run dev                   # starts at http://localhost:5173
 ```
 
-Run the app: `npm run dev`
+### Backend
 
-**Publish your changes**
+```bash
+cd backend
+python -m venv .venv
+.venv\Scripts\pip install -r requirements.txt
+cp ../.env.example .env       # fill in DB_*, SECRET_KEY
+alembic upgrade head
+uvicorn app.main:app --reload  # starts at http://localhost:8000
+```
 
-Open [Base44.com](http://Base44.com) and click on Publish.
+### Tests
 
-**Docs & Support**
+```bash
+# Backend (from backend/):
+.venv\Scripts\python -m pytest tests -q
 
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
+# Frontend (from repo root):
+npm test
+```
 
-Support: [https://app.base44.com/support](https://app.base44.com/support)
+## Deployment
+
+Three Fly.io apps: `mpc` (frontend) → `mpc-api` (backend) → `mpc-db` (Postgres).
+
+Deploy backend before frontend. Migrations run automatically via `release_command`.

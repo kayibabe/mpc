@@ -1,4 +1,4 @@
-from typing import Optional
+﻿from typing import Optional
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     DATABASE_URL: Optional[str] = None
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
-    DB_NAME: str = "zcpc"
+    DB_NAME: str = "mpc"
     DB_USER: str = "postgres"
     DB_PASS: str = ""
 
@@ -29,14 +29,14 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
 
     # Clinic
-    CLINIC_NAME: str = "Zomba City Private Clinic"
+    CLINIC_NAME: str = "Mtowera Private Clinic"
     CLINIC_PHONE: str = ""
-    CLINIC_ADDRESS: str = "Zomba, Malawi"
+    CLINIC_ADDRESS: str = "Mtowera, Malawi"
 
     # Africa's Talking
     AT_API_KEY: str = ""
     AT_USERNAME: str = "sandbox"
-    AT_SENDER_ID: str = "ZCPC"
+    AT_SENDER_ID: str = "MPC"
 
     # Seed scripts — required when running seed_admin.py / seed_users.py
     ADMIN_PASSWORD: str = ""

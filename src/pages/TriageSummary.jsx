@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import {
@@ -161,7 +161,7 @@ export default function TriageSummary() {
         .stat-value { font-size: 24px; font-weight: bold; }
         .stat-label { font-size: 10px; color: #64748b; }
       </style></head><body>
-      <h1>🏥 Triage Summary — Zomba City Private Clinic</h1>
+      <h1>🏥 Triage Summary — Mtowera Private Clinic</h1>
       <p>Generated: ${new Date().toLocaleString("en-GB")} &nbsp;|&nbsp; Total Waiting: ${stats.total} &nbsp;|&nbsp; Avg Wait: ${stats.avgWait} min</p>
       <div class="stats">
         <div class="stat"><div class="stat-value" style="color:#dc2626">${stats.emergency}</div><div class="stat-label">Emergency</div></div>

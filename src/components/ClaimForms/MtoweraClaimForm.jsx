@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Save, Plus, Trash2 } from "lucide-react";
 
 const calculateAge = (dateOfBirth) => {
@@ -17,7 +17,7 @@ const calculateAge = (dateOfBirth) => {
   return years === 0 ? `${months} month${months !== 1 ? 's' : ''}` : `${years} year${years !== 1 ? 's' : ''}`;
 };
 
-export default function ZombacityClaimForm() {
+export default function MtoweraClaimForm() {
   const [form, setForm] = useState({
     memberName: "", employmentNo: "", patientName: "", relationshipToMember: "",
     dob: "", sex: "", age: "", contacts: "", institution: "", treatmentDate: "", illnessDiagnosis: "",
@@ -83,7 +83,7 @@ export default function ZombacityClaimForm() {
         </div>
       </div>
 
-      <button type="submit" className="w-full bg-primary text-primary-foreground rounded-lg py-2.5 font-medium text-sm hover:bg-primary/90 flex items-center justify-center gap-2"><Save className="w-4 h-4" /> Save Zomba City Claim</button>
+      <button type="submit" className="w-full bg-primary text-primary-foreground rounded-lg py-2.5 font-medium text-sm hover:bg-primary/90 flex items-center justify-center gap-2"><Save className="w-4 h-4" /> Save Mtowera Claim</button>
     </form>
   );
 }

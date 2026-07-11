@@ -1,4 +1,4 @@
-app = 'zcpc-api'
+﻿app = 'mpc-api'
 primary_region = 'jnb'
 
 [deploy]

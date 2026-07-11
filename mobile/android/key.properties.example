@@ -1,4 +1,4 @@
-storePassword=your_keystore_password
+﻿storePassword=your_keystore_password
 keyPassword=your_key_password
-keyAlias=zcpc_release
-storeFile=../keystore/zcpc-release.jks
+keyAlias=mpc_release
+storeFile=../keystore/mpc-release.jks

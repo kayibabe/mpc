@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { FileBarChart, Download, Loader2, Users, FlaskConical, BedDouble, Baby, TrendingUp, Calendar, Activity } from "lucide-react";
@@ -67,7 +67,7 @@ export default function MoHReports() {
         // Flatten aggregates to CSV
         const rows = [
           ['Facility', 'Period', 'Report Type', 'Metric', 'Value'],
-          [data.facility?.name || 'Zomba City Private Clinic', exp.period, exp.report_type, 'Total Visits', data.aggregates?.total_visits || 0],
+          [data.facility?.name || 'Mtowera Private Clinic', exp.period, exp.report_type, 'Total Visits', data.aggregates?.total_visits || 0],
           ['', '', '', 'OPD Visits', data.aggregates?.opd_visits || 0],
           ['', '', '', 'Emergency Visits', data.aggregates?.emergency_visits || 0],
           ['', '', '', 'Inpatient Admissions', data.aggregates?.inpatient_admissions || 0],

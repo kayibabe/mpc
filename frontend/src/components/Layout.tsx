@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import { useAuthStore } from '../store/auth'
@@ -57,8 +57,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           >
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
-          <span className="font-bold text-lg">ZCPC</span>
-          <span className="text-blue-300 text-sm hidden sm:inline">Zomba City Private Clinic</span>
+          <span className="font-bold text-lg">MPC</span>
+          <span className="text-blue-300 text-sm hidden sm:inline">Mtowera Private Clinic</span>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-blue-200 hidden sm:inline">{user?.full_name} ({user?.role})</span>

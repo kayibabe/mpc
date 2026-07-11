@@ -44,9 +44,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('ZCPC', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1E40AF))),
+                    const Text('MPC', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1E40AF))),
                     const SizedBox(height: 4),
-                    const Text('Zomba City Private Clinic', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                    const Text('Mtowera Private Clinic', style: TextStyle(color: Colors.grey, fontSize: 13)),
                     const SizedBox(height: 28),
                     TextField(
                       controller: _idController,

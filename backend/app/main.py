@@ -1,4 +1,4 @@
-from contextlib import asynccontextmanager
+﻿from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
@@ -28,8 +28,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Zomba City Private Clinic API",
-    description="Clinical management system for ZCPC — Zomba, Malawi",
+    title="Mtowera Private Clinic API",
+    description="Clinical management system for MPC — Mtowera, Malawi",
     version="1.0.0",
     lifespan=lifespan,
 )

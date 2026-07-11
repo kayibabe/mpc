@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Users, Calendar, FlaskConical, BedDouble, Pill, Receipt, TrendingUp, Clock, Activity, RefreshCw, Bell, Send, Loader2, GitBranch, Megaphone, ArrowRight, AlertTriangle, FileDown, CheckSquare, Square, X, ChevronDown, ChevronUp, RefreshCcw, Download } from "lucide-react";
@@ -325,7 +325,7 @@ export default function Dashboard() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Zomba City Private Clinic — {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
+            Mtowera Private Clinic — {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
             {currentUser && <span className="ml-2 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold capitalize">{userRole}</span>}
           </p>
         </div>
