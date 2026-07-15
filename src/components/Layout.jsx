@@ -148,6 +148,14 @@ export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Derive the active section group from the current route
+  const activeGroup = ALL_NAV_GROUPS.find(
+    (g) => g.label !== "Main" && g.items.some(
+      (item) => item.path === location.pathname ||
+        (item.path !== "/" && location.pathname.startsWith(item.path))
+    )
+  ) ?? ALL_NAV_GROUPS[0];
+
   const toggleGroupCollapse = (groupLabel) => {
     setCollapsedGroups((prev) => {
       if (prev[groupLabel] === false) return {};
@@ -368,7 +376,10 @@ export default function Layout() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
-        <header className="h-16 border-b border-border bg-white flex items-center justify-between px-4 lg:px-8 flex-shrink-0">
+        <header
+          className="h-16 border-b bg-white flex items-center justify-between px-4 lg:px-8 flex-shrink-0 transition-colors duration-300"
+          style={{ borderBottomColor: activeGroup.color, borderBottomWidth: "3px" }}
+        >
           <div className="flex items-center gap-3">
             <button
               className="lg:hidden p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"
@@ -390,6 +401,16 @@ export default function Layout() {
                 </p>
               </div>
             </div>
+            {/* Section badge */}
+            {activeGroup.label !== "Main" && (
+              <div
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider transition-colors duration-300"
+                style={{ background: `${activeGroup.color}15`, color: activeGroup.color }}
+              >
+                {(() => { const SectionIcon = activeGroup.icon; return <SectionIcon className="w-3 h-3 flex-shrink-0" strokeWidth={2.2} />; })()}
+                <span>{activeGroup.label}</span>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2 lg:gap-4">
@@ -447,7 +468,10 @@ export default function Layout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto bg-background">
+        <main
+          className="flex-1 overflow-y-auto transition-colors duration-300"
+          style={{ backgroundColor: `${activeGroup.color}0A` }}
+        >
           <SurgeAlertBanner />
           <Outlet />
         </main>
