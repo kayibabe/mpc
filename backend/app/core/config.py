@@ -56,24 +56,28 @@ class Settings(BaseSettings):
     def allowed_origins_list(self) -> list[str]:
         return [o.strip() for o in self.ALLOWED_ORIGINS.split(",") if o.strip()]
 
+    @staticmethod
+    def _psycopg_url(raw: str) -> str:
+        url = (raw
+               .replace("postgres://", "postgresql+psycopg://")
+               .replace("postgresql://", "postgresql+psycopg://"))
+        # Fly Postgres internal/flycast connections reject SSL; psycopg3 defaults
+        # to sslmode=prefer which causes "server closed the connection unexpectedly".
+        if "sslmode=" not in url:
+            sep = "&" if "?" in url else "?"
+            url += f"{sep}sslmode=disable"
+        return url
+
     @property
     def db_url(self) -> str:
         if self.DATABASE_URL:
-            # fly.dev uses postgres:// with ?sslmode=disable — strip query string
-            # and convert scheme because asyncpg doesn't recognise sslmode.
-            base = self.DATABASE_URL.split("?")[0]
-            return (base
-                    .replace("postgres://", "postgresql+asyncpg://")
-                    .replace("postgresql://", "postgresql+asyncpg://"))
-        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+            return self._psycopg_url(self.DATABASE_URL)
+        return f"postgresql+psycopg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
     @property
     def db_url_sync(self) -> str:
         if self.DATABASE_URL:
-            base = self.DATABASE_URL.split("?")[0]
-            return (base
-                    .replace("postgres://", "postgresql+psycopg://")
-                    .replace("postgresql://", "postgresql+psycopg://"))
+            return self._psycopg_url(self.DATABASE_URL)
         return f"postgresql+psycopg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
 
