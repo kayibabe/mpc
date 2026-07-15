@@ -41,7 +41,10 @@ def upgrade() -> None:
     op.execute("CREATE SEQUENCE IF NOT EXISTS preauth_seq START 1")
 
     conn = op.get_bind()
-    existing = sa.inspect(conn).get_table_names()
+    try:
+        existing = sa.inspect(conn).get_table_names()
+    except Exception:
+        existing = []
 
     if "insurers" not in existing:
         op.create_table(

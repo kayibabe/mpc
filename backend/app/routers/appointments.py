@@ -9,7 +9,7 @@ from app.models.appointment import (
     Appointment, AppointmentStatus, AppointmentType,
     VALID_TRANSITIONS, TERMINAL_STATUSES,
 )
-from app.models.encounter import Encounter, EncounterType, EncounterStatus
+from app.models.encounter import Encounter, EncounterType
 from app.schemas.appointment import (
     AppointmentCreate, AppointmentUpdate, AppointmentCheckin,
     AppointmentListResponse, AppointmentResponse,

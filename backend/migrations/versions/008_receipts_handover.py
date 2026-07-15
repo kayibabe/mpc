@@ -22,16 +22,21 @@ def upgrade() -> None:
     op.execute("CREATE SEQUENCE IF NOT EXISTS rct_seq START 1")
 
     conn = op.get_bind()
-    insp = sa.inspect(conn)
+    try:
+        insp = sa.inspect(conn)
+        payments_cols = {c["name"] for c in insp.get_columns("payments")}
+        existing_constraints = {c["name"] for c in insp.get_unique_constraints("payments")}
+        nursing_cols = {c["name"] for c in insp.get_columns("nursing_notes")}
+    except Exception:
+        payments_cols = set()
+        existing_constraints = set()
+        nursing_cols = set()
 
-    payments_cols = {c["name"] for c in insp.get_columns("payments")}
     if "receipt_number" not in payments_cols:
         op.add_column("payments", sa.Column("receipt_number", sa.String(30), nullable=True))
-        existing_constraints = {c["name"] for c in insp.get_unique_constraints("payments")}
         if "uq_payments_receipt_number" not in existing_constraints:
             op.create_unique_constraint("uq_payments_receipt_number", "payments", ["receipt_number"])
 
-    nursing_cols = {c["name"] for c in insp.get_columns("nursing_notes")}
     if "note_type" not in nursing_cols:
         op.add_column(
             "nursing_notes",

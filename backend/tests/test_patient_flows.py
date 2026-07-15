@@ -6,7 +6,6 @@ handover audit specifies. Tests share one in-memory database (see conftest),
 so every test uses unique names/phones and tolerant (>=, membership)
 assertions on aggregate endpoints.
 """
-import pytest
 from datetime import datetime, timedelta, timezone, date
 
 from app.models.user import UserRole

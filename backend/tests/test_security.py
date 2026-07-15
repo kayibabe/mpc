@@ -44,7 +44,6 @@ async def test_token_expiry(client: AsyncClient, create_test_user):
     assert "Invalid or expired token" in response.json()["detail"]
 
 
-@pytest.mark.asyncio
 def test_password_strength_validation():
     # Reuse from auth but ensure coverage
     with pytest.raises(ValueError):

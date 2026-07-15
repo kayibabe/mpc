@@ -62,7 +62,7 @@ class Bed(Base):
     bed_number: Mapped[str] = mapped_column(String(20), nullable=False)
     bed_type: Mapped[str] = mapped_column(String(50), default="general", nullable=False)
     status: Mapped[BedStatus] = mapped_column(SAEnum(BedStatus), default=BedStatus.available, nullable=False)
-    current_admission_id: Mapped[str | None] = mapped_column(ForeignKey("admissions.id"), nullable=True, index=True)
+    current_admission_id: Mapped[str | None] = mapped_column(ForeignKey("admissions.id", use_alter=True), nullable=True, index=True)
 
     # Relationships
     ward: Mapped["Ward"] = relationship(back_populates="beds")

@@ -74,7 +74,6 @@ async def test_get_me_endpoint(client: AsyncClient, auth_token):
     assert data["role"] == "receptionist"
 
 
-@pytest.mark.asyncio
 def test_password_validation_rules():
     # Valid password
     assert validate_password_strength("Valid@Pass123") == "Valid@Pass123"

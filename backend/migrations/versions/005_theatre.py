@@ -24,7 +24,10 @@ def upgrade() -> None:
     """)
 
     conn = op.get_bind()
-    existing = sa.inspect(conn).get_table_names()
+    try:
+        existing = sa.inspect(conn).get_table_names()
+    except Exception:
+        existing = []
 
     if "theatre_cases" not in existing:
         op.create_table(
